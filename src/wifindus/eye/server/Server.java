@@ -1,5 +1,6 @@
 package wifindus.eye.server;
 
+import java.io.File;
 import wifindus.ConfigFile;
 
 public class Server
@@ -8,15 +9,11 @@ public class Server
 	
 	public Server()
 	{
-		ReadConfigFiles();
+		config = new ConfigFile(new File("eye-server.conf"));
+		System.out.println(config);
 		ConnectMySQL();
 		MessageLoop();
 		DisconnectMySQL();
-	}
-	
-	private void ReadConfigFiles()
-	{
-		//TODO: read config files from the working directory
 	}
 	
 	private void ConnectMySQL()
@@ -37,6 +34,6 @@ public class Server
 	
 	public static void main(String[] args)
 	{
-		
+		Server server = new Server();
 	}
 }

@@ -6,8 +6,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,18 +31,24 @@ import java.util.regex.Pattern;
  */
 public class ConfigFile
 {
+	private static final Pattern PATTERN_KEY = Pattern.compile( "[a-zA-Z0-9_]+" );
+	private static final Pattern PATTERN_COMMENT = Pattern.compile( "//.*$" );
 	private static final Pattern PATTERN_CONFIG_KVP
-	= Pattern.compile(
-		"^([a-zA-Z0-9_]+)" //key name
-		+ "[ \t]*[:=][ \t]*" //delimiter (w/ whitespace)
-		+ "(.+)$" //value
-		);
-	private static final String PATTERN_COMMENT = "//.*$";
-	private LinkedHashMap<String, String> kvps = new LinkedHashMap<>();
+		= Pattern.compile( "^("+ PATTERN_KEY.pattern() +")[ \t]*[:=][ \t]*(.+)$");
+	
+	private Map<String, String> kvps = new LinkedHashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Instantiates an empty ConfigFile.
+	 */
+	public ConfigFile()
+	{
+		
+	}
 	
 	/**
 	 * Insantiates a ConfigFile using a Java.IO File object.
@@ -51,14 +57,17 @@ public class ConfigFile
 	public ConfigFile(File file)
 	{
 		if (file == null)
+			throw new IllegalArgumentException("file cannot be null.");
+		
+		if (!file.exists())
 		{
-			System.err.println("Error reading ConfigFile: null File parameter passed.");
+			System.err.println("ConfigFile: "+file.getAbsolutePath()+" does not exist.");
 			return;
 		}
 		
-		if (!file.exists() || !file.isFile())
+		if (!file.isFile())
 		{
-			System.err.println("Error reading ConfigFile: does not exist or is a directory!");
+			System.err.println("ConfigFile: "+file.getAbsolutePath()+" is not a file.");
 			return;
 		}
 		
@@ -68,7 +77,7 @@ public class ConfigFile
 		}
 		catch (IOException e)
 		{
-			System.err.println("Error reading ConfigFile: " + e.getMessage());
+			System.err.println("ConfigFile: " + e.getMessage());
 			return;
 		}
 	}
@@ -80,16 +89,13 @@ public class ConfigFile
 	public ConfigFile(String resource)
 	{
 		if (resource == null)
-		{
-			System.err.println("Error reading ConfigFile: null resource parameter passed.");
-			return;
-		}
+			throw new IllegalArgumentException("resource cannot be null.");
 		
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classLoader.getResourceAsStream(resource);
 		if (in == null)
 		{
-			System.err.println("Error reading ConfigFile: getResourceAsStream() returned null");
+			System.err.println("ConfigFile: getResourceAsStream() returned null");
 			return;
 		}
 		readStream(in);
@@ -104,6 +110,9 @@ public class ConfigFile
 	 */
 	public int get(String key, int defaultValue)
 	{
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		
 		String val = getValue(key);
 		if (val == null)
 			return defaultValue;
@@ -127,6 +136,9 @@ public class ConfigFile
 	 */
 	public float get(String key, float defaultValue)
 	{
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		
 		String val = getValue(key);
 		if (val == null)
 			return defaultValue;
@@ -150,6 +162,9 @@ public class ConfigFile
 	 */
 	public double get(String key, double defaultValue)
 	{
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		
 		String val = getValue(key);
 		if (val == null)
 			return defaultValue;
@@ -173,6 +188,9 @@ public class ConfigFile
 	 */
 	public boolean get(String key, boolean defaultValue)
 	{
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		
 		String val = getValue(key);
 		if (val == null)
 			return defaultValue;
@@ -189,8 +207,50 @@ public class ConfigFile
 	 */
 	public String get(String key, String defaultValue)
 	{
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		
 		String val = getValue(key);
 		return val == null ? defaultValue : val;
+	}
+	
+	/**
+	 * Sets a key/value pair.
+	 * @param key The key to assign.
+	 * @param value The value to assign at the given key. Passing null deletes the kvp.
+	 */
+	public void set(String key, String value)
+	{
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		
+		key = key.trim().toLowerCase();
+		if (key.length() == 0)
+			throw new IllegalArgumentException("key cannot be an empty string.");
+		else if (!PATTERN_KEY.matcher(key).find())
+			throw new IllegalArgumentException("key contains invalid characters.");
+		
+		if (value == null)
+			kvps.remove(key);
+		else
+			kvps.put(key, value);		
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("ConfigFile[");
+		if (kvps.size() > 0)
+		{
+			sb.append("\n");
+			for (Map.Entry<String, String> kvp : kvps.entrySet())
+				sb.append("  " + kvp.getKey() + ": " + kvp.getValue() + "\n");
+		}
+		else
+			sb.append(" ");
+		sb.append("]");
+		return sb.toString();
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -207,7 +267,7 @@ public class ConfigFile
 			while ((line = reader.readLine()) != null)
 			{
 				//strip comments and trim
-				line = line.replaceAll(PATTERN_COMMENT, "").trim();
+				line = PATTERN_COMMENT.matcher(line).replaceAll("").trim();
 				if (line.length() == 0)
 					continue;
 				
@@ -243,7 +303,7 @@ public class ConfigFile
 	
 	private String getValue(String key)
 	{
-		if (key == null || (key = key.trim().toLowerCase()).isEmpty())
+		if ((key = key.trim().toLowerCase()).isEmpty())
 			return null;
 		return kvps.get(key);
 	}
