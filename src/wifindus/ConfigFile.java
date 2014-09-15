@@ -227,7 +227,7 @@ public class ConfigFile
 		key = key.trim().toLowerCase();
 		if (key.length() == 0)
 			throw new IllegalArgumentException("key cannot be an empty string.");
-		else if (!PATTERN_KEY.matcher(key).find())
+		else if (!PATTERN_KEY.matcher(key).matches())
 			throw new IllegalArgumentException("key contains invalid characters.");
 		
 		if (value == null)
