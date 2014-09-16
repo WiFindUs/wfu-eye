@@ -1,19 +1,48 @@
 package wifindus.eye.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import wifindus.ConfigFile;
 
 public class Server
 {
-	private ConfigFile config = null;
+	private volatile int clientPort = 33339;
+	private volatile int dispatcherPortStart = 33339;
+	private volatile int dispatcherPortCount = 33339;
+	
 	
 	public Server()
 	{
-		config = new ConfigFile(new File("eye-server.conf"));
-		System.out.println(config);
+		LoadConfig();
 		ConnectMySQL();
-		MessageLoop();
+		SpawnThreads();
 		DisconnectMySQL();
+	}
+	
+	private void LoadConfig()
+	{
+		//load settings if possible
+		ConfigFile config = null;
+		try
+		{
+			config = new ConfigFile(new File("eye-server.conf"));
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println(e.getMessage()+"\nUsing default settings...");
+			config = new ConfigFile();
+		}
+		
+		//assigns & sanity checking
+		clientPort = config.get("clientPort", 33339);
+		if (clientPort <= 1024)
+			clientPort = 33339;
+		dispatcherPortStart = config.get("dispatcherPortStart", 33340);
+		if (dispatcherPortStart <= 1024 || dispatcherPortStart == clientPort)
+			dispatcherPortStart = 33340;
+		dispatcherPortCount = config.get("dispatcherPortCount", 5);
+		if (dispatcherPortCount <= 0)
+			dispatcherPortStart = 3;
 	}
 	
 	private void ConnectMySQL()
@@ -21,10 +50,10 @@ public class Server
 		//TODO: connect to the mysql server
 	}
 	
-	private void MessageLoop()
+	private void SpawnThreads()
 	{
-		//TODO: listen for new connections
-		//TODO: send new incidents to 
+		//TODO: start threads for TCP connections (dispatchers)
+		//TODO: start thread for UDP listener (clients)
 	}
 	
 	private void DisconnectMySQL()
