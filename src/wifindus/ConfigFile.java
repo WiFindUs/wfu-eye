@@ -3,11 +3,12 @@ package wifindus;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +37,7 @@ public class ConfigFile
 	private static final Pattern PATTERN_CONFIG_KVP
 		= Pattern.compile( "^("+ PATTERN_KEY.pattern() +")[ \t]*[:=][ \t]*(.+)$");
 	
-	private Map<String, String> kvps = new LinkedHashMap<>();
+	private Map<String, String> kvps = new ConcurrentHashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
@@ -53,23 +54,16 @@ public class ConfigFile
 	/**
 	 * Insantiates a ConfigFile using a Java.IO File object.
 	 * @param file The File object representing the config file's path.
+	 * @throws FileNotFoundException if the file path did not exist or was not a file.
 	 */
-	public ConfigFile(File file)
+	public ConfigFile(File file) throws FileNotFoundException
 	{
 		if (file == null)
 			throw new IllegalArgumentException("file cannot be null.");
-		
 		if (!file.exists())
-		{
-			System.err.println("ConfigFile: "+file.getAbsolutePath()+" does not exist.");
-			return;
-		}
-		
+			throw new FileNotFoundException("ConfigFile: "+file.getAbsolutePath()+" does not exist.");
 		if (!file.isFile())
-		{
-			System.err.println("ConfigFile: "+file.getAbsolutePath()+" is not a file.");
-			return;
-		}
+			throw new FileNotFoundException("ConfigFile: "+file.getAbsolutePath()+" is not a file.");
 		
 		try
 		{
@@ -85,8 +79,9 @@ public class ConfigFile
 	/**
 	 * Insantiates a ConfigFile from an embedded resource.
 	 * @param file The name of the embedded resource from which to load the config.
+	 * @throws FileNotFoundException if the ClassLoader could not find the given file resource.
 	 */
-	public ConfigFile(String resource)
+	public ConfigFile(String resource) throws FileNotFoundException
 	{
 		if (resource == null)
 			throw new IllegalArgumentException("resource cannot be null.");
@@ -94,10 +89,7 @@ public class ConfigFile
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classLoader.getResourceAsStream(resource);
 		if (in == null)
-		{
-			System.err.println("ConfigFile: getResourceAsStream() returned null");
-			return;
-		}
+			throw new FileNotFoundException("ConfigFile: getResourceAsStream() returned null");
 		readStream(in);
 	}
 	
@@ -110,10 +102,7 @@ public class ConfigFile
 	 */
 	public int get(String key, int defaultValue)
 	{
-		if (key == null)
-			throw new IllegalArgumentException("key cannot be null.");
-		
-		String val = getValue(key);
+		String val = kvps.get(checkKey(key));
 		if (val == null)
 			return defaultValue;
 		
@@ -136,10 +125,7 @@ public class ConfigFile
 	 */
 	public float get(String key, float defaultValue)
 	{
-		if (key == null)
-			throw new IllegalArgumentException("key cannot be null.");
-		
-		String val = getValue(key);
+		String val = kvps.get(checkKey(key));
 		if (val == null)
 			return defaultValue;
 		
@@ -162,10 +148,7 @@ public class ConfigFile
 	 */
 	public double get(String key, double defaultValue)
 	{
-		if (key == null)
-			throw new IllegalArgumentException("key cannot be null.");
-		
-		String val = getValue(key);
+		String val = kvps.get(checkKey(key));
 		if (val == null)
 			return defaultValue;
 		
@@ -188,10 +171,7 @@ public class ConfigFile
 	 */
 	public boolean get(String key, boolean defaultValue)
 	{
-		if (key == null)
-			throw new IllegalArgumentException("key cannot be null.");
-		
-		String val = getValue(key);
+		String val = kvps.get(checkKey(key));
 		if (val == null)
 			return defaultValue;
 		
@@ -207,33 +187,81 @@ public class ConfigFile
 	 */
 	public String get(String key, String defaultValue)
 	{
-		if (key == null)
-			throw new IllegalArgumentException("key cannot be null.");
+		if (defaultValue == null)
+			throw new IllegalArgumentException("defaultValue cannot be null.");
 		
-		String val = getValue(key);
+		String val = kvps.get(checkKey(key));
 		return val == null ? defaultValue : val;
 	}
 	
 	/**
 	 * Sets a key/value pair.
 	 * @param key The key to assign.
-	 * @param value The value to assign at the given key. Passing null deletes the kvp.
+	 * @param value The value to assign at the given key.
 	 */
 	public void set(String key, String value)
 	{
-		if (key == null)
-			throw new IllegalArgumentException("key cannot be null.");
-		
-		key = key.trim().toLowerCase();
-		if (key.length() == 0)
-			throw new IllegalArgumentException("key cannot be an empty string.");
-		else if (!PATTERN_KEY.matcher(key).matches())
-			throw new IllegalArgumentException("key contains invalid characters.");
-		
 		if (value == null)
-			kvps.remove(key);
-		else
-			kvps.put(key, value);		
+			throw new IllegalArgumentException("value cannot be null.");
+
+		kvps.put(checkKey(key), value);		
+	}
+	
+	/**
+	 * Sets a key/value pair.
+	 * @param key The key to assign.
+	 * @param value The value to assign at the given key.
+	 */
+	public void set(String key, double value)
+	{
+		kvps.put(checkKey(key), Double.toString(value));		
+	}
+	
+	/**
+	 * Sets a key/value pair.
+	 * @param key The key to assign.
+	 * @param value The value to assign at the given key.
+	 */
+	public void set(String key, float value)
+	{
+		kvps.put(checkKey(key), Float.toString(value));		
+	}
+	
+	/**
+	 * Sets a key/value pair.
+	 * @param key The key to assign.
+	 * @param value The value to assign at the given key.
+	 */
+	public void set(String key, int value)
+	{
+		kvps.put(checkKey(key), Integer.toString(value));		
+	}
+	
+	/**
+	 * Sets a key/value pair.
+	 * @param key The key to assign.
+	 * @param value The value to assign at the given key.
+	 */
+	public void set(String key, boolean value)
+	{
+		kvps.put(checkKey(key), Boolean.toString(value));		
+	}
+	
+	/**
+	 * Deletes a key/value pair, if it exists.
+	 * @param key The key to delete.
+	 */
+	public void delete(String key)
+	{
+		kvps.remove(checkKey(key));
+	}
+	
+	/**
+	 * Deletes all key/value pairs.
+	 */
+	public void clear()
+	{
+		kvps.clear();
 	}
 	
 	@Override
@@ -276,7 +304,7 @@ public class ConfigFile
 				if (!lineMatch.find())
 					continue;
 				
-				String key = lineMatch.group(1).toLowerCase();
+				String key = checkKey(lineMatch.group(1));
 				String value = lineMatch.group(2);
 				
 				//test for an explicit string
@@ -301,10 +329,15 @@ public class ConfigFile
 		}
 	}
 	
-	private String getValue(String key)
+	private String checkKey(String key)
 	{
-		if ((key = key.trim().toLowerCase()).isEmpty())
-			return null;
-		return kvps.get(key);
+		if (key == null)
+			throw new IllegalArgumentException("key cannot be null.");
+		key = key.trim().toLowerCase();
+		if (key.length() == 0)
+			throw new IllegalArgumentException("key cannot be an empty string.");
+		else if (!PATTERN_KEY.matcher(key).matches())
+			throw new IllegalArgumentException("key contains invalid characters.");
+		return key;
 	}
 }
