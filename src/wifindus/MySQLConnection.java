@@ -1,6 +1,5 @@
 package wifindus;
 
-import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -76,7 +75,7 @@ public class MySQLConnection
 	}
 	
 	/**
-	 * Connects to a MySQL database on port  3306.
+	 * Connects to a MySQL database on port 3306.
 	 @param address Address of the server (without port).
 	 * @param database The name of the database to connect to.
 	 * @param username The MySQL server username.
