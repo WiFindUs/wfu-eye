@@ -1,48 +1,38 @@
 package wifindus.eye.server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import wifindus.ConfigFile;
+import wifindus.eye.EyeObject;
 
-public class Server
+public class Server extends EyeObject
 {
+	/*
 	private volatile int clientPort = 33339;
 	private volatile int dispatcherPortStart = 33339;
 	private volatile int dispatcherPortCount = 33339;
+	*/	
 	
-	
-	public Server()
+	public Server(String[] args)
 	{
-		LoadConfig();
-		ConnectMySQL();
-		SpawnThreads();
-		DisconnectMySQL();
+		super(args);
 	}
 	
+	/*
 	private void LoadConfig()
 	{
 		//load settings if possible
-		ConfigFile config = null;
-		try
-		{
-			config = new ConfigFile(new File("eye-server.conf"));
-		}
-		catch (FileNotFoundException e)
-		{
-			System.err.println(e.getMessage()+"\nUsing default settings...");
-			config = new ConfigFile();
-		}
+		ConfigFile config = new ConfigFile(new File("eye.conf"));
 		
 		//assigns & sanity checking
-		clientPort = config.get("clientPort", 33339);
+		clientPort = config.getInt("clientPort", 33339);
 		if (clientPort <= 1024)
 			clientPort = 33339;
-		dispatcherPortStart = config.get("dispatcherPortStart", 33340);
+		dispatcherPortStart = config.getInt("dispatcherPortStart", 33340);
 		if (dispatcherPortStart <= 1024 || dispatcherPortStart == clientPort)
 			dispatcherPortStart = 33340;
-		dispatcherPortCount = config.get("dispatcherPortCount", 5);
+		dispatcherPortCount = config.getInt("dispatcherPortCount", 5);
 		if (dispatcherPortCount <= 0)
 			dispatcherPortStart = 3;
+		
+		System.out.println(config);
 	}
 	
 	private void ConnectMySQL()
@@ -60,9 +50,10 @@ public class Server
 	{
 		//TODO: disconnect from the mysql server
 	}
+	*/
 	
 	public static void main(String[] args)
 	{
-		Server server = new Server();
+		Server server = new Server(args);
 	}
 }
