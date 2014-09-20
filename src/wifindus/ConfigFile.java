@@ -406,7 +406,7 @@ public class ConfigFile
 		{
 			sb.append("\n");
 			for (Map.Entry<String, String> kvp : kvps.entrySet())
-				sb.append("  " + kvp.getKey() + ": " + kvp.getValue() + "\n");
+				sb.append("    " + kvp.getKey() + ": " + kvp.getValue() + "\n");
 		}
 		else
 			sb.append(" ");

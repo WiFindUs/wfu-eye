@@ -13,5 +13,4 @@ public class Incident implements Serializable
 	private long id = 0;
 	private byte type;
 	private Location location;
-	
 }
