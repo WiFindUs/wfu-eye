@@ -10,6 +10,7 @@ public class Dispatcher extends EyeApplication
 		super(args);
 	}
 
+	//do not modify main :)
 	public static void main(String[] args)
 	{
 		Dispatcher dispatcher = new Dispatcher(args);
