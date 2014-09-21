@@ -11,7 +11,7 @@ import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.MySQLConnection;
 
-public class EyeApplication implements Closeable
+public class EyeApplication implements Closeable, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener
 {
 	private volatile ConfigFile config = null;
 	private volatile boolean abortThreads = false;
