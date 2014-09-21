@@ -135,4 +135,53 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 		closed = true;
 		Debugger.close();
 	}
+
+	@Override
+	public void incidentCreated()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentDeleted()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentArchived()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentUserAssigned()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceTimedOut()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceLoggedIn()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceLoggedOut()
+	{
+		// TODO Auto-generated method stub
+		
+	}
 }
