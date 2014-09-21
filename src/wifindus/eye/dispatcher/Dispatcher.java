@@ -1,5 +1,6 @@
 package wifindus.eye.dispatcher;
 
+import java.io.IOException;
 import wifindus.eye.EyeApplication;
 
 public class Dispatcher extends EyeApplication
@@ -8,14 +9,11 @@ public class Dispatcher extends EyeApplication
 	{
 		super(args);
 	}
-	
-	
-	
-	
-	
+
 	public static void main(String[] args)
 	{
 		Dispatcher dispatcher = new Dispatcher(args);
-		dispatcher.dispose();
+		try	{ dispatcher.close(); }
+		catch (IOException e) { }
 	}
 }

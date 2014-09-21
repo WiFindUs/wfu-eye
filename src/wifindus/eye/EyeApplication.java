@@ -8,18 +8,32 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import wifindus.ConfigFile;
+import wifindus.Debugger;
 import wifindus.MySQLConnection;
 
-public class EyeApplication
+public class EyeApplication implements Closeable
 {
 	private volatile ConfigFile config = null;
 	private volatile boolean abortThreads = false;
 	private volatile List<Thread> threads = new ArrayList<>();
 	private MySQLConnection mysql = new MySQLConnection();
+	private boolean closed = false;
+	private static boolean active = false;
+	
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	/////////////////////////////////////////////////////////////////////
 	
 	public EyeApplication(String[] args)
 	{
-		System.out.println("Parsing command line arguments for config files...");
+		if (active)
+			throw new IllegalStateException("You may not have more than one instance of EyeApplication at once.");
+		active = true;
+		
+		//start debugger
+		Debugger.open();
+		
+		Debugger.i("Parsing command line arguments for config files...");
 		//parse command line arguments for config parameters
 		List<File> configFiles = new ArrayList<>();
 		if (args != null && args.length > 0)
@@ -32,7 +46,7 @@ public class EyeApplication
 				if (args[i].equalsIgnoreCase("-conf"))
 				{
 					configFiles.add(new File(args[++i]));
-					System.out.println("    Found '"+args[i]+"'.");
+					Debugger.i("    Found '"+args[i]+"'.");
 					continue;
 				}
 			}
@@ -41,12 +55,11 @@ public class EyeApplication
 		//use eye.conf as default if none were supplied
 		if (configFiles.size() == 0)
 		{
-			System.out.println("    None found, using default 'eye.conf'.");
+			Debugger.i("    None found, using default 'eye.conf'.");
 			configFiles.add(new File("eye.conf"));
 		}
 		
 		//try loading files
-		
 		config = new ConfigFile(configFiles);
 		
 		//ensure required keys are present and valid, enforce defaults if not
@@ -63,7 +76,7 @@ public class EyeApplication
 		config.setInt("dispatcher.tcp_port", Math.min(Math.max(config.getInt("dispatcher.tcp_port", 33340),1024),65535));
 		
 		//connect to mysql
-		System.out.println("Connecting to MySQL database '" + config.getString("mysql.database") + "@"
+		Debugger.i("Connecting to MySQL database '" + config.getString("mysql.database") + "@"
 				+ config.getString("mysql.address") + ":" + config.getInt("mysql.port") + "...");
 		try
 		{			
@@ -75,19 +88,36 @@ public class EyeApplication
 		}
 		catch (Exception e)
 		{
-		    System.err.println(e.getMessage());
-		    dispose();
+			Debugger.ex(e);
+		    closeInternal();
 		    System.exit(1);
 		}
-
 	}
 	
-	/**
-	 * 
-	 */
-	public void dispose()
+	public void close() throws IOException
 	{
-		System.out.println("Cleaning up...");
+		closeInternal();
+	}
+	
+	/////////////////////////////////////////////////////////////////////
+	// PRIVATE METHODS
+	/////////////////////////////////////////////////////////////////////
+	
+	private class TCPListenThread implements Runnable
+	{
+		@Override
+		public void run()
+		{
+			
+		}		
+	}
+	
+	//this is merely to provide an internal close() without requiring Closeable's throwing of IOException
+	private void closeInternal()
+	{
+		if (closed)
+			return;
+		Debugger.i("Cleaning up...");
 		mysql.disconnect();
 		abortThreads = true;
 		for (Thread thread : threads) 
@@ -102,14 +132,7 @@ public class EyeApplication
 			}
 		}
 		threads.clear();
-	}
-	
-	private class TCPListenThread implements Runnable
-	{
-		@Override
-		public void run()
-		{
-			
-		}		
+		closed = true;
+		Debugger.close();
 	}
 }

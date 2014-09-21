@@ -67,9 +67,9 @@ public class MySQLConnection
 		}
 		catch (SQLException ex)
 		{
-		    System.err.println("SQLException: " + ex.getMessage());
-		    System.err.println("SQLState: " + ex.getSQLState());
-		    System.err.println("VendorError: " + ex.getErrorCode());
+			Debugger.e("SQLException: " + ex.getMessage());
+			Debugger.e("SQLState: " + ex.getSQLState());
+			Debugger.e("VendorError: " + ex.getErrorCode());
 		    throw new IllegalStateException("Connecting to the MySQL server failed.");
 		}
 	}
@@ -179,9 +179,9 @@ public class MySQLConnection
 		}
 		catch (SQLException ex)
 		{
-		    System.err.println("SQLException: " + ex.getMessage());
-		    System.err.println("SQLState: " + ex.getSQLState());
-		    System.err.println("VendorError: " + ex.getErrorCode());
+			Debugger.e("SQLException: " + ex.getMessage());
+			Debugger.e("SQLState: " + ex.getSQLState());
+			Debugger.e("VendorError: " + ex.getErrorCode());
 		    throw new IllegalStateException("There was an error creating a statement.");
 		}
 	}
@@ -201,9 +201,9 @@ public class MySQLConnection
 		}
 		catch (SQLException ex)
 		{
-		    System.err.println("SQLException: " + ex.getMessage());
-		    System.err.println("SQLState: " + ex.getSQLState());
-		    System.err.println("VendorError: " + ex.getErrorCode());
+			Debugger.e("SQLException: " + ex.getMessage());
+			Debugger.e("SQLState: " + ex.getSQLState());
+			Debugger.e("VendorError: " + ex.getErrorCode());
 		    throw new IllegalStateException("There was an error creating a statement.");
 		}
 	}
@@ -223,7 +223,7 @@ public class MySQLConnection
         }
         catch (Exception e)
         {
-			System.err.println(e.getMessage());
+        	Debugger.ex(e);
         }
 		return false;
 	}
