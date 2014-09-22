@@ -7,12 +7,15 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.MySQLConnection;
 
 public class EyeApplication implements Closeable, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener
 {
+	private static final Pattern PATTERN_VERBOSITY = Pattern.compile( "^-([0-4])$" );
 	private volatile ConfigFile config = null;
 	private volatile boolean abortThreads = false;
 	private volatile List<Thread> threads = new ArrayList<>();
@@ -21,34 +24,40 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 	private static boolean active = false;
 	
 	/////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
+	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
 	public EyeApplication(String[] args)
 	{
+		if (args == null)
+			throw new IllegalArgumentException("Parameter 'args' cannot be null.");
 		if (active)
 			throw new IllegalStateException("You may not have more than one instance of EyeApplication at once.");
 		active = true;
 		
-		//start debugger
-		Debugger.open();
-		
-		Debugger.i("Parsing command line arguments for config files...");
-		//parse command line arguments for config parameters
-		List<File> configFiles = new ArrayList<>();
-		if (args != null && args.length > 0)
+		//check for debugger verbosity flags & start debugger
+		Debugger.Verbosity verbosity = Debugger.Verbosity.Information;
+		for (int i = 0; i < args.length; i++)
 		{
-			
-			for (int i = 0; i < args.length-1; i++)
+			Matcher match = PATTERN_VERBOSITY.matcher(args[i]);
+			if (!match.matches())
+				continue;
+			verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
+		}
+		Debugger.open(verbosity);
+		
+		//parse command line arguments for config parameters
+		Debugger.i("Parsing command line arguments for config files...");
+		List<File> configFiles = new ArrayList<>();
+		for (int i = 0; i < args.length-1; i++)
+		{
+			if (!args[i].substring(0, 1).equals("-"))
+				continue;
+			if (args[i].equalsIgnoreCase("-conf"))
 			{
-				if (!args[i].substring(0, 1).equals("-"))
-					continue;
-				if (args[i].equalsIgnoreCase("-conf"))
-				{
-					configFiles.add(new File(args[++i]));
-					Debugger.i("    Found '"+args[i]+"'.");
-					continue;
-				}
+				configFiles.add(new File(args[++i]));
+				Debugger.i("    Found '"+args[i]+"'.");
+				continue;
 			}
 		}
 		
@@ -85,6 +94,7 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 					config.getString("mysql.database"),
 					config.getString("mysql.username"),
 					config.getString("mysql.password"));
+			Debugger.i("    Connected OK.");
 		}
 		catch (Exception e)
 		{
@@ -94,9 +104,104 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 		}
 	}
 	
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	/////////////////////////////////////////////////////////////////////
+	
 	public void close() throws IOException
 	{
 		closeInternal();
+	}
+	
+	@Override
+	public void deviceCreated(Device device)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceTimedOut(Device device)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceUserLoggedIn(Device device, User user)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceUserLoggedOut(Device device, User user)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceLocationChanged(Device device)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceAtmosphereChanged(Device device)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceAddressChanged(Device device)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceUpdated(Device device)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceAssignedIncident(Device device, Incident incident)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceUnassignedIncident(Device device, Incident incident)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public void incidentCreated(Incident incident)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentDeleted(Incident incident)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentArchived(Incident incident)
+	{
+		// TODO Auto-generated method stub
+		
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -134,54 +239,5 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 		threads.clear();
 		closed = true;
 		Debugger.close();
-	}
-
-	@Override
-	public void incidentCreated()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentDeleted()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentArchived()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentUserAssigned()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceTimedOut()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceLoggedIn()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceLoggedOut()
-	{
-		// TODO Auto-generated method stub
-		
 	}
 }
