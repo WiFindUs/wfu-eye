@@ -2,8 +2,7 @@ package wifindus.eye;
 
 public interface IncidentEventListener
 {
-	public void incidentCreated();
-	public void incidentDeleted();
-	public void incidentArchived();
-	public void incidentUserAssigned();
+	public void incidentCreated(Incident incident);
+	public void incidentDeleted(Incident incident);
+	public void incidentArchived(Incident incident);
 }
