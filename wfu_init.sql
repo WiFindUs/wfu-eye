@@ -37,8 +37,8 @@ CREATE TABLE `User` (
 CREATE TABLE Incident (
   incidentID   int(10) NOT NULL AUTO_INCREMENT, 
   incidentType char(3) NOT NULL CHECK (incidentType IN('MED','SEC','WFU')), 
-  latitude     decimal(18, 16) NOT NULL CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
-  longitude    decimal(18, 15) NOT NULL CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
+  latitude     decimal(18, 16) NOT NULL CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
+  longitude    decimal(18, 15) NOT NULL CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude     decimal(9, 2), 
   PRIMARY KEY (incidentID)) ENGINE=InnoDB;
 CREATE TABLE DeviceUserLink (
