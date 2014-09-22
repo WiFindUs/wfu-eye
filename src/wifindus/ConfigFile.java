@@ -40,7 +40,7 @@ public class ConfigFile
 	private Map<String, String> kvps = new ConcurrentHashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
+	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
 	/**
@@ -93,6 +93,10 @@ public class ConfigFile
 				+ (resource == null ? "'null'" : resource) + "; it has been ignored.");
 		};
 	}
+	
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	/////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Reads a file using a Java.IO File object. Reading a file into the ConfigFile will not delete existing keys,
