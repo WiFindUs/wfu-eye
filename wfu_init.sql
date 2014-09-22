@@ -17,15 +17,15 @@ CREATE TABLE Device (
   hash                 char(8) NOT NULL, 
   deviceType           char(3) DEFAULT 'PHO' NOT NULL CHECK (deviceType IN('PHO','TAB','WAT','COM','OTH')), 
   address              varchar(255) DEFAULT NULL, 
-  latitude             decimal(18, 16) DEFAULT NULL CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
-  longitude            decimal(18, 15) DEFAULT NULL CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
+  latitude             decimal(18, 16) DEFAULT NULL CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
+  longitude            decimal(18, 15) DEFAULT NULL CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude             decimal(9, 2) DEFAULT NULL, 
-  accuracy             decimal(8, 4) DEFAULT NULL CHECK (accuracy BETWEEN 0.0000 AND 9999.9999), 
-  humidity             decimal(9, 2) DEFAULT NULL, 
-  airPressure          decimal(9, 2) DEFAULT NULL, 
+  accuracy             decimal(8, 4) DEFAULT NULL CHECK (accuracy IS NULL OR accuracy BETWEEN 0.0000 AND 9999.9999), 
+  humidity             decimal(5, 4) DEFAULT NULL CHECK (humidity IS NULL OR humidity BETWEEN 0.0000 AND 1.0000), 
+  airPressure          decimal(9, 2) DEFAULT NULL CHECK (airPressure IS NULL OR airPressure BETWEEN 0.00 AND 9999999.00), 
   temperature          decimal(9, 2) DEFAULT NULL, 
   lightLevel           decimal(9, 2) DEFAULT NULL, 
-  lastUpdate           datetime DEFAULT '1000-01-01 00:00:00' NOT NULL, 
+  lastUpdate           datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   respondingIncidentID int(10) DEFAULT NULL, 
   PRIMARY KEY (hash)) ENGINE=InnoDB;
 CREATE TABLE `User` (
@@ -37,8 +37,8 @@ CREATE TABLE `User` (
 CREATE TABLE Incident (
   incidentID   int(10) NOT NULL AUTO_INCREMENT, 
   incidentType char(3) NOT NULL CHECK (incidentType IN('MED','SEC','WFU')), 
-  latitude     decimal(18, 16) NOT NULL CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
-  longitude    decimal(18, 15) NOT NULL CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
+  latitude     decimal(18, 16) NOT NULL CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
+  longitude    decimal(18, 15) NOT NULL CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude     decimal(9, 2), 
   PRIMARY KEY (incidentID)) ENGINE=InnoDB;
 CREATE TABLE DeviceUserLink (
@@ -49,10 +49,10 @@ CREATE TABLE DeviceUserLink (
 CREATE TABLE Node (
   hash       char(8) NOT NULL, 
   address    varchar(255) DEFAULT NULL, 
-  latitude   decimal(18, 16) DEFAULT NULL CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
-  longitude  decimal(18, 15) DEFAULT NULL CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
+  latitude   decimal(18, 16) DEFAULT NULL CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
+  longitude  decimal(18, 15) DEFAULT NULL CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   voltage    decimal(6, 4) DEFAULT NULL, 
-  lastUpdate datetime DEFAULT '1000-01-01 00:00:00' NOT NULL, 
+  lastUpdate datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   PRIMARY KEY (hash)) ENGINE=InnoDB;
 ALTER TABLE Device ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incident (incidentID);
 ALTER TABLE DeviceUserLink ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES `User` (userID);
