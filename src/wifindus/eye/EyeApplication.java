@@ -108,7 +108,7 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 		@Override
 		public void run()
 		{
-			
+
 		}		
 	}
 	
