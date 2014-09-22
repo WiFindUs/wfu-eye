@@ -10,11 +10,20 @@ import java.io.Serializable;
  */
 public class Atmosphere implements Serializable
 {
+	/**
+	 * An Atmosphere with no data. 
+	 */
+	public static final Atmosphere EMPTY = new Atmosphere();
+	
 	private Double humidity = null;
 	private Double airPressure = null;
 	private Double temperature = null;
 	private Double lightLevel = null;
 	private static final long serialVersionUID = -160414951139431493L;
+	
+	/////////////////////////////////////////////////////////////////////
+	// CONSTRUCTORS
+	/////////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Creates a new Atmosphere object.
@@ -64,9 +73,25 @@ public class Atmosphere implements Serializable
 	/**
 	 * Creates a new Atmosphere object with null information.
 	 */
-	public Atmosphere()
+	private Atmosphere()
 	{
 		this (null);
+	}
+	
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	/////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Tests if this is an entirely empty Atmosphere structure.
+	 * @return TRUE if all members of this Atmosphere are NULL, FALSE otherwise.
+	 */
+	public boolean isEmpty()
+	{
+		if (this == Atmosphere.EMPTY)
+			return true;
+		
+		return humidity == null && airPressure == null && temperature == null && lightLevel == null;
 	}
 	
 	/**

@@ -10,11 +10,20 @@ import java.io.Serializable;
  */
 public class Location implements Serializable
 {
+	/**
+	 * A location with no data. 
+	 */
+	public static final Location EMPTY = new Location();
+	
 	private Double latitude = null;
 	private Double longitude = null;
 	private Double altitude = null;
 	private Double accuracy = null;
 	private static final long serialVersionUID = -8132425175759103068L;
+	
+	/////////////////////////////////////////////////////////////////////
+	// CONSTRUCTORS
+	/////////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Creates a new Location object.
@@ -50,6 +59,30 @@ public class Location implements Serializable
 	public Location(Double latitude, Double longitude)
 	{
 		this (latitude, longitude, null);
+	}
+	
+	/**
+	 * Creates a new Location object with null information.
+	 */
+	private Location()
+	{
+		this (null, null);
+	}
+	
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	/////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Tests if this is an entirely empty Location structure.
+	 * @return TRUE if all members of this Location are NULL, FALSE otherwise.
+	 */
+	public boolean isEmpty()
+	{
+		if (this == Location.EMPTY)
+			return true;
+		
+		return latitude == null && longitude == null && accuracy == null && altitude == null;
 	}
 	
 	/**
