@@ -2,82 +2,89 @@ package wifindus.eye;
 
 import java.io.Serializable;
 
+/**
+ * An immutable, serializable packet of data describing an object's location.
+ * Values within are represented with Java's boxing Double type to allow for incomplete location data
+ * (as reporting devices may not fully report their location, or may omit information).
+ * @author Mark 'marzer' Gillard
+ */
 public class Location implements Serializable
 {
-	/**
-	 * Since 0.0 is an acceptable altitude value, we're considering anything lower than
-	 * 12262.0 meters below sea level as 'invalid' (or NULL from mysql), since this is
-	 * the depth of the Kola superdeep borehole and is the lowest known point on the earth's
-	 * surface.
-	 */
-	public static final double MINIMUM_ALTITUDE = -12262.0;
-	
-	private double latitude;
-	private double longitude;
-	private double altitude;
+	private Double latitude = null;
+	private Double longitude = null;
+	private Double altitude = null;
+	private Double accuracy = null;
 	private static final long serialVersionUID = -8132425175759103068L;
 	
-	public Location (double latitude, double longitude, double altitude)
+	/**
+	 * Creates a new Location object.
+	 * @param latitude The latitude of the coordinate. Use null for 'no data'.
+	 * @param longitude The longitude of the coordinate. Use null for 'no data'.
+	 * @param accuracy The radius of 68% confidence as reported by the device. Use null for 'no data'.
+	 * @param altitude The altitude of of the coordinate, as meters above sea level. Use null for 'no data'.
+	 */
+	public Location (Double latitude, Double longitude, Double accuracy, Double altitude)
 	{
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.altitude = altitude;
+		this.accuracy = accuracy;
 	}
 	
-	public Location(double latitude, double longitude)
+	/**
+	 * Creates a new Location object.
+	 * @param latitude The latitude of the coordinate. Use null for 'no data'.
+	 * @param longitude The longitude of the coordinate. Use null for 'no data'.
+	 * @param accuracy The radius of 68% confidence as reported by the device. Use null for 'no data'.
+	 */
+	public Location(Double latitude, Double longitude, Double accuracy)
 	{
-		this (latitude, longitude, MINIMUM_ALTITUDE-1.0);
+		this (latitude, longitude, accuracy, null);
 	}
 	
-	public Location()
+	/**
+	 * Creates a new Location object.
+	 * @param latitude The latitude of the coordinate. Use null for 'no data'.
+	 * @param longitude The longitude of the coordinate. Use null for 'no data'.
+	 */
+	public Location(Double latitude, Double longitude)
 	{
-		this (0.0, 0.0, MINIMUM_ALTITUDE-1.0);
+		this (latitude, longitude, null);
 	}
-
-	public final double getLatitude()
+	
+	/**
+	 * Returns the latitude of the location 
+	 * @return A value between -90.0 and 90.0 (inclusive), or null (for no data).
+	 */
+	public final Double getLatitude()
 	{
 		return latitude;
 	}
-
-	public final void setLatitude(double latitude)
-	{
-		this.latitude = latitude;
-	}
-
-	public final double getLongitude()
+	
+	/**
+	 * Returns the longitude of the location 
+	 * @return A value between -180.0 and 180.0 (inclusive), or null (for no data).
+	 */
+	public final Double getLongitude()
 	{
 		return longitude;
 	}
-
-	public final void setLongitude(double longitude)
+	
+	/**
+	 * Returns the radius of 68% confidence of the horizontal positioning
+	 * @return A value between 0 and 9999.9999 (inclusive), or null (for no data).
+	 */
+	public final Double getAccuracy()
 	{
-		this.longitude = longitude;
-	}
-
-	public final double getAltitude()
-	{
-		return this.altitude;
-	}
-
-	public final void setAltitude(double altitude)
-	{
-		this.altitude = altitude;
+		return accuracy;
 	}
 	
 	/**
-	 * Set's this location's altitude component to null/invalid.
+	 * Returns the altitude of the location as meters above sea level.
+	 * @return A value greater than or equal to 0.0, or null (for no data).
 	 */
-	public final void clearAltitude()
+	public final Double getAltitude()
 	{
-		this.altitude = MINIMUM_ALTITUDE-1.0;
-	}
-	
-	/**
-	 * Checks if this location has a valid altitude.
-	 * @return True if the location contains an altitude value greater than or equal to {@link #MINIMUM_ALTITUDE}, false otherwise (represents no data).
-	 */
-	public final boolean hasAltitude()
-	{
-		return this.altitude >= MINIMUM_ALTITUDE; 
+		return altitude;
 	}
 }
