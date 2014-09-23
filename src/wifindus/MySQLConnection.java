@@ -35,21 +35,21 @@ public class MySQLConnection
 		if (connection != null)
 			throw new IllegalStateException("A connection has already been made! Use disconnect() first.");
 		if (address == null)
-			throw new IllegalArgumentException("Parameter 'address' cannot be null.");
+			throw new NullPointerException("Parameter 'address' cannot be null.");
 		if ((address = address.trim()).isEmpty())
 			throw new IllegalArgumentException("Parameter 'address' cannot be an empty string");
 		if (port <= 1023 || port >= 65536)
 			throw new IllegalArgumentException("Parameter 'port' must be between 1024 and 65535 (inclusive).");
 		if (database == null)
-			throw new IllegalArgumentException("Parameter 'database' cannot be null.");
+			throw new NullPointerException("Parameter 'database' cannot be null.");
 		if ((database = database.trim()).isEmpty())
 			throw new IllegalArgumentException("Parameter 'database' cannot be an empty string");
 		if (username == null)
-			throw new IllegalArgumentException("Parameter 'username' cannot be null.");
+			throw new NullPointerException("Parameter 'username' cannot be null.");
 		if ((username = username.trim()).isEmpty())
 			throw new IllegalArgumentException("Parameter 'username' cannot be an empty string");
 		if (password == null)
-			throw new IllegalArgumentException("Parameter 'password' cannot be null.");
+			throw new NullPointerException("Parameter 'password' cannot be null.");
 		if ((password = password.trim()).isEmpty())
 			throw new IllegalArgumentException("Parameter 'password' cannot be an empty string");
 		
