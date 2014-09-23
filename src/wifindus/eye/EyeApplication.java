@@ -13,7 +13,12 @@ import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.MySQLConnection;
 
-public class EyeApplication implements Closeable, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener
+/**
+ * A general base for Eye applications that need to maintain a connection
+ * to a MySQL database and respond to changes made to Users, Devices, etc.
+ * @author Mark 'marzer' Gillard
+ */
+public abstract class EyeApplication implements Closeable, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener
 {
 	private static final Pattern PATTERN_VERBOSITY = Pattern.compile( "^-([0-4])$" );
 	private volatile ConfigFile config = null;
@@ -27,10 +32,25 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Creates a new EyeApplication.
+	 * @param args The command-line arguments used to launch the application, as provided by main.
+	 * The following parameters are currently accepted:
+	 * <ul>
+	 * <li><code>-conf <em>filename</em></code>: specifies a configuration file to load.
+	 * This argument may be provided more than once, with each listed config file being loaded into 
+	 * one {@link wifindus.ConfigFile} instance. If this argument is omitted, <em>eye.conf</em> is assumed.</li>
+	 * <li><code>-0 <em>to</em> -4</code>: specifies the minimum verbosity of {@link wifindus.Debugger} output,
+	 * from <code>Verbose (0)</code>, to <code>Exception (4)</code>.
+	 * If this parameter is omitted, -1 is assumed.</li>
+	 * </ul>
+	 * @throws NullPointerException if <code>args</code> is null
+	 * @throws IllegalStateException if an attempt is made to instantiate more than one EyeApplication
+	 */
 	public EyeApplication(String[] args)
 	{
 		if (args == null)
-			throw new IllegalArgumentException("Parameter 'args' cannot be null.");
+			throw new NullPointerException("Parameter 'args' cannot be null.");
 		if (active)
 			throw new IllegalStateException("You may not have more than one instance of EyeApplication at once.");
 		active = true;
@@ -70,6 +90,7 @@ public class EyeApplication implements Closeable, DeviceEventListener, NodeEvent
 		
 		//try loading files
 		config = new ConfigFile(configFiles);
+		Debugger.v("Parsed configuration: " + config);
 		
 		//ensure required keys are present and valid, enforce defaults if not
 		//mysql

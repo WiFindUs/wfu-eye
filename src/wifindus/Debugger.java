@@ -9,6 +9,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * A global, static class encapsulating console output,
+ * exception error reporting and logfile generation. 
+ * @author Mark 'marzer' Gillard
+ */
 public final class Debugger
 {
 	/**
@@ -18,27 +23,27 @@ public final class Debugger
 	public enum Verbosity
 	{
 		/**
-		 * ALL levels of message are output by the Debugger.
+		 * 0: All messages are output by the Debugger.
 		 */
 		Verbose,
 		
 		/**
-		 * Levels of verbosity of 'Information' and higher are output by the Debugger.
+		 * 1: Only messages with a verbosity level of <code>Information</code> and higher are output by the Debugger.
 		 */
 		Information,
 		
 		/**
-		 * Levels of verbosity of 'Warning' and higher are output by the Debugger.
+		 * 2: Only messages with a verbosity level of <code>Warning</code> and higher are output by the Debugger.
 		 */
 		Warning,
 		
 		/**
-		 * Levels of verbosity of 'Error' and higher are output by the Debugger.
+		 * 3: Only messages with a verbosity level of <code>Error</code> and higher are output by the Debugger.
 		 */
 		Error,
 		
 		/**
-		 * Only Exceptions are output by the Debugger.
+		 * 4: Only <code>Exceptions</code> are output by the Debugger.
 		 */
 		Exception
 	}
@@ -73,6 +78,7 @@ public final class Debugger
 		finally
 		{
 			log(Verbosity.Information, System.out, "Session started (Debugger minimum verbosity: "+minVerbosity.toString()+").", true);
+			log(Verbosity.Information, System.out, "Writing output to '" + file + "'.", true);
 		}
 	}
 	
@@ -80,6 +86,12 @@ public final class Debugger
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Opens a debugger session.
+	 * @param minVerbosity The minimum level of output to generate. Calls made to output functions that
+	 * use a verbosity lower than this value will be ignored.
+	 * @param file path of the log file to which debugger output will be written.
+	 */
 	public static void open(Verbosity minVerbosity, File file)
 	{
 		if (debugger != null)
@@ -91,6 +103,11 @@ public final class Debugger
 			debugger = new Debugger(minVerbosity, file);
 	}
 	
+	/**
+	 * Opens a debugger session, using an automatically-generated timestamp filename in 'logs/'. 
+	 * @param minVerbosity The minimum level of output to generate. Calls made to output functions that
+	 * use a verbosity lower than this value will be ignored.
+	 */
 	public static void open(Verbosity minVerbosity)
 	{
 		if (debugger != null)
@@ -103,23 +120,35 @@ public final class Debugger
 			debugger = new Debugger(minVerbosity, new File( "logs/session_" + new SimpleDateFormat("yy-MM-dd_HH-mm-ss").format(new Date()) + ".log" ));
 	}
 	
+	/**
+	 * Opens a debugger session with a minimum verbosity of <code>Information</code>.
+	 * @param file path of the log file to which debugger output will be written.
+	 */
 	public static void open(File file)
 	{
 		open(Verbosity.Information,file);
 	}
 	
+	/**
+	 * Opens a debugger session with a minimum verbosity of <code>Information</code>,
+	 * using an automatically-generated timestamp filename in 'logs/'. 
+	 */
 	public static void open()
 	{
 		open(Verbosity.Information);
 	}
 	
+	/**
+	 * Get the current time as a formatted string.
+	 * @return The current system time, formatted as [HH:mm:ss].
+	 */
 	public static String getTimestamp()
 	{
 		return dateFormat.format(new Date());
 	}
 
 	/**
-	 * Outputs a line of debugging information with a verbosity level of Verbosity.Verbose. Console output is done on stdout.
+	 * Outputs a line of debugging information with a verbosity level of <code>Verbose</code>. Console output is done on stdout.
 	 * @param s The string to output.
 	 */
 	public static void v(String s)
@@ -129,7 +158,7 @@ public final class Debugger
 	}
 	
 	/**
-	 * Outputs a line of debugging information with a verbosity level of Verbosity.Information. Console output is done on stdout.
+	 * Outputs a line of debugging information with a verbosity level of <code>Information</code>. Console output is done on stdout.
 	 * @param s The string to output.
 	 */
 	public static void i(String s)
@@ -139,7 +168,7 @@ public final class Debugger
 	}
 	
 	/**
-	 * Outputs a line of debugging information with a verbosity level of Verbosity.Warning. Console output is done on stdout.
+	 * Outputs a line of debugging information with a verbosity level of <code>Warning</code>. Console output is done on stdout.
 	 * @param s The string to output.
 	 */
 	public static void w(String s)
@@ -149,7 +178,7 @@ public final class Debugger
 	}
 	
 	/**
-	 * Outputs a line of debugging information with a verbosity level of Verbosity.Error. Console output is done on stderr.
+	 * Outputs a line of debugging information with a verbosity level of <code>Error</code>. Console output is done on stderr.
 	 * @param s The string to output.
 	 */
 	public static void e(String s)
@@ -159,7 +188,7 @@ public final class Debugger
 	}
 	
 	/**
-	 * Outputs debugging information about an Exception (with a verbosity level of Verbosity.Exception). Console output is done on stderr.
+	 * Outputs debugging information about an Exception (with a verbosity level of <code>Exception</code>). Console output is done on stderr.
 	 * @param e The exception that was thrown.
 	 */
 	public static void ex(Exception e)
