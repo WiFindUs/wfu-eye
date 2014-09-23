@@ -129,6 +129,11 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Closes/releases the resources used by the application. This does
+	 * NOT terminate the main thread (i.e. this is not the same as calling <code>System.exit</code>);
+	 * you must still exit the program normally as per flow of execution.
+	 */
 	public void close() throws IOException
 	{
 		closeInternal();
