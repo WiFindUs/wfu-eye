@@ -3,8 +3,6 @@ package wifindus.eye;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -154,14 +152,14 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	}
 
 	@Override
-	public void deviceUserLoggedIn(Device device, User user)
+	public void deviceInUse(Device device, User user)
 	{
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void deviceUserLoggedOut(Device device, User user)
+	public void deviceNotInUse(Device device, User user)
 	{
 		// TODO Auto-generated method stub
 		
@@ -216,15 +214,58 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 		
 	}
 
+
 	@Override
-	public void incidentDeleted(Incident incident)
+	public void incidentArchived(Incident incident)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public void nodeCreated(Node node)
 	{
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void incidentArchived(Incident incident)
+	public void nodeTimedOut(Node node)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void nodeLocationChanged(Node node)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void nodeVoltageChanged(Node node)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void nodeUpdated(Node node)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void nodeAddressChanged(Node node)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void userCreated(User user)
 	{
 		// TODO Auto-generated method stub
 		
@@ -234,12 +275,14 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
+	@SuppressWarnings("unused")
 	private class TCPListenThread implements Runnable
 	{
 		@Override
 		public void run()
 		{
-
+			if (abortThreads)
+				return;
 		}		
 	}
 	

@@ -1,5 +1,9 @@
 package wifindus.eye;
 
+/**
+ * An object which listens for changes in the state of a Device object. 
+ * @author Mark 'marzer' Gillard
+ */
 public interface DeviceEventListener
 {
 	/**
@@ -20,14 +24,14 @@ public interface DeviceEventListener
 	 * @param device The device object.
 	 * @param user The user logged into the device.
 	 */
-	public void deviceUserLoggedIn(Device device, User user);
+	public void deviceInUse(Device device, User user);
 	
 	/**
 	 * Event fired when a User is detached from (or 'logs out of') a Device.
 	 * @param device The device object.
 	 * @param user The user that logged out of the device.
 	 */
-	public void deviceUserLoggedOut(Device device, User user);
+	public void deviceNotInUse(Device device, User user);
 	
 	/**
 	 * Event fired when a Device's location details change.
@@ -48,7 +52,7 @@ public interface DeviceEventListener
 	public void deviceAddressChanged(Device device);
 	
 	/**
-	 * Event fired when any aspect of a Device is updated.
+	 * Event fired when the <code>lastUpdate</code> property of the device is changed.
 	 * @param device The device object.
 	 */
 	public void deviceUpdated(Device device);

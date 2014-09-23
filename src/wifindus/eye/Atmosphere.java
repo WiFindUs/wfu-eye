@@ -86,7 +86,7 @@ public class Atmosphere implements Serializable
 	 * Tests if this is an entirely empty Atmosphere structure.
 	 * @return TRUE if all members of this Atmosphere are NULL, FALSE otherwise.
 	 */
-	public boolean isEmpty()
+	public final boolean isEmpty()
 	{
 		if (this == Atmosphere.EMPTY)
 			return true;

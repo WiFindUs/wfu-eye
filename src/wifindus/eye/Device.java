@@ -1,8 +1,7 @@
 package wifindus.eye;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Timestamp;
 import wifindus.EventObject;
 
 /**
@@ -55,7 +54,7 @@ public class Device extends EventObject<DeviceEventListener>
 	private InetAddress address = null;
 	private Location location = Location.EMPTY;
 	private Atmosphere atmosphere = Atmosphere.EMPTY;
-	private Date lastUpdate = new Date(0);
+	private Timestamp lastUpdate = new Timestamp(0);
 	//database relationships
 	private User currentUser = null;
 	private Incident currentIncident = null;
@@ -92,6 +91,80 @@ public class Device extends EventObject<DeviceEventListener>
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Gets this Device's Hash.
+	 * @return An 8-character String containing this Device's unique Hash ID.
+	 */
+	public final String getHash()
+	{
+		return hash;
+	}
+
+	/**
+	 * Gets this Device's Type.
+	 * @return A Device.Type value indicating what type of device this Device object represents.
+	 */
+	public final Type getType()
+	{
+		return type;
+	}
+
+	/**
+	 * Gets this Device's IP Address.
+	 * @return An InetAddress object containing information about the last-known address this Device connected from.
+	 */
+	public final InetAddress getAddress()
+	{
+		return address;
+	}
+
+	/**
+	 * Gets this Device's Location.
+	 * @return A Location object containing the last-known location information this Device reported. 
+	 */
+	public final Location getLocation()
+	{
+		return location;
+	}
+
+	/**
+	 * Gets this Device's Atmosphere.
+	 * @return An Atmosphere object containing the last-known atmosphere information this Device reported. 
+	 */
+	public final Atmosphere getAtmosphere()
+	{
+		return atmosphere;
+	}
+
+	/**
+	 * Gets this Device's last update timestamp.
+	 * @return An sql.Timestamp object representing the date/time the last known update was received.
+	 * Since Timestamp is a mutable structure, the returned object is a clone, and thus calling any
+	 * mutators will have no effect on the Device's timestamp data.
+	 */
+	public final Timestamp getLastUpdate()
+	{
+		return (Timestamp)lastUpdate.clone();
+	}
+
+	/**
+	 * Gets the User currently signed in to the device.
+	 * @return A reference to a User object representing the currently signed in user, or NULL if nobody is signed in.  
+	 */
+	public final User getCurrentUser()
+	{
+		return currentUser;
+	}
+
+	/**
+	 * Gets the Incident this Device is currently assigned to.
+	 * @return A reference to a Incident object representing the currently assigned Incident, or NULL if no incident has been assigned.  
+	 */
+	public final Incident getCurrentIncident()
+	{
+		return currentIncident;
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -108,10 +181,10 @@ public class Device extends EventObject<DeviceEventListener>
 				listener.deviceTimedOut(this);
 				break;
 			case "loggedin":
-				listener.deviceUserLoggedIn(this, (User)data[0]);
+				listener.deviceInUse(this, (User)data[0]);
 				break;
 			case "loggedout":
-				listener.deviceUserLoggedOut(this, (User)data[0]);
+				listener.deviceNotInUse(this, (User)data[0]);
 				break;
 			case "location":
 				listener.deviceLocationChanged(this);
@@ -133,9 +206,8 @@ public class Device extends EventObject<DeviceEventListener>
 				break;
 			
 		}
-		
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
