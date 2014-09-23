@@ -13,26 +13,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A ConfigFile is a set of key/value pairs, one per line,
- * with the KVP being delimited with a colon (:) or equals (=) symbol.
+ * A ConfigFile is a collection of key/value pairs parsed from text files, one per line,
+ * with the KVP being delimited with a colon (:) or equals (=) symbol. Keys may contain
+ * the characters A-Z, a-z, 0-9, hyphens, periods and underscores, and are stored in a
+ * case-insensitive manner (i.e. there is no difference between "port" and "PORT"); Values
+ * can be anything non-blank (outer whitespace will be trimmed and string values will have
+ * the surrounding " or ' characters stripped).
  * <br><br>
- * Keys may contain the characters A-Z, a-z, 0-9, hyphens, periods and underscores, and are
- * stored in a case-insensitive manner (i.e. there is no difference between
- * "port" and "PORT").
- * <br><br>
- * Values can be anything non-blank. Values will have outer whitespace trimmed,
- * and if they're strings, the surrounding " or ' characters will be stripped.
- * <br><br>
- * String values don't have to use surrounding quotes, but macro replacement will
- * not be performed in this instance (e.g. if you include "\n" it won't get replaced
- * with a '\n' character).
- * <br><br>
+ * String values may be provided without surrounding quotes, but macro replacement will
+ * not be performed in this instance (e.g. "\n" will not be substituted with the '\n' character).
  * Config files may include C++-style comments (//) that will be ignored by the parser.
  * @author Mark 'marzer' Gillard
  */
 public class ConfigFile
 {
-	private static final Pattern PATTERN_KEY = Pattern.compile( "[a-zA-Z0-9_\\-.]+" );
+	private static final Pattern PATTERN_KEY = Pattern.compile( "[a-zA-Z0-9_\\-.]+(?:\\[[ \t]*\\])?" );
 	private static final Pattern PATTERN_COMMENT = Pattern.compile( "//.*$" );
 	private static final Pattern PATTERN_CONFIG_KVP
 		= Pattern.compile( "^("+ PATTERN_KEY.pattern() +")[ \t]*[:=][ \t]*(.+)$");
@@ -79,7 +74,7 @@ public class ConfigFile
 	
 	/**
 	 * Instantiates a ConfigFile from an embedded resource.
-	 * @param file The name of the embedded resource from which to load the config.
+	 * @param resource The name of the embedded resource from which to load the config.
 	 */
 	public ConfigFile(String resource)
 	{
@@ -108,7 +103,7 @@ public class ConfigFile
 	public void read(File file) throws FileNotFoundException
 	{
 		if (file == null)
-			throw new IllegalArgumentException("Parameter 'file' cannot be null.");
+			throw new NullPointerException("Parameter 'file' cannot be null.");
 		if (!file.exists())
 			throw new FileNotFoundException(file.getAbsolutePath()+" does not exist.");
 		if (!file.isFile())
@@ -133,7 +128,7 @@ public class ConfigFile
 	public void read(Iterable<File> files)
 	{
 		if (files == null)
-			throw new IllegalArgumentException("Parameter 'files' cannot be null.");
+			throw new NullPointerException("Parameter 'files' cannot be null.");
 		
 		for (File file : files)
 		{
@@ -153,13 +148,13 @@ public class ConfigFile
 	 * Reads a file from an embedded resource. Reading a file into the ConfigFile will not delete existing keys,
 	 * so multiple files may be read to create one virtual configuration. Existing kvp's will only be overwritten
 	 * if an existing key is found in subsequent files.
-	 * @param file The name of the embedded resource from which to load the config.
+	 * @param resource The name of the embedded resource from which to load the config.
 	 * @throws FileNotFoundException if the ClassLoader could not find the given file resource.
 	 */
 	public void read(String resource) throws FileNotFoundException
 	{
 		if (resource == null)
-			throw new IllegalArgumentException("Parameter 'resource' cannot be null.");
+			throw new NullPointerException("Parameter 'resource' cannot be null.");
 		
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classLoader.getResourceAsStream(resource);
@@ -305,7 +300,7 @@ public class ConfigFile
 	public String getString(String key, String defaultValue)
 	{
 		if (defaultValue == null)
-			throw new IllegalArgumentException("Parameter 'defaultValue' cannot be null.");
+			throw new NullPointerException("Parameter 'defaultValue' cannot be null.");
 		
 		String val = kvps.get(checkKey(key));
 		return val == null ? defaultValue : val;
@@ -329,7 +324,7 @@ public class ConfigFile
 	public void setString(String key, String value)
 	{
 		if (value == null)
-			throw new IllegalArgumentException("Parameter 'value' cannot be null.");
+			throw new NullPointerException("Parameter 'value' cannot be null.");
 
 		kvps.put(checkKey(key), value);		
 	}
@@ -469,7 +464,7 @@ public class ConfigFile
 	private String checkKey(String key)
 	{
 		if (key == null)
-			throw new IllegalArgumentException("Parameter 'key' cannot be null.");
+			throw new NullPointerException("Parameter 'key' cannot be null.");
 		key = key.trim().toLowerCase();
 		if (key.length() == 0)
 			throw new IllegalArgumentException("Parameter 'key' cannot be an empty string.");

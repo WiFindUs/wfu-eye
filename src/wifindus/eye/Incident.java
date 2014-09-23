@@ -48,7 +48,7 @@ public class Incident extends EventObject<IncidentEventListener>
 		if (id < 0)
 			throw new IllegalArgumentException("Parameter 'id' cannot be negative.");
 		if (location == null)
-			throw new IllegalArgumentException("Parameter 'location' cannot be null.");
+			throw new NullPointerException("Parameter 'location' cannot be null.");
 		if (location.isEmpty())
 			throw new IllegalArgumentException("Parameter 'location' cannot be empty.");
 		
@@ -66,8 +66,7 @@ public class Incident extends EventObject<IncidentEventListener>
 	/////////////////////////////////////////////////////////////////////
 	
 	@Override
-	protected void mapEvents(String event, IncidentEventListener listener,
-			Object data)
+	protected void mapEvents(String event, IncidentEventListener listener, Object... data)
 	{
 		switch(event)
 		{

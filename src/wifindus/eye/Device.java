@@ -64,16 +64,25 @@ public class Device extends EventObject<DeviceEventListener>
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Creates a new Device, representing a Device entry from the database.
+	 * @param hash The randomly 8-character hash key of this Device.
+	 * @param type The device's type.
+	 * @param listeners A variable-length list of event listeners that will watch this device's state.
+	 * @throws NullPointerException if <code>hash</code> is null.
+	 * @throws IllegalArgumentException if <code>hash</code> is not valid.
+	 * @throws UnsupportedOperationException if <code>Computer</code> is used as <code>type</code> (not currently supported).
+	 */
 	public Device(String hash, Type type, DeviceEventListener... listeners)
 	{
 		super(listeners);
 		
 		if (hash == null)
-			throw new IllegalArgumentException("Parameter 'hash' cannot be null.");
+			throw new NullPointerException("Parameter 'hash' cannot be null.");
 		if (!Hash.isValid(hash))
 			throw new IllegalArgumentException("Parameter 'hash' is not a valid WFU device hash ("+hash+").");
 		if (type == Type.Computer)
-			throw new IllegalArgumentException("Parameter 'type' does not currently support Type.Computer.");
+			throw new UnsupportedOperationException("Parameter 'type' does not currently support Type.Computer.");
 		
 		this.hash = hash;
 		this.type = type;
@@ -88,7 +97,7 @@ public class Device extends EventObject<DeviceEventListener>
 	/////////////////////////////////////////////////////////////////////
 	
 	@Override
-	protected void mapEvents(String event, DeviceEventListener listener, Object data)
+	protected void mapEvents(String event, DeviceEventListener listener, Object... data)
 	{
 		switch(event)
 		{
@@ -99,10 +108,10 @@ public class Device extends EventObject<DeviceEventListener>
 				listener.deviceTimedOut(this);
 				break;
 			case "loggedin":
-				listener.deviceUserLoggedIn(this, (User)data);
+				listener.deviceUserLoggedIn(this, (User)data[0]);
 				break;
 			case "loggedout":
-				listener.deviceUserLoggedOut(this, (User)data);
+				listener.deviceUserLoggedOut(this, (User)data[0]);
 				break;
 			case "location":
 				listener.deviceLocationChanged(this);
@@ -117,10 +126,10 @@ public class Device extends EventObject<DeviceEventListener>
 				listener.deviceUpdated(this);
 				break;
 			case "assigned":
-				listener.deviceAssignedIncident(this, (Incident)data);
+				listener.deviceAssignedIncident(this, (Incident)data[0]);
 				break;
 			case "unassigned":
-				listener.deviceUnassignedIncident(this, (Incident)data);
+				listener.deviceUnassignedIncident(this, (Incident)data[0]);
 				break;
 			
 		}
