@@ -47,6 +47,8 @@ public class User extends EventObject<UserEventListener>
 		this.nameFirst = nameFirst.trim();
 		this.nameMiddle = nameMiddle.trim();
 		this.nameLast = nameLast.trim();
+		
+		fireEvent("created");
 	}
 	
 	/////////////////////////////////////////////////////////////////////

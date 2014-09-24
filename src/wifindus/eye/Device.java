@@ -85,6 +85,8 @@ public class Device extends EventObject<DeviceEventListener>
 		
 		this.hash = hash;
 		this.type = type;
+		
+		fireEvent("created");
 	}
 
 	/////////////////////////////////////////////////////////////////////

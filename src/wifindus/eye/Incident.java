@@ -76,6 +76,8 @@ public class Incident extends EventObject<IncidentEventListener>
 		this.type = type;
 		this.location = location;
 		this.created = created;
+		
+		fireEvent("created");
 	}
 	
 	/////////////////////////////////////////////////////////////////////

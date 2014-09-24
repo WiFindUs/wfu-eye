@@ -38,6 +38,8 @@ public class Node extends EventObject<NodeEventListener>
 			throw new IllegalArgumentException("Parameter 'hash' is not a valid WFU device hash ("+hash+").");
 		
 		this.hash = hash;
+		
+		fireEvent("created");
 	}
 	
 	/////////////////////////////////////////////////////////////////////
