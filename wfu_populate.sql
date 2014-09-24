@@ -9,18 +9,18 @@ USE wfu_eye_db;
   Device	
   -----------------------------------------------------------*/
 INSERT INTO
-	Device (hash, deviceType)
+	Device (hash, deviceType, lastUpdate)
 VALUES 
-	('TYRZz3u0','PHO'),
-	('AbUNZ0xl','PHO'),
-	('WuQkhzZB','PHO'),
-	('NsiBN8kt','PHO'),
-	('xkkk7tzT','PHO'),
-	('DH1527J9','PHO'),
-	('RLvlP1Sp','PHO'),
-	('nopGICOT','PHO'),
-	('Bj4952Gg','PHO'),
-	('8SL4oA6X','PHO');
+	('TYRZz3u0','PHO', NOW()),
+	('AbUNZ0xl','PHO', NOW()),
+	('WuQkhzZB','PHO', NOW()),
+	('NsiBN8kt','PHO', NOW()),
+	('xkkk7tzT','PHO', NOW()),
+	('DH1527J9','PHO', NOW()),
+	('RLvlP1Sp','TAB', NOW()),
+	('nopGICOT','TAB', NOW()),
+	('Bj4952Gg','PHO', NOW()),
+	('8SL4oA6X','WAT', NOW());
 
 /*=========================================================== 
   User	
@@ -28,19 +28,27 @@ VALUES
 INSERT INTO
 	`User` (userID, nameFirst, nameMiddle, nameLast, personnelType)
 VALUES 
+	/* wfu personnel */
 	(1,'Mark', 'Stephen', 'Gillard', 'WFU'),
 	(2,'Hussein', '', 'Al Hammad', 'WFU'),
 	(3,'Mitchell', '', 'Templeton', 'WFU'),
-	(4,'Ciaran', '', 'Dodson', 'MED'),
-	(5,'Conal', '', 'Melendez', 'MED'),
-	(6,'Abar', '', 'Blevins', 'MED'),
-	(7,'Roman', '', 'Camacho', 'MED'),
-	(8,'Oscar', '', 'Nicholson', 'MED'),
-	(9,'Ramsay', '', 'Wilkerson', 'SEC'),
-	(10,'Samuel', '', 'Henry', 'SEC'),
-	(11,'Sandy', '', 'Schultz', 'SEC'),
-	(12,'Ame', '', 'Raymond', 'SEC'),
-	(13,'Syed', '', 'Atkins', 'SEC');
+	(4,'Greg', '', 'Stevens', 'WFU'),
+	(5,'Mateus', '', 'Nolasco', 'WFU'),
+	(6,'Ben', '', 'Quast', 'WFU'),
+	(7,'Travis', '', 'Grund', 'WFU'),
+	
+	/* fake 'test' personnel */
+	(8,'Ciaran', '', 'Dodson', 'MED'),
+	(9,'Conal', '', 'Melendez', 'MED'),
+	(10,'Abar', '', 'Blevins', 'MED'),
+	(11,'Roman', '', 'Camacho', 'MED'),
+	(12,'Oscar', '', 'Nicholson', 'MED'),
+	
+	(13,'Ramsay', '', 'Wilkerson', 'SEC'),
+	(14,'Samuel', '', 'Henry', 'SEC'),
+	(15,'Sandy', '', 'Schultz', 'SEC'),
+	(16,'Ame', '', 'Raymond', 'SEC'),
+	(17,'Syed', '', 'Atkins', 'SEC');
 	
 /*=========================================================== 
   Node	
