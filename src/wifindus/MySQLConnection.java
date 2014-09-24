@@ -29,7 +29,7 @@ public class MySQLConnection
 	 * @param password The MySQL server password.
 	 * @throws IllegalStateException If the driver could not be loaded, if a connection already exists, or if the connection failed.
 	 */
-	public void connect(String address, int port, String database, String username, String password) throws IllegalStateException
+	public final void connect(String address, int port, String database, String username, String password) throws IllegalStateException
 	{
 		//sanity checks
 		if (connection != null)
@@ -82,7 +82,7 @@ public class MySQLConnection
 	 * @param password The MySQL server password.
 	 * @throws IllegalStateException If the driver could not be loaded, if a connection already exists, or if the connection failed.
 	 */
-	public void connect(String address, String database, String username, String password) throws IllegalStateException
+	public final void connect(String address, String database, String username, String password) throws IllegalStateException
 	{
 		connect(address,3306,database,username,password);
 	}
@@ -94,7 +94,7 @@ public class MySQLConnection
 	 * @param password The MySQL server password.
 	 * @throws IllegalStateException If the driver could not be loaded, if a connection already exists, or if the connection failed.
 	 */
-	public void connect(String database, String username, String password) throws IllegalStateException
+	public final void connect(String database, String username, String password) throws IllegalStateException
 	{
 		connect("localhost",3306,database,username,password);
 	}
@@ -103,7 +103,7 @@ public class MySQLConnection
 	 * Disconnects from the database, freeing the connection resources. If you have any ResultSets,
 	 * Statements or PreparedStatements cached, you should call release() on them before disconnecting. 
 	 */
-	public void disconnect()
+	public final void disconnect()
 	{
 		try
 		{
@@ -122,7 +122,7 @@ public class MySQLConnection
 	 * @param statements One or more Statement objects to release.
 	 * @throws IllegalStateException If no MySQL connection has been established.
 	 */
-	public void release(Statement... statements) throws IllegalStateException
+	public final void release(Statement... statements) throws IllegalStateException
 	{
 		if (connection == null)
 			throw new IllegalStateException("No MySQL connection has been established.");
@@ -146,7 +146,7 @@ public class MySQLConnection
 	 * @param resultSets One or more ResultSet objects to release.
 	 * @throws IllegalStateException If no MySQL connection has been established.
 	 */
-	public void release(ResultSet... resultSets) throws IllegalStateException
+	public final void release(ResultSet... resultSets) throws IllegalStateException
 	{
 		if (connection == null)
 			throw new IllegalStateException("No MySQL connection has been established.");
@@ -169,7 +169,7 @@ public class MySQLConnection
 	 * Creates a Statement object using the MySQL connection.
 	 * @throws IllegalStateException If no MySQL connection has been established or if an error occurs.
 	 */
-	public Statement createStatement() throws IllegalStateException
+	public final Statement createStatement() throws IllegalStateException
 	{
 		if (connection == null)
 			throw new IllegalStateException("No MySQL connection has been established.");
@@ -191,7 +191,7 @@ public class MySQLConnection
 	 * @param query The SQL query to execute.
 	 * @throws IllegalStateException If no MySQL connection has been established or if an error occurs.
 	 */
-	public PreparedStatement prepareStatement(String query) throws IllegalStateException
+	public final PreparedStatement prepareStatement(String query) throws IllegalStateException
 	{
 		if (connection == null)
 			throw new IllegalStateException("No MySQL connection has been established.");
