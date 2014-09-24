@@ -24,8 +24,7 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	private volatile List<Thread> threads = new ArrayList<>();
 	private MySQLConnection mysql = new MySQLConnection();
 	private boolean closed = false;
-	private static boolean active = false;
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
@@ -43,15 +42,11 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	 * If this parameter is omitted, -1 is assumed.</li>
 	 * </ul>
 	 * @throws NullPointerException if <code>args</code> is null
-	 * @throws IllegalStateException if an attempt is made to instantiate more than one EyeApplication
 	 */
 	public EyeApplication(String[] args)
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
-		if (active)
-			throw new IllegalStateException("You may not have more than one instance of EyeApplication at once.");
-		active = true;
 		
 		//check for debugger verbosity flags & start debugger
 		Debugger.Verbosity verbosity = Debugger.Verbosity.Information;
