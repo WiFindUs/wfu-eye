@@ -17,10 +17,13 @@ import wifindus.MySQLConnection;
  */
 public class EyeMySQLConnection extends MySQLConnection
 {
-	public Map<Integer, Map<String, Object>> fetchUsers() throws SQLException
+	public ResultSet fetchUsers() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM Users");
 		ResultSet resultSet = statement.executeQuery();
+		release(statement);
+		return resultSet;
+		/*
 		Map<Integer, Map<String, Object>> dataset = new HashMap<Integer, Map<String, Object>>();
 		while (resultSet.next())
 		{
@@ -34,25 +37,40 @@ public class EyeMySQLConnection extends MySQLConnection
 			 dataset.put(id, entry);
 		}
 		release(resultSet);
-		release(statement);
+		
 		return dataset;
+		*/
 	}
 	
-	public Map<String, Map<String, Object>> fetchNodes()
+	public ResultSet fetchNodes() throws SQLException
 	{
-		return null;
-		
+		PreparedStatement statement = prepareStatement("SELECT * FROM Nodes");
+		ResultSet resultSet = statement.executeQuery();
+		release(statement);
+		return resultSet;		
 	}
 	
-	public Map<Integer, Map<String, Object>> fetchIncidents()
+	public ResultSet fetchIncidents() throws SQLException
 	{
-		return null;
-		
+		PreparedStatement statement = prepareStatement("SELECT * FROM Incidents");
+		ResultSet resultSet = statement.executeQuery();
+		release(statement);
+		return resultSet;
 	}
 	
-	public Map<String, Map<String, Object>> fetchDevices()
+	public ResultSet fetchDevices() throws SQLException
 	{
-		return null;
-		
+		PreparedStatement statement = prepareStatement("SELECT * FROM Devices");
+		ResultSet resultSet = statement.executeQuery();
+		release(statement);
+		return resultSet;
+	}
+	
+	public ResultSet fetchDeviceUsers() throws SQLException
+	{
+		PreparedStatement statement = prepareStatement("SELECT * FROM DeviceUsers");
+		ResultSet resultSet = statement.executeQuery();
+		release(statement);
+		return resultSet;
 	}
 }
