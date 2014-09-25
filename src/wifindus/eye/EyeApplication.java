@@ -3,6 +3,8 @@ package wifindus.eye;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -103,17 +105,17 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		
 		//ensure required keys are present and valid, enforce defaults if not
 		//mysql
-		config.setString("mysql.username", config.getString("mysql.username", "root"));
-		config.setString("mysql.address", config.getString("mysql.address", "localhost"));
-		config.setInt("mysql.port", Math.min(Math.max(config.getInt("mysql.port", 3306),1024),65535));
-		config.setString("mysql.database", config.getString("mysql.database", "wfu_eye_db"));
-		config.setInt("mysql.update_interval", Math.min(Math.max(config.getInt("mysql.update_interval", 1000),500),5000));
+		config.defaultString("mysql.username", "root");
+		config.defaultString("mysql.address", "localhost");
+		config.defaultInt("mysql.port", 3306, 1024, 65535);
+		config.defaultString("mysql.database", "wfu_eye_db");
+		config.defaultInt("mysql.update_interval", 3000, 1000, 30000);
 		//server
-		config.setInt("server.udp_port", Math.min(Math.max(config.getInt("server.udp_port", 33339),1024),65535));
-		config.setInt("server.tcp_port", Math.min(Math.max(config.getInt("server.tcp_port", 33340),1024),65535));
-		config.setInt("server.tcp_count", Math.min(Math.max(config.getInt("server.tcp_count", 33340),1),5));
+		config.defaultInt("server.udp_port", 33339, 1024, 65535);
+		config.defaultInt("server.tcp_port", 33340, 1024, 65535);
+		config.defaultInt("server.tcp_count", 33340, 1, 5);
 		//dispatcher
-		config.setInt("dispatcher.tcp_port", Math.min(Math.max(config.getInt("dispatcher.tcp_port", 33340),1024),65535));
+		config.defaultInt("dispatcher.tcp_port", 33340, 1024, 65535);
 		
 		//connect to mysql
 		Debugger.i("Connecting to MySQL database '" + config.getString("mysql.database") + "@"
@@ -139,200 +141,64 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		
 
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-
-	@Override
-	public void deviceCreated(Device device)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceTimedOut(Device device)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceInUse(Device device, User user)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceNotInUse(Device device, User user)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceLocationChanged(Device device)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceAtmosphereChanged(Device device)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceAddressChanged(Device device)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceUpdated(Device device)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceAssignedIncident(Device device, Incident incident)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deviceUnassignedIncident(Device device, Incident incident)
-	{
-		// TODO Auto-generated method stub
-		
-	}
 	
-	@Override
-	public void incidentCreated(Incident incident)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void incidentArchived(Incident incident)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void nodeCreated(Node node)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void nodeTimedOut(Node node)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void nodeLocationChanged(Node node)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void nodeVoltageChanged(Node node)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void nodeUpdated(Node node)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void nodeAddressChanged(Node node)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void userCreated(User user)
-	{
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void windowOpened(WindowEvent e)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void windowClosing(WindowEvent e)
+	//WindowListener
+	@Override public void windowClosing(WindowEvent e)
 	{
 		Debugger.i("Cleaning up...");
 		mysql.disconnect();
 		abortThreads = true;
 		Debugger.close();
 	}
+	
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS (UNIMPLEMENTED INTERFACE METHODS)
+	/////////////////////////////////////////////////////////////////////
 
-	@Override
-	public void windowClosed(WindowEvent e)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void windowIconified(WindowEvent e)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void windowDeiconified(WindowEvent e)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void windowActivated(WindowEvent e)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void windowDeactivated(WindowEvent e)
-	{
-		// TODO Auto-generated method stub
-		
-	}
+	//DeviceEventListener
+	@Override public void deviceCreated(Device device) { }
+	@Override public void deviceTimedOut(Device device) { }
+	@Override public void deviceInUse(Device device, User user) { }
+	@Override public void deviceNotInUse(Device device, User user) { }
+	@Override public void deviceLocationChanged(Device device) { }
+	@Override public void deviceAtmosphereChanged(Device device) { }
+	@Override public void deviceAddressChanged(Device device) { }
+	@Override public void deviceUpdated(Device device) { }
+	@Override public void deviceAssignedIncident(Device device, Incident incident) { }
+	@Override public void deviceUnassignedIncident(Device device, Incident incident) { }
+	
+	//IncidentEventListener
+	@Override public void incidentCreated(Incident incident) { }
+	@Override public void incidentArchived(Incident incident) { }
+	
+	//NodeEventListener
+	@Override public void nodeCreated(Node node) { }
+	@Override public void nodeTimedOut(Node node) { }
+	@Override public void nodeLocationChanged(Node node) { }
+	@Override public void nodeVoltageChanged(Node node) { }
+	@Override public void nodeUpdated(Node node) { }
+	@Override public void nodeAddressChanged(Node node) { }
+	
+	//UserEventListener
+	@Override public void userCreated(User user) { }
+	
+	//WindowListener
+	@Override public void windowOpened(WindowEvent e) { }
+	@Override public void windowClosed(WindowEvent e) { }
+	@Override public void windowIconified(WindowEvent e) { }
+	@Override public void windowDeiconified(WindowEvent e) { }
+	@Override public void windowActivated(WindowEvent e) { }
+	@Override public void windowDeactivated(WindowEvent e) { }
 
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	private class MySQLUpdateWorker extends SwingWorker<Void, Map<Integer, Map<String, Object>> >
+	private class MySQLUpdateWorker extends SwingWorker<Void, Object[]>
 	{
 		private int interval = 1000;
 		
@@ -346,11 +212,70 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		{
 			while (!abortThreads)
 			{
-				//do the work, yo
+				//users
+				try
 				{
-				Map<Integer, Map<String, Object>> users = mysql.fetchUsers();
-				publish(users);
+					publish(new Object[] { "Users", mysql.fetchUsers() });
+					Thread.sleep(100);
 				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
+				
+				//devices
+				try
+				{
+					publish(new Object[] { "Devices", mysql.fetchDevices() });
+					Thread.sleep(100);
+				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
+				
+				//device users
+				try
+				{
+					publish(new Object[] { "DeviceUsers", mysql.fetchDeviceUsers() });
+					Thread.sleep(100);
+				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
+				
+				//nodes
+				try
+				{
+					publish(new Object[] { "Nodes", mysql.fetchNodes() });
+					Thread.sleep(100);
+				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
+				
+				//incidents
+				try
+				{
+					publish(new Object[] { "Incidents", mysql.fetchIncidents() });
+					Thread.sleep(100);
+				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
 				
 				//sleep for the interval, but do so in short chunks
 				//so that we can terminate quickly if necessary
@@ -366,33 +291,113 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		}
 		
 		@Override
-		protected void process(List< Map<Integer, Map<String, Object>> > chunks)
+		protected void process(List< Object[] > chunks)
 		{
-			
-			
+			for (Object[] kvp : chunks)
+			{
+				String table = (String)kvp[0];
+				ResultSet results = (ResultSet)kvp[1];
+				
+				switch (table)
+				{
+					case "Users": processUsers(results); break;
+					case "Devices": processDevices(results); break;
+					case "DeviceUsers": processDeviceUsers(results); break;
+					case "Nodes": processNodes(results); break;
+					case "Incidents": processIncidents(results); break;
+					
+				}
+			}
 		}
-		
-		
 	};
-	/*
-	@SuppressWarnings("unused")
-	private class MySQLUpdateThread implements Runnable
+	
+	private void processUsers(ResultSet results)
 	{
-		private int port = 33340;
-		
-		public MySQLUpdateThread(int port)
+		try
 		{
-			this.port = port;
+			while (results.next())
+			{
+				Debugger.v("Database: User["+results.getInt("userID")+"]");
+				
+			}
 		}
-		
-		@Override
-		public void run()
+		catch (SQLException e)
 		{
-			if (abortThreads)
-				return;
-		}		
+			Debugger.ex(e);
+		}
+		mysql.release(results);
 	}
 	
+	private void processDevices(ResultSet results)
+	{
+		try
+		{
+			while (results.next())
+			{
+				Debugger.v("Database: Device[\""+results.getString("hash")+"\"]");
+				
+			}
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+		}
+		mysql.release(results);
+	}
+	
+	private void processDeviceUsers(ResultSet results)
+	{
+		try
+		{
+			while (results.next())
+			{
+				Debugger.v("Database: DeviceUser[\""+results.getString("deviceHash")+"\", "+results.getInt("userID")+"]");
+				
+			}
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+		}
+		mysql.release(results);
+	}
+	
+	private void processNodes(ResultSet results)
+	{
+		try
+		{
+			while (results.next())
+			{
+				Debugger.v("Database: Node[\""+results.getString("hash")+"\"]");
+				
+			}
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+		}
+		mysql.release(results);
+	}
+	
+	private void processIncidents(ResultSet results)
+	{
+		try
+		{
+			while (results.next())
+			{
+				Debugger.v("Database: Incident["+results.getInt("incidentID")+"]");
+				
+			}
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+		}
+		mysql.release(results);
+	}
+	
+	
+	/*
 	@SuppressWarnings("unused")
 	private class TCPListenThread implements Runnable
 	{
