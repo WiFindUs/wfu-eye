@@ -9,7 +9,7 @@ USE wfu_eye_db;
   Device	
   -----------------------------------------------------------*/
 INSERT INTO
-	Device (hash, deviceType, lastUpdate)
+	Devices (hash, deviceType, lastUpdate)
 VALUES 
 	('TYRZz3u0','PHO', NOW()),
 	('AbUNZ0xl','PHO', NOW()),
@@ -26,7 +26,7 @@ VALUES
   User	
   -----------------------------------------------------------*/
 INSERT INTO
-	`User` (userID, nameFirst, nameMiddle, nameLast, personnelType)
+	Users (userID, nameFirst, nameMiddle, nameLast, personnelType)
 VALUES 
 	/* wfu personnel */
 	(1,'Mark', 'Stephen', 'Gillard', 'WFU'),
@@ -54,7 +54,7 @@ VALUES
   Node	
   -----------------------------------------------------------*/
 INSERT INTO
-	Node (hash, latitude, longitude, lastUpdate)
+	Nodes (hash, latitude, longitude, lastUpdate)
 VALUES 
 	('nmkhFNT6', -34.914850, 138.578958, NOW()),
 	('AZN9SEhT', -34.917093, 138.580020, NOW()),

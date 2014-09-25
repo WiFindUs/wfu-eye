@@ -6,14 +6,14 @@ CREATE DATABASE IF NOT EXISTS wfu_eye_db;
 USE wfu_eye_db;
 
 SET foreign_key_checks = 0;
-DROP TABLE IF EXISTS Incident;
-DROP TABLE IF EXISTS Device;
-DROP TABLE IF EXISTS `User`;
-DROP TABLE IF EXISTS DeviceUserLink;
-DROP TABLE IF EXISTS Node;
+DROP TABLE IF EXISTS Incidents;
+DROP TABLE IF EXISTS Devices;
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS DeviceUsers;
+DROP TABLE IF EXISTS Nodes;
 SET foreign_key_checks = 1;
 
-CREATE TABLE Device (
+CREATE TABLE Devices (
   hash                 char(8) NOT NULL, 
   deviceType           char(3) DEFAULT 'PHO' NOT NULL CHECK (deviceType IN('PHO','TAB','WAT','COM','OTH')), 
   address              varchar(255), 
@@ -29,7 +29,7 @@ CREATE TABLE Device (
   respondingIncidentID int(10), 
   PRIMARY KEY (hash)) ENGINE=InnoDB;
   
-CREATE TABLE `User` (
+CREATE TABLE Users (
   userID        int(10) NOT NULL AUTO_INCREMENT, 
   nameFirst     varchar(32) NOT NULL CHECK (LEN(nameFirst) > 0), 
   nameMiddle    varchar(32) NOT NULL CHECK (LEN(nameMiddle) > 0), 
@@ -37,7 +37,7 @@ CREATE TABLE `User` (
   personnelType char(3) NOT NULL CHECK (personnelType IN('MED','SEC','WFU')), 
   PRIMARY KEY (userID)) ENGINE=InnoDB;
   
-CREATE TABLE Incident (
+CREATE TABLE Incidents (
   incidentID   int(10) NOT NULL AUTO_INCREMENT, 
   incidentType char(3) NOT NULL CHECK (incidentType IN('MED','SEC','WFU')), 
   latitude     decimal(18, 16) NOT NULL CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
@@ -48,13 +48,13 @@ CREATE TABLE Incident (
   archived     tinyint DEFAULT 0 NOT NULL, 
   PRIMARY KEY (incidentID)) ENGINE=InnoDB;
   
-CREATE TABLE DeviceUserLink (
+CREATE TABLE DeviceUsers (
   userID     int(10) NOT NULL, 
   deviceHash char(8) NOT NULL, 
   PRIMARY KEY (userID, 
   deviceHash)) ENGINE=InnoDB;
   
-CREATE TABLE Node (
+CREATE TABLE Nodes (
   hash       char(8) NOT NULL, 
   address    varchar(255), 
   latitude   decimal(18, 16) CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
@@ -65,6 +65,6 @@ CREATE TABLE Node (
   lastUpdate datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   PRIMARY KEY (hash)) ENGINE=InnoDB;
   
-ALTER TABLE Device ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incident (incidentID);
-ALTER TABLE DeviceUserLink ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES `User` (userID);
-ALTER TABLE DeviceUserLink ADD INDEX `In use by user according to` (deviceHash), ADD CONSTRAINT `In use by user according to` FOREIGN KEY (deviceHash) REFERENCES Device (hash);
+ALTER TABLE Devices ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incidents (incidentID);
+ALTER TABLE DeviceUsers ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES Users (userID);
+ALTER TABLE DeviceUsers ADD INDEX `In use by user according to` (deviceHash), ADD CONSTRAINT `In use by user according to` FOREIGN KEY (deviceHash) REFERENCES Devices (hash);
