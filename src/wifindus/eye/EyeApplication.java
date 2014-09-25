@@ -1,12 +1,16 @@
 package wifindus.eye;
 
-import java.io.Closeable;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JFrame;
+import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.MySQLConnection;
@@ -16,14 +20,21 @@ import wifindus.MySQLConnection;
  * to a MySQL database and respond to changes made to Users, Devices, etc.
  * @author Mark 'marzer' Gillard
  */
-public abstract class EyeApplication implements Closeable, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener
+public abstract class EyeApplication extends JFrame implements DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener, WindowListener
 {
+	//properties
+	private static final long serialVersionUID = -3410394016911856177L;
 	private static final Pattern PATTERN_VERBOSITY = Pattern.compile( "^-([0-4])$" );
 	private volatile ConfigFile config = null;
 	private volatile boolean abortThreads = false;
-	private volatile List<Thread> threads = new ArrayList<>();
-	private MySQLConnection mysql = new MySQLConnection();
-	private boolean closed = false;
+	private volatile MySQLUpdateWorker mysqlWorker = null;
+	private EyeMySQLConnection mysql = new EyeMySQLConnection();
+	//database structures
+	private volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
+	private volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
+	private volatile ConcurrentHashMap<Integer,Incident> incidents = new ConcurrentHashMap<>();
+	private volatile ConcurrentHashMap<Integer,User> users = new ConcurrentHashMap<>();
+	
 
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -47,6 +58,11 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
+		
+		//set frame properties
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(800, 600);
+		setVisible(true);
 		
 		//check for debugger verbosity flags & start debugger
 		Debugger.Verbosity verbosity = Debugger.Verbosity.Information;
@@ -91,6 +107,7 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 		config.setString("mysql.address", config.getString("mysql.address", "localhost"));
 		config.setInt("mysql.port", Math.min(Math.max(config.getInt("mysql.port", 3306),1024),65535));
 		config.setString("mysql.database", config.getString("mysql.database", "wfu_eye_db"));
+		config.setInt("mysql.update_interval", Math.min(Math.max(config.getInt("mysql.update_interval", 1000),500),5000));
 		//server
 		config.setInt("server.udp_port", Math.min(Math.max(config.getInt("server.udp_port", 33339),1024),65535));
 		config.setInt("server.tcp_port", Math.min(Math.max(config.getInt("server.tcp_port", 33340),1024),65535));
@@ -113,25 +130,20 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 		catch (Exception e)
 		{
 			Debugger.ex(e);
-		    closeInternal();
-		    System.exit(1);
+			dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		}
+		
+		//create and launch mysql worker task
+		mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
+		mysqlWorker.execute();
+		
+
 	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-	
-	/**
-	 * Closes/releases the resources used by the application. This does
-	 * NOT terminate the main thread (i.e. this is not the same as calling <code>System.exit</code>);
-	 * you must still exit the program normally as per flow of execution.
-	 */
-	public void close() throws IOException
-	{
-		closeInternal();
-	}
-	
+
 	@Override
 	public void deviceCreated(Device device)
 	{
@@ -263,16 +275,116 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 	public void userCreated(User user)
 	{
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e)
+	{
+		// TODO Auto-generated method stub
 		
 	}
-	
+
+	@Override
+	public void windowClosing(WindowEvent e)
+	{
+		Debugger.i("Cleaning up...");
+		mysql.disconnect();
+		abortThreads = true;
+		Debugger.close();
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	@SuppressWarnings("unused")
-	private class TCPListenThread implements Runnable
+	private class MySQLUpdateWorker extends SwingWorker<Void, Map<Integer, Map<String, Object>> >
 	{
+		private int interval = 1000;
+		
+		public MySQLUpdateWorker(int interval)
+		{
+			this.interval = interval;
+		}
+		
+		@Override
+		protected Void doInBackground() throws Exception
+		{
+			while (!abortThreads)
+			{
+				//do the work, yo
+				{
+				Map<Integer, Map<String, Object>> users = mysql.fetchUsers();
+				publish(users);
+				}
+				
+				//sleep for the interval, but do so in short chunks
+				//so that we can terminate quickly if necessary
+				int counter = 0;
+				while (!abortThreads && counter < interval)
+				{
+					Thread.sleep(100);
+					counter += 100;
+				}
+				
+			}
+			return null;
+		}
+		
+		@Override
+		protected void process(List< Map<Integer, Map<String, Object>> > chunks)
+		{
+			
+			
+		}
+		
+		
+	};
+	/*
+	@SuppressWarnings("unused")
+	private class MySQLUpdateThread implements Runnable
+	{
+		private int port = 33340;
+		
+		public MySQLUpdateThread(int port)
+		{
+			this.port = port;
+		}
+		
 		@Override
 		public void run()
 		{
@@ -281,27 +393,22 @@ public abstract class EyeApplication implements Closeable, DeviceEventListener, 
 		}		
 	}
 	
-	//this is merely to provide an internal close() without requiring Closeable's throwing of IOException
-	private void closeInternal()
+	@SuppressWarnings("unused")
+	private class TCPListenThread implements Runnable
 	{
-		if (closed)
-			return;
-		Debugger.i("Cleaning up...");
-		mysql.disconnect();
-		abortThreads = true;
-		for (Thread thread : threads) 
+		private int port = 33340;
+		
+		public TCPListenThread(int port)
 		{
-			try
-			{
-				thread.join();
-			}
-			catch (InterruptedException e)
-			{
-				//
-			}
+			this.port = port;
 		}
-		threads.clear();
-		closed = true;
-		Debugger.close();
+		
+		@Override
+		public void run()
+		{
+			if (abortThreads)
+				return;
+		}		
 	}
+	*/
 }

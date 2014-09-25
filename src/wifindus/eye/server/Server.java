@@ -1,6 +1,6 @@
 package wifindus.eye.server;
 
-import java.io.IOException;
+import javax.swing.SwingUtilities;
 import wifindus.eye.EyeApplication;
 
 /**
@@ -11,6 +11,8 @@ import wifindus.eye.EyeApplication;
  */
 public class Server extends EyeApplication
 {
+	private static final long serialVersionUID = -6202164296309727570L;
+
 	/**
 	 * Creates a new Server.
 	 * @param args The command-line arguments used to launch the application, as provided by main.
@@ -25,10 +27,13 @@ public class Server extends EyeApplication
 	 * <strong>Do not modify this function.</strong>
 	 * @param args The command-line arguments used to launch the application.
 	 */
-	public static void main(String[] args)
+	public static void main(final String[] args)
 	{
-		Server server = new Server(args);
-		try	{ server.close(); }
-		catch (IOException e) { }
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+		    	new Server(args)
+		    	.setTitle("WiFindUs Server");
+		    }
+		});
 	}
 }
