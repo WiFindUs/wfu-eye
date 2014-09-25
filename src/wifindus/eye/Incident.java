@@ -40,7 +40,7 @@ public class Incident extends EventObject<IncidentEventListener>
 	private Timestamp created = new Timestamp(0);
 	private boolean archived = false;
 	//database relationships
-	private ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
+	private volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
