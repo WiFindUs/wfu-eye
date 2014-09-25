@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -196,6 +197,17 @@ public final class Debugger
 		if (debugger != null)
 			debugger.log(Verbosity.Exception,System.err,
 					e.getClass().getName() + ": " + e.getMessage());
+	}
+	
+	/**
+	 * Outputs debugging information about an SQLException (with a verbosity level of <code>Exception</code>). Console output is done on stderr.
+	 * @param e The SQLException that was thrown.
+	 */
+	public static void ex(SQLException e)
+	{
+		if (debugger != null)
+			debugger.log(Verbosity.Exception,System.err,
+				e.getClass().getName() + ": " + e.getMessage() + " (SQLState: " + e.getSQLState() +", VendorError: " + e.getErrorCode() + ")");
 	}
 	
 	/**
