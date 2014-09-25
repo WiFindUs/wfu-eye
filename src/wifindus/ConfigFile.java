@@ -412,7 +412,49 @@ public class ConfigFile
 		sb.append("]");
 		return sb.toString();
 	}
-
+	
+	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists,
+	 * is of the correct type, and is within an acceptable range. If any of these conditions
+	 * fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param defaultValue The value to assign at the given key by default.
+	 * @param min The minimum acceptable value.
+	 * @param max The maximum acceptable value.
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultInt(String key, int defaultValue, int min, int max)
+	{
+		setInt((key = checkKey(key)),
+			Math.min(Math.max(getInt(key, defaultValue),min),max));
+		return this;		
+	}
+	
+	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists and
+	 * is of the correct type. If any of these conditions fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param defaultValue The value to assign at the given key by default.
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultInt(String key, int defaultValue)
+	{
+		return defaultInt(key,defaultValue,Integer.MIN_VALUE,Integer.MAX_VALUE);		
+	}
+	
+	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists and
+	 * is of the correct type. If any of these conditions fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param defaultValue The value to assign at the given key by default.
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultString(String key, String defaultValue)
+	{
+		setString((key = checkKey(key)), getString(key, defaultValue));
+		return this;
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
