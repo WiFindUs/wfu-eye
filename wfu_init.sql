@@ -17,10 +17,10 @@ CREATE TABLE Devices (
   hash                 char(8) NOT NULL, 
   deviceType           char(3) DEFAULT 'PHO' NOT NULL CHECK (deviceType IN('PHO','TAB','WAT','COM','OTH')), 
   address              varchar(255), 
-  latitude             decimal(18, 16) CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
-  longitude            decimal(18, 15) CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
+  latitude             decimal(18, 16) CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
+  longitude            decimal(18, 15) CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude             decimal(9, 2), 
-  accuracy             decimal(8, 4) CHECK (accuracy BETWEEN 0.0000 AND 9999.9999), 
+  accuracy             decimal(8, 4) CHECK (accuracy IS NULL OR accuracy BETWEEN 0.0000 AND 9999.9999), 
   humidity             decimal(9, 2), 
   airPressure          decimal(9, 2), 
   temperature          decimal(9, 2), 
@@ -30,41 +30,40 @@ CREATE TABLE Devices (
   PRIMARY KEY (hash)) ENGINE=InnoDB;
   
 CREATE TABLE Users (
-  userID        int(10) NOT NULL AUTO_INCREMENT, 
+  id	        int(10) NOT NULL AUTO_INCREMENT, 
   nameFirst     varchar(32) NOT NULL CHECK (LEN(nameFirst) > 0), 
   nameMiddle    varchar(32) NOT NULL CHECK (LEN(nameMiddle) > 0), 
   nameLast      varchar(32) NOT NULL CHECK (LEN(nameLast) > 0), 
   personnelType char(3) NOT NULL CHECK (personnelType IN('MED','SEC','WFU')), 
-  PRIMARY KEY (userID)) ENGINE=InnoDB;
+  PRIMARY KEY (id)) ENGINE=InnoDB;
   
 CREATE TABLE Incidents (
-  incidentID   int(10) NOT NULL AUTO_INCREMENT, 
+  id   int(10) NOT NULL AUTO_INCREMENT, 
   incidentType char(3) NOT NULL CHECK (incidentType IN('MED','SEC','WFU')), 
   latitude     decimal(18, 16) NOT NULL CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
   longitude    decimal(18, 15) NOT NULL CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude     decimal(9, 2), 
-  accuracy     decimal(8, 4) CHECK (accuracy BETWEEN 0.0000 AND 9999.9999), 
+  accuracy     decimal(8, 4) CHECK (accuracy IS NULL OR accuracy BETWEEN 0.0000 AND 9999.9999), 
   created      datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   archived     tinyint DEFAULT 0 NOT NULL, 
-  PRIMARY KEY (incidentID)) ENGINE=InnoDB;
+  PRIMARY KEY (id)) ENGINE=InnoDB;
   
 CREATE TABLE DeviceUsers (
   userID     int(10) NOT NULL, 
   deviceHash char(8) NOT NULL, 
-  PRIMARY KEY (userID, 
-  deviceHash)) ENGINE=InnoDB;
+  PRIMARY KEY (userID, deviceHash)) ENGINE=InnoDB;
   
 CREATE TABLE Nodes (
   hash       char(8) NOT NULL, 
   address    varchar(255), 
-  latitude   decimal(18, 16) CHECK (latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
-  longitude  decimal(18, 15) CHECK (longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
+  latitude   decimal(18, 16) CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
+  longitude  decimal(18, 15) CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude   decimal(9, 2), 
-  accuracy   decimal(8, 4) CHECK (accuracy BETWEEN 0.0000 AND 9999.9999), 
+  accuracy   decimal(8, 4) CHECK (accuracy IS NULL OR accuracy BETWEEN 0.0000 AND 9999.9999), 
   voltage    decimal(6, 4), 
   lastUpdate datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   PRIMARY KEY (hash)) ENGINE=InnoDB;
   
-ALTER TABLE Devices ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incidents (incidentID);
-ALTER TABLE DeviceUsers ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES Users (userID);
+ALTER TABLE Devices ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incidents (id);
+ALTER TABLE DeviceUsers ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES Users (id);
 ALTER TABLE DeviceUsers ADD INDEX `In use by user according to` (deviceHash), ADD CONSTRAINT `In use by user according to` FOREIGN KEY (deviceHash) REFERENCES Devices (hash);
