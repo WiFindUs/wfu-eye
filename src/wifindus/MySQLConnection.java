@@ -208,6 +208,44 @@ public class MySQLConnection
 		}
 	}
 	
+	/**
+	 * Gets a nullable Double value, properly enforcing null returns in the case of SQL NULL.
+	 * @param resultSet The set of query results from which to get the nullable value.
+	 * @param columnLabel The name of the column holding the value
+	 * @return A Double containing the given value, or null if it was SQL NULL.
+	 * @throws SQLException if an SQL error occurs.
+	 * @throws NullPointerException if resultSet or columnLabel are null. 
+	 */
+	public static final Double getNullableDouble(ResultSet resultSet, String columnLabel) throws SQLException
+	{
+		if (resultSet == null)
+			throw new NullPointerException("Parameter 'resultSet' cannot be null.");
+		if (columnLabel == null)
+			throw new NullPointerException("Parameter 'columnLabel' cannot be null.");
+		
+		Double val = resultSet.getDouble(columnLabel);
+		return resultSet.wasNull() ? null : val;
+	}
+	
+	/**
+	 * Gets a nullable Integer value, properly enforcing null returns in the case of SQL NULL.
+	 * @param resultSet The set of query results from which to get the nullable value.
+	 * @param columnLabel The name of the column holding the value
+	 * @return A Double containing the given value, or null if it was SQL NULL.
+	 * @throws SQLException if an SQL error occurs.
+	 * @throws NullPointerException if resultSet or columnLabel are null. 
+	 */
+	public static final Integer getNullableInt(ResultSet resultSet, String columnLabel) throws SQLException
+	{
+		if (resultSet == null)
+			throw new NullPointerException("Parameter 'resultSet' cannot be null.");
+		if (columnLabel == null)
+			throw new NullPointerException("Parameter 'columnLabel' cannot be null.");
+		
+		Integer val = resultSet.getInt(columnLabel);
+		return resultSet.wasNull() ? null : val;
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
