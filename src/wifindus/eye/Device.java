@@ -3,12 +3,14 @@ package wifindus.eye;
 import java.net.InetAddress;
 import java.sql.Timestamp;
 import wifindus.EventObject;
+import wifindus.MySQLResultRow;
+import wifindus.MySQLUpdateTarget;
 
 /**
  * A client device in use by medical, security or wifindus personnel.
  * @author Mark 'marzer' Gillard
  */
-public class Device extends EventObject<DeviceEventListener>
+public class Device extends EventObject<DeviceEventListener> implements MySQLUpdateTarget
 {
 	/**
 	 * A description of a client device's 'type'.
@@ -166,6 +168,47 @@ public class Device extends EventObject<DeviceEventListener>
 	{
 		return currentIncident;
 	}
+	
+	/**
+	 * Gets a Type from a database type key.
+	 * @param key The key to match with an Device.Type.
+	 * @return The Device.Type enum value matching the given key.
+	 * @throws NullPointerException if key was null.
+	 * @throws IllegalArgumentException if key did not match an Device.Type database key.
+	 */
+	public static final Type getTypeFromDatabaseKey(String key)
+	{
+		if (key == null)
+			throw new NullPointerException("Parameter 'key' cannot be null.");
+		switch (key)
+		{
+			case "PHO": return Device.Type.Phone;
+			case "TAB": return Device.Type.Tablet;
+			case "WAT": return Device.Type.Watch;
+			case "COM": return Device.Type.Computer;
+			case "OTH": return Device.Type.Other;
+		}
+		
+		throw new IllegalArgumentException("Parameter 'key' does not match an Device.Type database key.");
+	}
+	
+	@Override
+	public void update(MySQLResultRow resultRow)
+	{
+		if (resultRow == null)
+			throw new NullPointerException("Parameter 'resultRow' cannot be null.");
+		if (!((String)resultRow.get("hash")).equals(getHash()))
+			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
+		
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "Device[\""+getHash()+"\"]";
+	}
+	
+	
 	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS

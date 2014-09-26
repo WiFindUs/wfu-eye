@@ -3,12 +3,14 @@ package wifindus.eye;
 import java.net.InetAddress;
 import java.sql.Timestamp;
 import wifindus.EventObject;
+import wifindus.MySQLResultRow;
+import wifindus.MySQLUpdateTarget;
 
 /**
  * A mesh node device forming part of the WFU client network route.
  * @author Mark 'marzer' Gillard
  */
-public class Node extends EventObject<NodeEventListener>
+public class Node extends EventObject<NodeEventListener> implements MySQLUpdateTarget
 {
 	//properties
 	private String hash = "";
@@ -92,6 +94,22 @@ public class Node extends EventObject<NodeEventListener>
 	public final Double getVoltage()
 	{
 		return voltage;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "Node[\""+getHash()+"\"]";
+	}
+	
+	@Override
+	public void update(MySQLResultRow resultRow)
+	{
+		if (resultRow == null)
+			throw new NullPointerException("Parameter 'resultRow' cannot be null.");
+		if (!((String)resultRow.get("hash")).equals(getHash()))
+			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
+		
 	}
 	
 	/////////////////////////////////////////////////////////////////////

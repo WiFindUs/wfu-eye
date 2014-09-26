@@ -1,12 +1,14 @@
 package wifindus.eye;
 
 import wifindus.EventObject;
+import wifindus.MySQLResultRow;
+import wifindus.MySQLUpdateTarget;
 
 /**
  * A member of medical, security, or WiFindUs personnel.
  * @author Mark 'marzer' Gillard
  */
-public class User extends EventObject<UserEventListener>
+public class User extends EventObject<UserEventListener> implements MySQLUpdateTarget
 {
 	//properties
 	private int id;
@@ -50,6 +52,22 @@ public class User extends EventObject<UserEventListener>
 		
 		fireEvent("created");
 	}
+
+	/**
+	 * Creates a new User, representing an User entry from the database.
+	 * @param resultRow A MySQLResultRow structure containing information about this user.
+	 * @param listeners A variable-length list of event listeners that will watch this incident's state.
+	 */
+	public User(MySQLResultRow resultRow, UserEventListener... listeners)
+	{
+		this( ((Integer)resultRow.get("id")).intValue(),
+			(Incident.Type)resultRow.get("personnelType"),
+			(String)resultRow.get("nameFirst"),
+			(String)resultRow.get("nameMiddle"),
+			(String)resultRow.get("nameLast"),
+			listeners			
+			);
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
@@ -59,7 +77,7 @@ public class User extends EventObject<UserEventListener>
 	 * Gets this User's ID.
 	 * @return An integer representing this User's automatically-assigned id key.
 	 */
-	public final int getId()
+	public final int getID()
 	{
 		return id;
 	}
@@ -133,6 +151,21 @@ public class User extends EventObject<UserEventListener>
 		return currentDevice;
 	}
 	
+	@Override
+	public void update(MySQLResultRow resultRow)
+	{
+		if (resultRow == null)
+			throw new NullPointerException("Parameter 'resultRow' cannot be null.");
+		if (((Integer)resultRow.get("id")).intValue() != getID())
+			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "User["+getID()+"]";
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -148,7 +181,7 @@ public class User extends EventObject<UserEventListener>
 		}
 		
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////

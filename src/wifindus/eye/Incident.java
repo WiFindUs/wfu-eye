@@ -4,12 +4,14 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import wifindus.EventObject;
+import wifindus.MySQLResultRow;
+import wifindus.MySQLUpdateTarget;
 
 /**
  * An security, medical or wifindus incident occurring in the field, as reported by field personnel. 
  * @author Mark 'marzer' Gillard
  */
-public class Incident extends EventObject<IncidentEventListener>
+public class Incident extends EventObject<IncidentEventListener> implements MySQLUpdateTarget
 {
 	/**
 	 * A description of an Incident's 'type' (i.e. who is supposed to respond to it).
@@ -88,7 +90,7 @@ public class Incident extends EventObject<IncidentEventListener>
 	 * Gets this Incident's ID.
 	 * @return An integer representing this Incident's automatically-assigned id key.
 	 */
-	public final int getId()
+	public final int getID()
 	{
 		return id;
 	}
@@ -142,6 +144,43 @@ public class Incident extends EventObject<IncidentEventListener>
 		return new ArrayList<Device>(respondingDevices.values());
 	}
 	
+	/**
+	 * Gets a Type from a database type key.
+	 * @param key The key to match with an Incident.Type.
+	 * @return The Incident.Type enum value matching the given key.
+	 * @throws NullPointerException if key was null.
+	 * @throws IllegalArgumentException if key did not match an Incident.Type database key.
+	 */
+	public static final Type getTypeFromDatabaseKey(String key)
+	{
+		if (key == null)
+			throw new NullPointerException("Parameter 'key' cannot be null.");
+		switch (key)
+		{
+			case "MED": return Incident.Type.Medical;
+			case "SEC": return Incident.Type.Security;
+			case "WFU": return Incident.Type.WiFindUs;
+		}
+		
+		throw new IllegalArgumentException("Parameter 'key' does not match an Incident.Type database key.");
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "Incident["+getID()+"]";
+	}
+	
+	@Override
+	public void update(MySQLResultRow resultRow)
+	{
+		if (resultRow == null)
+			throw new NullPointerException("Parameter 'resultRow' cannot be null.");
+		if (((Integer)resultRow.get("id")).intValue() != getID())
+			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
+		
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -161,7 +200,6 @@ public class Incident extends EventObject<IncidentEventListener>
 		
 	}
 
-	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
