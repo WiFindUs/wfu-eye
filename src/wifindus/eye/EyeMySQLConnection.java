@@ -1,14 +1,10 @@
-/**
- * 
- */
 package wifindus.eye;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 import wifindus.MySQLConnection;
+import wifindus.MySQLResultSet;
 
 /**
  * A refined MySQLConnection wrapper containing methods specifically for manipulating
@@ -17,60 +13,123 @@ import wifindus.MySQLConnection;
  */
 public class EyeMySQLConnection extends MySQLConnection
 {
-	public ResultSet fetchUsers() throws SQLException
+	public MySQLResultSet fetchUsers() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM Users");
 		ResultSet resultSet = statement.executeQuery();
-		release(statement);
-		return resultSet;
-		/*
-		Map<Integer, Map<String, Object>> dataset = new HashMap<Integer, Map<String, Object>>();
+		MySQLResultSet results = new MySQLResultSet();
 		while (resultSet.next())
 		{
-			 Map<String, Object> entry = new HashMap<String, Object>();
-			 Integer id = resultSet.getInt("userID");
-			 entry.put("userID", id);
-			 entry.put("nameFirst", resultSet.getString("nameFirst"));
-			 entry.put("nameMiddle", resultSet.getString("nameMiddle"));
-			 entry.put("nameLast", resultSet.getString("nameLast"));
-			 entry.put("personnelType", resultSet.getString("personnelType"));
-			 dataset.put(id, entry);
+			Integer id = resultSet.getInt("id");
+			results.put(id,
+				"id", id,
+				"nameFirst", resultSet.getString("nameFirst"),
+				"nameMiddle", resultSet.getString("nameMiddle"),
+				"nameLast", resultSet.getString("nameLast"),
+				"personnelType", Incident.getTypeFromDatabaseKey(resultSet.getString("personnelType"))
+				);
+			
 		}
-		release(resultSet);
 		
-		return dataset;
-		*/
+		release(resultSet);
+		release(statement);
+		return results;
 	}
 	
-	public ResultSet fetchNodes() throws SQLException
+
+	public MySQLResultSet fetchNodes() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM Nodes");
 		ResultSet resultSet = statement.executeQuery();
+		MySQLResultSet results = new MySQLResultSet();
+		while (resultSet.next())
+		{
+			String hash = resultSet.getString("hash");
+			results.put(hash,
+				"hash", hash,				
+				"address", resultSet.getString("address"),
+				"latitude", getNullableDouble(resultSet, "latitude"),
+				"longitude", getNullableDouble(resultSet, "longitude"),
+				"altitude", getNullableDouble(resultSet, "altitude"),
+				"accuracy", getNullableDouble(resultSet, "accuracy"),
+				"voltage", getNullableDouble(resultSet, "voltage"),
+				"lastUpdate", resultSet.getTimestamp("lastUpdate")
+				);
+		}
+		release(resultSet);
 		release(statement);
-		return resultSet;		
+		return results;	
 	}
 	
-	public ResultSet fetchIncidents() throws SQLException
+	public MySQLResultSet fetchIncidents() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM Incidents");
 		ResultSet resultSet = statement.executeQuery();
+		MySQLResultSet results = new MySQLResultSet();
+		while (resultSet.next())
+		{
+			Integer id = resultSet.getInt("id");
+			results.put(id,
+				"id", id,			
+				"incidentType", Incident.getTypeFromDatabaseKey(resultSet.getString("incidentType")),
+				"latitude", resultSet.getDouble("latitude"),
+				"longitude", resultSet.getDouble("longitude"),
+				"altitude", getNullableDouble(resultSet, "altitude"),
+				"accuracy", getNullableDouble(resultSet, "accuracy"),
+				"created", resultSet.getTimestamp("created"),
+				"archived", (resultSet.getShort("archived") != 0)
+				);
+		}
+		release(resultSet);
 		release(statement);
-		return resultSet;
+		return results;	
 	}
 	
-	public ResultSet fetchDevices() throws SQLException
+
+	public MySQLResultSet fetchDevices() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM Devices");
 		ResultSet resultSet = statement.executeQuery();
+		MySQLResultSet results = new MySQLResultSet();
+		while (resultSet.next())
+		{
+			String hash = resultSet.getString("hash");
+			results.put(hash,
+				"hash", hash,		
+				"deviceType", Device.getTypeFromDatabaseKey(resultSet.getString("deviceType")),
+				"address", resultSet.getString("address"),
+				"latitude", getNullableDouble(resultSet, "latitude"),
+				"longitude", getNullableDouble(resultSet, "longitude"),
+				"altitude", getNullableDouble(resultSet, "altitude"),
+				"accuracy", getNullableDouble(resultSet, "accuracy"),
+				"humidity", getNullableDouble(resultSet, "humidity"),
+				"airPressure", getNullableDouble(resultSet, "airPressure"),
+				"temperature", getNullableDouble(resultSet, "temperature"),
+				"lightLevel", getNullableDouble(resultSet, "lightLevel"),
+				"lastUpdate", resultSet.getTimestamp("lastUpdate"),
+				"respondingIncidentID", getNullableInt(resultSet, "respondingIncidentID")
+				);
+		}
+		release(resultSet);
 		release(statement);
-		return resultSet;
+		return results;	
 	}
-	
-	public ResultSet fetchDeviceUsers() throws SQLException
+
+	public MySQLResultSet fetchDeviceUsers() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM DeviceUsers");
 		ResultSet resultSet = statement.executeQuery();
+		MySQLResultSet results = new MySQLResultSet();
+		int i = 0;
+		while (resultSet.next())
+		{
+			results.put(i++,
+				"userID", resultSet.getInt("userID"),
+				"deviceHash", resultSet.getString("deviceHash")
+				);
+		}
+		release(resultSet);
 		release(statement);
-		return resultSet;
+		return results;	
 	}
 }
