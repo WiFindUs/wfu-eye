@@ -3,8 +3,8 @@ package wifindus.eye;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,8 @@ import javax.swing.JFrame;
 import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
-import wifindus.MySQLConnection;
+import wifindus.MySQLResultRow;
+import wifindus.MySQLResultSet;
 
 /**
  * A general base for Eye applications that need to maintain a connection
@@ -155,12 +156,35 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		Debugger.close();
 	}
 	
+	@Override
+	public void deviceCreated(Device device)
+	{
+		Debugger.v("Created: " + device);
+	}
+	
+	@Override
+	public void userCreated(User user)
+	{
+		Debugger.v("Created: " + user);
+	}
+	
+	@Override
+	public void incidentCreated(Incident incident)
+	{
+		Debugger.v("Created: " + incident);
+	}
+	
+	@Override
+	public void nodeCreated(Node node)
+	{
+		Debugger.v("Created: " + node);
+	}
+	
 	/////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS (UNIMPLEMENTED INTERFACE METHODS)
+	// UNIMPLEMENTED INTERFACE METHODS
 	/////////////////////////////////////////////////////////////////////
 
 	//DeviceEventListener
-	@Override public void deviceCreated(Device device) { }
 	@Override public void deviceTimedOut(Device device) { }
 	@Override public void deviceInUse(Device device, User user) { }
 	@Override public void deviceNotInUse(Device device, User user) { }
@@ -172,20 +196,16 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	@Override public void deviceUnassignedIncident(Device device, Incident incident) { }
 	
 	//IncidentEventListener
-	@Override public void incidentCreated(Incident incident) { }
 	@Override public void incidentArchived(Incident incident) { }
 	
 	//NodeEventListener
-	@Override public void nodeCreated(Node node) { }
+
 	@Override public void nodeTimedOut(Node node) { }
 	@Override public void nodeLocationChanged(Node node) { }
 	@Override public void nodeVoltageChanged(Node node) { }
 	@Override public void nodeUpdated(Node node) { }
 	@Override public void nodeAddressChanged(Node node) { }
-	
-	//UserEventListener
-	@Override public void userCreated(User user) { }
-	
+
 	//WindowListener
 	@Override public void windowOpened(WindowEvent e) { }
 	@Override public void windowClosed(WindowEvent e) { }
@@ -212,6 +232,8 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		{
 			while (!abortThreads)
 			{
+				Debugger.v("Polling database...");
+				
 				//users
 				try
 				{
@@ -238,6 +260,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				if (abortThreads)
 					break;
 				
+				/*
 				//device users
 				try
 				{
@@ -250,6 +273,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				}
 				if (abortThreads)
 					break;
+				*/
 				
 				//nodes
 				try
@@ -276,7 +300,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				}
 				if (abortThreads)
 					break;
-				
+
 				//sleep for the interval, but do so in short chunks
 				//so that we can terminate quickly if necessary
 				int counter = 0;
@@ -285,8 +309,9 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 					Thread.sleep(100);
 					counter += 100;
 				}
-				
+				 
 			}
+			
 			return null;
 		}
 		
@@ -296,13 +321,13 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 			for (Object[] kvp : chunks)
 			{
 				String table = (String)kvp[0];
-				ResultSet results = (ResultSet)kvp[1];
+				MySQLResultSet results = (MySQLResultSet)kvp[1];
 				
 				switch (table)
 				{
 					case "Users": processUsers(results); break;
 					case "Devices": processDevices(results); break;
-					case "DeviceUsers": processDeviceUsers(results); break;
+					//case "DeviceUsers": processDeviceUsers(results); break;
 					case "Nodes": processNodes(results); break;
 					case "Incidents": processIncidents(results); break;
 					
@@ -311,40 +336,37 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		}
 	};
 	
-	private void processUsers(ResultSet results)
+	private void processUsers(MySQLResultSet results)
 	{
-		try
+		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
 		{
-			while (results.next())
+			Integer id = (Integer)entry.getKey();
+			User user = users.get(id);
+			if (user == null)
 			{
-				Debugger.v("Database: User["+results.getInt("userID")+"]");
-				
+				user = new User(entry.getValue(), this);
+				users.put(id, user);
 			}
+			user.update(entry.getValue());
 		}
-		catch (SQLException e)
-		{
-			Debugger.ex(e);
-		}
-		mysql.release(results);
 	}
 	
-	private void processDevices(ResultSet results)
-	{
-		try
-		{
-			while (results.next())
-			{
-				Debugger.v("Database: Device[\""+results.getString("hash")+"\"]");
-				
-			}
-		}
-		catch (SQLException e)
-		{
-			Debugger.ex(e);
-		}
-		mysql.release(results);
-	}
 	
+	private void processDevices(MySQLResultSet results)
+	{
+		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
+		{
+			String hash = (String)entry.getKey();
+			Device device = devices.get(hash);
+			if (device == null)
+			{
+				device = new Device(hash, (Device.Type)(entry.getValue().get("deviceType")), this);
+				devices.put(hash, device);
+			}
+			device.update(entry.getValue());	
+		}
+	}
+	/*
 	private void processDeviceUsers(ResultSet results)
 	{
 		try
@@ -361,59 +383,46 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		}
 		mysql.release(results);
 	}
-	
-	private void processNodes(ResultSet results)
-	{
-		try
-		{
-			while (results.next())
-			{
-				Debugger.v("Database: Node[\""+results.getString("hash")+"\"]");
-				
-			}
-		}
-		catch (SQLException e)
-		{
-			Debugger.ex(e);
-		}
-		mysql.release(results);
-	}
-	
-	private void processIncidents(ResultSet results)
-	{
-		try
-		{
-			while (results.next())
-			{
-				Debugger.v("Database: Incident["+results.getInt("incidentID")+"]");
-				
-			}
-		}
-		catch (SQLException e)
-		{
-			Debugger.ex(e);
-		}
-		mysql.release(results);
-	}
-	
-	
-	/*
-	@SuppressWarnings("unused")
-	private class TCPListenThread implements Runnable
-	{
-		private int port = 33340;
-		
-		public TCPListenThread(int port)
-		{
-			this.port = port;
-		}
-		
-		@Override
-		public void run()
-		{
-			if (abortThreads)
-				return;
-		}		
-	}
 	*/
+	
+	private void processNodes(MySQLResultSet results)
+	{
+		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
+		{
+			String hash = (String)entry.getKey();
+			Node node = nodes.get(hash);
+			if (node == null)
+			{
+				node = new Node(hash, this);
+				nodes.put(hash, node);
+			}
+			node.update(entry.getValue());	
+		}
+	}
+	
+	private void processIncidents(MySQLResultSet results)
+	{
+		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
+		{
+			Integer id = (Integer)entry.getKey();
+			Incident incident = incidents.get(id);
+			if (incident == null)
+			{
+				Double accuracy = entry.getValue().get("accuracy") == null ? null : (Double)entry.getValue().get("accuracy");
+				Double altitude = entry.getValue().get("altitude") == null ? null : (Double)entry.getValue().get("altitude");
+				incident = new Incident(id.intValue(),
+					(Incident.Type)(entry.getValue().get("incidentType")),
+					new Location(
+						(Double)entry.getValue().get("latitude"),
+						(Double)entry.getValue().get("longitude"),
+						accuracy,
+						altitude
+					),
+					(Timestamp)(entry.getValue().get("created")),
+					this);
+				incidents.put(id, incident);
+			}
+			incident.update(entry.getValue());
+		}
+	}
 }
