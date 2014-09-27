@@ -20,7 +20,7 @@ public class EyeMySQLConnection extends MySQLConnection
 		MySQLResultSet results = new MySQLResultSet();
 		while (resultSet.next())
 		{
-			Integer id = resultSet.getInt("id");
+			Integer id = Integer.valueOf(resultSet.getInt("id"));
 			results.put(id,
 				"id", id,
 				"nameFirst", resultSet.getString("nameFirst"),
@@ -68,12 +68,12 @@ public class EyeMySQLConnection extends MySQLConnection
 		MySQLResultSet results = new MySQLResultSet();
 		while (resultSet.next())
 		{
-			Integer id = resultSet.getInt("id");
+			Integer id = Integer.valueOf(resultSet.getInt("id"));
 			results.put(id,
 				"id", id,			
 				"incidentType", Incident.getTypeFromDatabaseKey(resultSet.getString("incidentType")),
-				"latitude", resultSet.getDouble("latitude"),
-				"longitude", resultSet.getDouble("longitude"),
+				"latitude", Double.valueOf(resultSet.getDouble("latitude")),
+				"longitude", Double.valueOf(resultSet.getDouble("longitude")),
 				"altitude", getNullableDouble(resultSet, "altitude"),
 				"accuracy", getNullableDouble(resultSet, "accuracy"),
 				"created", resultSet.getTimestamp("created"),
@@ -124,7 +124,7 @@ public class EyeMySQLConnection extends MySQLConnection
 		while (resultSet.next())
 		{
 			results.put(i++,
-				"userID", resultSet.getInt("userID"),
+				"userID", Integer.valueOf(resultSet.getInt("userID")),
 				"deviceHash", resultSet.getString("deviceHash")
 				);
 		}
