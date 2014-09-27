@@ -160,6 +160,16 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
 	}
 	
+	/**
+	 * Updates the current device this user is logged in to.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param currentDevice The device this user is logged in to.
+	 */
+	public void updateDevice(Device currentDevice)
+	{
+		this.currentDevice = currentDevice;
+	}
+	
 	@Override
 	public String toString()
 	{
