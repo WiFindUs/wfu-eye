@@ -120,4 +120,50 @@ public class Location implements Serializable
 	{
 		return altitude;
 	}
+	
+	@Override
+	public boolean equals(Object other)
+	{
+		//object
+		if (other == null)
+			return false;
+	    if (other == this)
+	    	return true;
+	    if (!(other instanceof Location))
+	    	return false;
+	    
+	    //empty
+	    Location loc = (Location)other;
+	    if (loc.isEmpty() && isEmpty())
+	    	return true;
+	    if (loc.isEmpty() != isEmpty())
+	    	return false;
+	    
+	    //latitude
+	    if ((loc.getLatitude() == null && latitude != null)
+	    	|| (loc.getLatitude() != null && latitude == null)
+	    	|| (latitude != null && latitude.compareTo(loc.getLatitude()) != 0))
+	    	return false;
+	    
+	    //longitude
+	    if ((loc.getLongitude() == null && longitude != null)
+	    	|| (loc.getLongitude() != null && longitude == null)
+	    	|| (longitude != null && longitude.compareTo(loc.getLongitude()) != 0))
+	    	return false;
+    
+	    //accuracy
+	    if ((loc.getAccuracy() == null && accuracy != null)
+	    	|| (loc.getAccuracy() != null && accuracy == null)
+	    	|| (accuracy != null && accuracy.compareTo(loc.getAccuracy()) != 0))
+	    	return false;
+	    
+	    //altitude
+	    if ((loc.getAltitude() == null && altitude != null)
+	    	|| (loc.getAltitude() != null && altitude == null)
+	    	|| (altitude != null && altitude.compareTo(loc.getAltitude()) != 0))
+	    	return false;
+
+	    //if we get here, we're the same
+	    return true;
+	}
 }

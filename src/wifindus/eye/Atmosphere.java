@@ -129,4 +129,50 @@ public class Atmosphere implements Serializable
 	{
 		return lightLevel;
 	}
+	
+	@Override
+	public boolean equals(Object other)
+	{
+		//object
+		if (other == null)
+			return false;
+	    if (other == this)
+	    	return true;
+	    if (!(other instanceof Atmosphere))
+	    	return false;
+	    
+	    //empty
+	    Atmosphere atmos = (Atmosphere)other;
+	    if (atmos.isEmpty() && isEmpty())
+	    	return true;
+	    if (atmos.isEmpty() != isEmpty())
+	    	return false;
+	    
+	    //humidity
+	    if ((atmos.getHumidity() == null && humidity != null)
+	    	|| (atmos.getHumidity() != null && humidity == null)
+	    	|| (humidity != null && humidity.compareTo(atmos.getHumidity()) != 0))
+	    	return false;
+	    
+	    //airPressure
+	    if ((atmos.getAirPressure() == null && airPressure != null)
+	    	|| (atmos.getAirPressure() != null && airPressure == null)
+	    	|| (airPressure != null && airPressure.compareTo(atmos.getAirPressure()) != 0))
+	    	return false;
+    
+	    //temperature
+	    if ((atmos.getTemperature() == null && temperature != null)
+	    	|| (atmos.getTemperature() != null && temperature == null)
+	    	|| (temperature != null && temperature.compareTo(atmos.getTemperature()) != 0))
+	    	return false;
+	    
+	    //lightLevel
+	    if ((atmos.getLightLevel() == null && lightLevel != null)
+	    	|| (atmos.getLightLevel() != null && lightLevel == null)
+	    	|| (lightLevel != null && lightLevel.compareTo(atmos.getLightLevel()) != 0))
+	    	return false;
+
+	    //if we get here, we're the same
+	    return true;
+	}
 }
