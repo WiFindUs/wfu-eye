@@ -88,7 +88,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 			if (args[i].equalsIgnoreCase("-conf"))
 			{
 				configFiles.add(new File(args[++i]));
-				Debugger.i("    Found '"+args[i]+"'.");
+				Debugger.i("Found '"+args[i]+"'.");
 				continue;
 			}
 		}
@@ -96,7 +96,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		//use eye.conf as default if none were supplied
 		if (configFiles.size() == 0)
 		{
-			Debugger.i("    None found, using default 'eye.conf'.");
+			Debugger.i("None found, using default 'eye.conf'.");
 			configFiles.add(new File("eye.conf"));
 		}
 		
@@ -128,7 +128,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 					config.getString("mysql.database"),
 					config.getString("mysql.username"),
 					config.getString("mysql.password"));
-			Debugger.i("    Connected OK.");
+			Debugger.i("Connected OK.");
 		}
 		catch (Exception e)
 		{
@@ -139,8 +139,6 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		//create and launch mysql worker task
 		mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
 		mysqlWorker.execute();
-		
-
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -159,25 +157,55 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	@Override
 	public void deviceCreated(Device device)
 	{
-		Debugger.v("Created: " + device);
+		Debugger.v(device + " created");
 	}
 	
 	@Override
 	public void userCreated(User user)
 	{
-		Debugger.v("Created: " + user);
+		Debugger.v(user + " created");
 	}
 	
 	@Override
 	public void incidentCreated(Incident incident)
 	{
-		Debugger.v("Created: " + incident);
+		Debugger.v(incident + " created");
 	}
 	
 	@Override
 	public void nodeCreated(Node node)
 	{
-		Debugger.v("Created: " + node);
+		Debugger.v(node + " created");
+	}
+	
+	@Override
+	public void deviceInUse(Device device, User user)
+	{
+		Debugger.v(user + " logged into " + device);
+	}
+	
+	@Override
+	public void deviceNotInUse(Device device, User user)
+	{
+		Debugger.v(user + " logged out of " + device);
+	}
+	
+	@Override
+	public void deviceLocationChanged(Device device)
+	{
+		Debugger.v(device + " location data changed: " + device.getLocation());
+	}
+	
+	@Override
+	public void deviceAtmosphereChanged(Device device)
+	{
+		Debugger.v(device + " atmospheric data changed: " + device.getAtmosphere());
+	}
+	
+	@Override
+	public void deviceUpdated(Device device)
+	{
+		Debugger.v(device + " updated: " + device.getLastUpdate());
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -186,12 +214,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 
 	//DeviceEventListener
 	@Override public void deviceTimedOut(Device device) { }
-	@Override public void deviceInUse(Device device, User user) { }
-	@Override public void deviceNotInUse(Device device, User user) { }
-	@Override public void deviceLocationChanged(Device device) { }
-	@Override public void deviceAtmosphereChanged(Device device) { }
 	@Override public void deviceAddressChanged(Device device) { }
-	@Override public void deviceUpdated(Device device) { }
 	@Override public void deviceAssignedIncident(Device device, Incident incident) { }
 	@Override public void deviceUnassignedIncident(Device device, Incident incident) { }
 	
@@ -199,7 +222,6 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	@Override public void incidentArchived(Incident incident) { }
 	
 	//NodeEventListener
-
 	@Override public void nodeTimedOut(Node node) { }
 	@Override public void nodeLocationChanged(Node node) { }
 	@Override public void nodeVoltageChanged(Node node) { }
@@ -232,8 +254,6 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		{
 			while (!abortThreads)
 			{
-				Debugger.v("Polling database...");
-				
 				//users
 				try
 				{
@@ -260,7 +280,6 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				if (abortThreads)
 					break;
 				
-				/*
 				//device users
 				try
 				{
@@ -273,7 +292,6 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				}
 				if (abortThreads)
 					break;
-				*/
 				
 				//nodes
 				try
@@ -309,9 +327,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 					Thread.sleep(100);
 					counter += 100;
 				}
-				 
 			}
-			
 			return null;
 		}
 		
@@ -327,7 +343,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				{
 					case "Users": processUsers(results); break;
 					case "Devices": processDevices(results); break;
-					//case "DeviceUsers": processDeviceUsers(results); break;
+					case "DeviceUsers": processDeviceUsers(results); break;
 					case "Nodes": processNodes(results); break;
 					case "Incidents": processIncidents(results); break;
 					
@@ -366,24 +382,29 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 			device.update(entry.getValue());	
 		}
 	}
-	/*
-	private void processDeviceUsers(ResultSet results)
+
+	private void processDeviceUsers(MySQLResultSet results)
 	{
-		try
+		//create a list of all the devices
+		ArrayList<Device> userlessDevices = new ArrayList<Device>(
+				devices.values());
+		
+		//process entries from database (logins)
+		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
 		{
-			while (results.next())
+			Device device = devices.get((String)entry.getValue().get("deviceHash"));
+			if (device != null)
 			{
-				Debugger.v("Database: DeviceUser[\""+results.getString("deviceHash")+"\", "+results.getInt("userID")+"]");
-				
+				userlessDevices.remove(device);
+				device.updateUser(users.get((Integer)entry.getValue().get("userID")));
 			}
 		}
-		catch (SQLException e)
-		{
-			Debugger.ex(e);
-		}
-		mysql.release(results);
+		
+		//handle unused devices (logouts)
+		for (Device d : userlessDevices)
+			d.updateUser(null);
 	}
-	*/
+
 	
 	private void processNodes(MySQLResultSet results)
 	{

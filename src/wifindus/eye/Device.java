@@ -200,6 +200,37 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		if (!((String)resultRow.get("hash")).equals(getHash()))
 			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
 		
+		//update location data
+		Location loc = new Location(
+				(Double)resultRow.get("latitude"),
+				(Double)resultRow.get("longitude"),
+				(Double)resultRow.get("accuracy"),
+				(Double)resultRow.get("altitude"));
+		if (!loc.equals(location))
+		{
+			location = loc;
+			fireEvent("location");
+		}
+		
+		//update atmosphere data
+		Atmosphere atmos = new Atmosphere(
+				(Double)resultRow.get("humidity"),
+				(Double)resultRow.get("airPressure"),
+				(Double)resultRow.get("temperature"),
+				(Double)resultRow.get("lightLevel"));
+		if (!atmos.equals(atmosphere))
+		{
+			atmosphere = atmos;
+			fireEvent("atmosphere");
+		}
+		
+		//lastUpdate
+		Timestamp ts = (Timestamp)resultRow.get("lastUpdate");
+		if (ts != null && !lastUpdate.equals(ts))
+		{
+			lastUpdate = ts;
+			fireEvent("updated");
+		}
 	}
 	
 	@Override
@@ -208,7 +239,33 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		return "Device[\""+getHash()+"\"]";
 	}
 	
-	
+	/**
+	 * Updates the current user of this device.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param currentUser The current User of this device
+	 */
+	public void updateUser(User currentUser)
+	{
+		if (this.currentUser == currentUser)
+			return;
+
+		//log out
+		if (this.currentUser != null)
+		{
+			User oldUser = this.currentUser;
+			this.currentUser = null;
+			oldUser.updateDevice(null);
+			fireEvent("loggedout", oldUser);
+		}
+		
+		//log in
+		if (currentUser != null)
+		{
+			this.currentUser = currentUser;
+			currentUser.updateDevice(this);
+			fireEvent("loggedin", currentUser);
+		}
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
