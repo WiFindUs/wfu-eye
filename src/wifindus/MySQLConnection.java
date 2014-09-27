@@ -223,7 +223,7 @@ public class MySQLConnection
 		if (columnLabel == null)
 			throw new NullPointerException("Parameter 'columnLabel' cannot be null.");
 		
-		Double val = resultSet.getDouble(columnLabel);
+		Double val = Double.valueOf(resultSet.getDouble(columnLabel));
 		return resultSet.wasNull() ? null : val;
 	}
 	
@@ -242,7 +242,7 @@ public class MySQLConnection
 		if (columnLabel == null)
 			throw new NullPointerException("Parameter 'columnLabel' cannot be null.");
 		
-		Integer val = resultSet.getInt(columnLabel);
+		Integer val = Integer.valueOf(resultSet.getInt(columnLabel));
 		return resultSet.wasNull() ? null : val;
 	}
 	
