@@ -3,7 +3,6 @@ package wifindus.eye.dispatcher;
 import javax.swing.SwingUtilities;
 import wifindus.eye.EyeApplication;
 import java.awt.Color;
-import java.awt.Dimension;
 import javax.swing.*;
 
 
@@ -19,16 +18,10 @@ public class Dispatcher extends EyeApplication
 	public Dispatcher(String[] args)
 	{
 		super(args);
+		setExtendedState(JFrame.MAXIMIZED_BOTH); 
 		
-		
-		// Dispatcher Frame
-        frame = new JFrame("WFU Dispatch");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                
         // Incident Display Panel
         incidentPanel = new IncidentPanel();
-        
         incidentScrollPanel = new JScrollPane(incidentPanel);
         incidentPanel.setBackground(Color.WHITE);
         
@@ -40,15 +33,8 @@ public class Dispatcher extends EyeApplication
         
         // Specify location of pane split
         sp.setResizeWeight(0.01);
-        
         sp.setOneTouchExpandable(true);
-        
-        frame.getContentPane().add(sp);
-        frame.pack();
-        frame.setVisible(true);
-
-		
-
+        getContentPane().add(sp);
 	}
 
 	//do not modify main :)
