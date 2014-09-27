@@ -6,7 +6,7 @@ CREATE DATABASE IF NOT EXISTS wfu_eye_db;
 USE wfu_eye_db;
 
 /*=========================================================== 
-  Device	
+  Devices
   -----------------------------------------------------------*/
 INSERT INTO
 	Devices (hash, deviceType, lastUpdate)
@@ -23,7 +23,7 @@ VALUES
 	('8SL4oA6X','WAT', NOW());
 
 /*=========================================================== 
-  User	
+  Users
   -----------------------------------------------------------*/
 INSERT INTO
 	Users (id, nameFirst, nameMiddle, nameLast, personnelType)
@@ -51,7 +51,15 @@ VALUES
 	(17,'Sec', '', 'Test 5', 'SEC');
 	
 /*=========================================================== 
-  Node	
+  DeviceUsers	
+  -----------------------------------------------------------*/
+INSERT INTO
+	DeviceUsers (userID, deviceHash)
+VALUES 
+	(1, 'TYRZz3u0');
+
+/*=========================================================== 
+  Nodes
   -----------------------------------------------------------*/
 INSERT INTO
 	Nodes (hash, latitude, longitude, lastUpdate)
@@ -64,13 +72,10 @@ VALUES
 	('hMFoVTyg', -34.916126, 138.581028, NOW());
 	
 /*=========================================================== 
-  Incident	
+  Incidents
   -----------------------------------------------------------*/
 INSERT INTO
 	Incidents (id, incidentType, latitude, longitude, created)
 VALUES 
 	(1, 'SEC', -34.914850, 138.578958, NOW()),
 	(2, 'MED', -34.917093, 138.580020, NOW());
-
-
-
