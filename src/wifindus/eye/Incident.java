@@ -181,6 +181,30 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		
 	}
 	
+	/**
+	 * Adds a device to the list of currently assigned devices.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param newDevice The device to add to the list.
+	 */
+	public void assignDevice(Device newDevice)
+	{
+		if (newDevice == null)
+			throw new NullPointerException("Parameter 'newDevice' cannot be null.");
+		respondingDevices.put(newDevice.getHash(), newDevice);
+	}
+	
+	/**
+	 * Removes a device from the list of currently assigned devices.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param oldDevice The device to remove from the list.
+	 */
+	public void unassignDevice(Device oldDevice)
+	{
+		if (oldDevice == null)
+			throw new NullPointerException("Parameter 'oldDevice' cannot be null.");
+		respondingDevices.remove(oldDevice.getHash());
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
