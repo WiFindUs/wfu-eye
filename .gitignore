@@ -1,5 +1,5 @@
 *.class
-eye.conf
+*.conf
 logs/
 
 # Mobile Tools for Java (J2ME)
