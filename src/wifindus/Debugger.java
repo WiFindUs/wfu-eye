@@ -8,7 +8,9 @@ import java.io.PrintStream;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import javax.swing.SwingUtilities;
 
 /**
  * A global, static class encapsulating console output,
@@ -53,6 +55,7 @@ public final class Debugger
 	private Verbosity minVerbosity = Verbosity.Information;
 	private static final DateFormat dateFormat = new SimpleDateFormat("[HH:mm:ss]");
 	private static Debugger debugger = null;
+	private volatile static ArrayList<DebuggerEventListener> listeners = new ArrayList<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -211,7 +214,8 @@ public final class Debugger
 	}
 	
 	/**
-	 * Closes the debugger, flushing file output and no longer logging output to stdout/stderr.
+	 * Closes the debugger,
+	 * flushing file output and no longer logging output to stdout/stderr.
 	 */
 	public static void close() 
 	{
@@ -221,22 +225,72 @@ public final class Debugger
 		debugger = null;		
 	}
 	
+	/**
+	 * Adds a new event listener.
+	 * @param listener subscribes an event listener to this object's state events.
+	 */
+	public static final void addEventListener(DebuggerEventListener listener)
+	{
+		if (listener == null || listeners.contains(listener))
+			return;
+		listeners.add(listener);
+	}
+	
+	/**
+	 * Removes an existing event listener. 
+	 * @param listener unsubscribes an event listener from this object's state events.
+	 * Has no effect if this parameter is null, or is not currently subscribed to this object.
+	 */
+	public static final void removeEventListener(DebuggerEventListener listener)
+	{
+		if (listener == null)
+			return;
+		listeners.remove(listener);
+	}
+	
+	/**
+	 * Unsubscribes all event listeners from this object's state events.
+	 */
+	public static final void clearEventListeners()
+	{
+		listeners.clear();
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	private void log(Verbosity level, PrintStream stream, String s, boolean force)
+	private void log(final Verbosity level, PrintStream stream, String text, boolean force)
 	{
 		if (!force && level.compareTo(minVerbosity) < 0)
 			return;
 		
-		String message = getTimestamp() + (s == null ? "" : " " + s);
+		final String timestamp = getTimestamp();
+		final String s = (text == null ? "" : text.trim());
+		final String message = timestamp + " " + s;
 		if (writer != null)
 		{
 			try { writer.write(message + "\n"); }
 			catch (IOException e) { }
 		}
 		stream.println(message);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+		     public void run()
+		     {
+		         for (DebuggerEventListener listener : listeners)
+		         {
+		        	 try
+		        	 {
+		        		 listener.debuggerLoggedText(level, timestamp, s);
+		        	 }
+		        	 catch (Exception e)
+		        	 {
+		        		 System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		        	 }
+		         }
+		     }
+		 });
 	}
 	
 	private void log(Verbosity level, PrintStream stream, String s)

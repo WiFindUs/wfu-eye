@@ -1,5 +1,6 @@
 package wifindus.eye;
 
+import java.awt.Dimension;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -17,6 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
+import wifindus.DebuggerFrame;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
 
@@ -36,6 +38,7 @@ public abstract class EyeApplication extends JFrame
 	private volatile MySQLUpdateWorker mysqlWorker = null;
 	private EyeMySQLConnection mysql = new EyeMySQLConnection();
 	private static EyeApplication singleton;
+	private static DebuggerFrame debuggerFrame = null;
 	//database structures
 	private volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
 	private volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
@@ -70,8 +73,11 @@ public abstract class EyeApplication extends JFrame
 			throw new IllegalStateException("An EyeApplication object has already been instantiated..");
 		
 		//set frame properties
+		Dimension screenBounds = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+		addWindowListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(800, 600);
+		setSize(screenBounds.width, (int)(screenBounds.height * 0.7));
+		setLocation(0,0);
 		setVisible(true);
 		
 		//check for debugger verbosity flags & start debugger
@@ -83,6 +89,11 @@ public abstract class EyeApplication extends JFrame
 				continue;
 			verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
 		}
+		debuggerFrame = new DebuggerFrame();
+		debuggerFrame.setSize(screenBounds.width, (int)(screenBounds.height * 0.25));
+		debuggerFrame.setLocation(0,getLocation().y + getSize().height);
+		debuggerFrame.setVisible(true);
+		debuggerFrame.setTitle("WiFindUs Debugger Console");
 		Debugger.open(verbosity);
 		
 		//parse command line arguments for config parameters
@@ -168,6 +179,7 @@ public abstract class EyeApplication extends JFrame
 		Debugger.i("Cleaning up...");
 		mysql.disconnect();
 		abortThreads = true;
+		Debugger.clearEventListeners();
 		Debugger.close();
 	}
 	

@@ -14,11 +14,9 @@ public class Dispatcher extends EyeApplication
     public static JScrollPane incidentScrollPanel;
     public static IncidentPanel incidentPanel;
 
-	
 	public Dispatcher(String[] args)
 	{
 		super(args);
-		setExtendedState(JFrame.MAXIMIZED_BOTH); 
 		
         // Incident Display Panel
         incidentPanel = new IncidentPanel();

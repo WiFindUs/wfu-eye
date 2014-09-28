@@ -62,7 +62,7 @@ public abstract class EventObject<T>
 	}
 	
 	/**
-	 * Unscribes all event listeners from this object's state events.
+	 * Unsubscribes all event listeners from this object's state events.
 	 */
 	public final void clearEventListeners()
 	{
