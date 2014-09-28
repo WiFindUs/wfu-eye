@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,7 @@ import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
+import wifindus.eye.Incident.Type;
 
 /**
  * A general base for Eye applications that need to maintain a connection
@@ -216,14 +218,36 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		Debugger.v(device + " address changed: " + newAddress);
 	}
 	
+	@Override
+	public void deviceAssignedIncident(Device device, Incident incident)
+	{
+		Debugger.v(device + " assigned to " + incident);
+	}
+	
+	@Override	
+	public void deviceUnassignedIncident(Device device, Incident incident)
+	{
+		Debugger.v(device + " unassigned from " + incident);		
+	}
+
+	public Incident createNewIncident(Incident.Type type, Location location)
+	{
+		//TODO: execute database INSERT query, store auto-generated id
+		Incident incident = new Incident(incidents.size()+1,
+			type,
+			location,
+			new Timestamp(new Date().getTime()),
+			this);
+		incidents.put(Integer.valueOf(incident.getID()), incident);
+		return incident;
+	}
+	
 	/////////////////////////////////////////////////////////////////////
-	// UNIMPLEMENTED INTERFACE METHODS
+	// UNIMPLEMENTED METHODS
 	/////////////////////////////////////////////////////////////////////
 
 	//DeviceEventListener
 	@Override public void deviceTimedOut(Device device) { }
-	@Override public void deviceAssignedIncident(Device device, Incident incident) { }
-	@Override public void deviceUnassignedIncident(Device device, Incident incident) { }
 	
 	//IncidentEventListener
 	@Override public void incidentArchived(Incident incident) { }
@@ -242,7 +266,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	@Override public void windowDeiconified(WindowEvent e) { }
 	@Override public void windowActivated(WindowEvent e) { }
 	@Override public void windowDeactivated(WindowEvent e) { }
-
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -261,6 +285,19 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		{
 			while (!abortThreads)
 			{
+				//incidents
+				try
+				{
+					publish(new Object[] { "Incidents", mysql.fetchIncidents() });
+					Thread.sleep(100);
+				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
+				
 				//users
 				try
 				{
@@ -304,19 +341,6 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 				try
 				{
 					publish(new Object[] { "Nodes", mysql.fetchNodes() });
-					Thread.sleep(100);
-				}
-				catch (SQLException e)
-				{
-					Debugger.ex(e);
-				}
-				if (abortThreads)
-					break;
-				
-				//incidents
-				try
-				{
-					publish(new Object[] { "Incidents", mysql.fetchIncidents() });
 					Thread.sleep(100);
 				}
 				catch (SQLException e)
@@ -377,24 +401,47 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	
 	private void processDevices(MySQLResultSet results)
 	{
+		//create a list of all the devices
+		ArrayList<Device> incidentlessDevices = new ArrayList<Device>(
+			devices.values());
+		
+		//update devices
 		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
 		{
+			//properties
 			String hash = (String)entry.getKey();
 			Device device = devices.get(hash);
 			if (device == null)
 			{
 				device = new Device(hash, (Device.Type)(entry.getValue().get("deviceType")), this);
 				devices.put(hash, device);
+				incidentlessDevices.add(device);
 			}
 			device.update(entry.getValue());	
+			
+			//linked incident
+			Integer incidentKey = (Integer)(entry.getValue().get("respondingIncidentID"));
+			if (incidentKey != null)
+			{
+				Incident incident = incidents.get(incidentKey);
+				if (incident != null)
+				{
+					incidentlessDevices.remove(device);
+					device.updateIncident(incident);
+				}
+			}
 		}
+		
+		//incident-less devices
+		for (Device device : incidentlessDevices)
+			device.updateIncident(null);
 	}
 
 	private void processDeviceUsers(MySQLResultSet results)
 	{
 		//create a list of all the devices
 		ArrayList<Device> userlessDevices = new ArrayList<Device>(
-				devices.values());
+			devices.values());
 		
 		//process entries from database (logins)
 		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
@@ -430,6 +477,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	
 	private void processIncidents(MySQLResultSet results)
 	{
+		//process incidents
 		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
 		{
 			Integer id = (Integer)entry.getKey();
