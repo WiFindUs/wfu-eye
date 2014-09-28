@@ -34,6 +34,13 @@ public class Location implements Serializable
 	 */
 	public Location (Double latitude, Double longitude, Double accuracy, Double altitude)
 	{
+		if (latitude != null && (latitude > 90.0 || latitude < -90.0))
+			throw new IllegalArgumentException("Latitude must be between -90.0 and 90.0 (inclusive).");
+		if (longitude != null && (longitude > 180.0 || longitude < -180.0))
+			throw new IllegalArgumentException("Longitude must be between -180.0 and 180.0 (inclusive).");
+		if (accuracy != null && accuracy <= 0.0)
+			throw new IllegalArgumentException("Accuracy must be greater than 0m.");
+		
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.altitude = altitude;
@@ -77,7 +84,7 @@ public class Location implements Serializable
 	 * Tests if this is an entirely empty Location structure.
 	 * @return TRUE if all members of this Location are NULL, FALSE otherwise.
 	 */
-	public boolean isEmpty()
+	public final boolean isEmpty()
 	{
 		if (this == Location.EMPTY)
 			return true;
@@ -165,5 +172,16 @@ public class Location implements Serializable
 
 	    //if we get here, we're the same
 	    return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "Location["
+			+(latitude == null ? "" : " " + Math.abs(latitude) + "°" + (latitude >= 0 ? "N" : "S"))
+			+(longitude == null ? "" : " " + Math.abs(longitude) + "°" + (longitude >= 0 ? "E" : "W"))
+			+(accuracy == null ? "" : " (" + accuracy + "m acc.)")
+			+(altitude == null ? "" : " " + altitude + "m alt.")
+			+" ]";
 	}
 }

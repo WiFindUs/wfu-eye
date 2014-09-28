@@ -175,4 +175,15 @@ public class Atmosphere implements Serializable
 	    //if we get here, we're the same
 	    return true;
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "Atmosphere["
+			+(humidity == null ? "" : " " + humidity + "%")
+			+(airPressure == null ? "" : " " + airPressure + "mbar")
+			+(temperature == null ? "" : " " + temperature + "°C")
+			+(lightLevel == null ? "" : " " + lightLevel + "lx")
+			+" ]";
+	}
 }
