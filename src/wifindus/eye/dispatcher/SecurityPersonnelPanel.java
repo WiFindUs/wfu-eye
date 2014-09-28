@@ -8,7 +8,9 @@ import javax.swing.JPanel;
 
 public class SecurityPersonnelPanel extends JPanel
 {
-     public SecurityPersonnelPanel()
+	private static final long serialVersionUID = -700461718729384611L;
+
+	public SecurityPersonnelPanel()
     {
         setBackground(Color.WHITE);
          JLabel securityTitle = new JLabel("Security Personnel");

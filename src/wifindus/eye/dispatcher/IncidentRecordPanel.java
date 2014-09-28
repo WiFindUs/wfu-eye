@@ -19,11 +19,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.border.Border;
+import wifindus.Debugger;
 
 
 public class IncidentRecordPanel extends JPanel implements ActionListener//implements ComponentListener 
 {
-    boolean selected = false;
+	private static final long serialVersionUID = 6560417334000467287L;
+	boolean selected = false;
     String type = null;
     String description = null;
     ArrayList<PersonnelRecordPanel> medicalPersonnel;
@@ -365,7 +367,7 @@ public class IncidentRecordPanel extends JPanel implements ActionListener//imple
         // Button to resolve and archive incident
         if(e.getSource() == resolveIncident)
         {
-            System.out.println("Resolve and archive");
+            Debugger.w("Resolve and archive");
         }
         
         // Button to add a medical respondent
@@ -438,12 +440,12 @@ public class IncidentRecordPanel extends JPanel implements ActionListener//imple
           
         if(e.getSource() == editDescription)
         {
-            System.out.println("edit");
+            Debugger.w("edit");
         }
         
         if(e.getSource() == saveDescription)
         {
-            System.out.println("save");
+        	Debugger.w("save");
         }
         
              

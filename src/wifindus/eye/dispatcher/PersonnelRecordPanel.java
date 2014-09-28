@@ -21,7 +21,9 @@ import javax.swing.border.Border;
 public class PersonnelRecordPanel extends JPanel implements ActionListener,ItemListener
                                             
 {
-    // Record is Selected
+
+	private static final long serialVersionUID = -953467312117311967L;
+	// Record is Selected
     boolean selected = false;
     Person p;
     JButton createIncidentButton;

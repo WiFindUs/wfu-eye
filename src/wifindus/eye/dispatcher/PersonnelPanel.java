@@ -6,7 +6,9 @@ import javax.swing.*;
 // Panel connntaining lists of medical and security personnel
 public class PersonnelPanel extends JPanel 
 {
-    public PersonnelPanel()
+	private static final long serialVersionUID = 4743721443501996459L;
+
+	public PersonnelPanel()
     {
         setLayout (new BoxLayout (this, BoxLayout.Y_AXIS));
         

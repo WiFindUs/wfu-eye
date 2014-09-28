@@ -2,13 +2,13 @@ package wifindus.eye.dispatcher;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
+import wifindus.Debugger;
 
 public class IncidentPanel extends JPanel 
 {
-    int width;
+	private static final long serialVersionUID = -7397843910420550797L;
+	int width;
     ArrayList<IncidentRecordPanel> incidents;
     ArrayList<Incident> incidentRecords;
     IncidentRecordPanel incident1;
@@ -33,7 +33,7 @@ public class IncidentPanel extends JPanel
                 } 
                 catch (InterruptedException ex) 
                 {
-                    Logger.getLogger(IncidentPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    Debugger.ex(ex);
                 }
                 incidentNo--;
                 add(incidents.get(incidentNo));

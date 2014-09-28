@@ -10,7 +10,8 @@ import javax.swing.JPanel;
 
 public class MedicalPersonnelPanel extends JPanel 
 {
-    int numOfSecurityPersonnel = 10;
+	private static final long serialVersionUID = 6826388667801280369L;
+	int numOfSecurityPersonnel = 10;
     ArrayList<PersonnelRecordPanel> medicalPersonnelPanel;
     ArrayList<Person> availibleMedical;
     public static ArrayList<Person> people;
