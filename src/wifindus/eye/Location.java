@@ -177,11 +177,10 @@ public class Location implements Serializable
 	@Override
 	public String toString()
 	{
-		return "Location["
-			+(latitude == null ? "" : " " + Math.abs(latitude) + "°" + (latitude >= 0 ? "N" : "S"))
+		return 
+			((latitude == null ? "" : Math.abs(latitude) + "°" + (latitude >= 0 ? "N" : "S"))
 			+(longitude == null ? "" : " " + Math.abs(longitude) + "°" + (longitude >= 0 ? "E" : "W"))
 			+(accuracy == null ? "" : " (" + accuracy + "m acc.)")
-			+(altitude == null ? "" : " " + altitude + "m alt.")
-			+" ]";
+			+(altitude == null ? "" : " " + altitude + "m alt.")).trim();
 	}
 }

@@ -179,11 +179,9 @@ public class Atmosphere implements Serializable
 	@Override
 	public String toString()
 	{
-		return "Atmosphere["
-			+(humidity == null ? "" : " " + humidity + "%")
+		return ((humidity == null ? "" : humidity + "%")
 			+(airPressure == null ? "" : " " + airPressure + "mbar")
 			+(temperature == null ? "" : " " + temperature + "°C")
-			+(lightLevel == null ? "" : " " + lightLevel + "lx")
-			+" ]";
+			+(lightLevel == null ? "" : " " + lightLevel + "lx")).trim();
 	}
 }
