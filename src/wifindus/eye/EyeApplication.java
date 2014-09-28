@@ -19,14 +19,14 @@ import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
-import wifindus.eye.Incident.Type;
 
 /**
  * A general base for Eye applications that need to maintain a connection
  * to a MySQL database and respond to changes made to Users, Devices, etc.
  * @author Mark 'marzer' Gillard
  */
-public abstract class EyeApplication extends JFrame implements DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener, WindowListener
+public abstract class EyeApplication extends JFrame
+	implements DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener, WindowListener
 {
 	//properties
 	private static final long serialVersionUID = -3410394016911856177L;
@@ -35,6 +35,7 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	private volatile boolean abortThreads = false;
 	private volatile MySQLUpdateWorker mysqlWorker = null;
 	private EyeMySQLConnection mysql = new EyeMySQLConnection();
+	private static EyeApplication singleton;
 	//database structures
 	private volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
 	private volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
@@ -59,11 +60,14 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	 * If this parameter is omitted, -1 is assumed.</li>
 	 * </ul>
 	 * @throws NullPointerException if <code>args</code> is null
+	 * @throws IllegalStateException if an existing EyeApplication instance exists.
 	 */
 	public EyeApplication(String[] args)
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
+		if (singleton != null)
+			throw new IllegalStateException("An EyeApplication object has already been instantiated..");
 		
 		//set frame properties
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -148,6 +152,15 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Get the currently instanced EyeApplication.
+	 * @return a reference to the currently instantiated EyeApplication object.
+	 */
+	public static final EyeApplication get()
+	{
+		return singleton;		
+	}
+	
 	//WindowListener
 	@Override
 	public void windowClosing(WindowEvent e)
@@ -230,16 +243,128 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		Debugger.v(device + " unassigned from " + incident);		
 	}
 
-	public Incident createNewIncident(Incident.Type type, Location location)
+	/**
+	 * Creates a new incident in the MySQL database, handling errors and firing events accordingly.
+	 * @param type The incident's type
+	 * @param location The location of the incident (ideally this will be the reporting User's Device.getLocation()) 
+	 * @return the new Incident object, or null if an error occurred.
+	 * @throws NullPointerException if location is null.
+	 */
+	public final Incident createIncident(Incident.Type type, Location location)
 	{
+		//sanity checks
+		if (location == null)
+			throw new NullPointerException("Parameter 'location' cannot be null.");
+		
+		//manipulate database
 		//TODO: execute database INSERT query, store auto-generated id
+		
+		//manipulate data structures
 		Incident incident = new Incident(incidents.size()+1,
 			type,
 			location,
 			new Timestamp(new Date().getTime()),
 			this);
 		incidents.put(Integer.valueOf(incident.getID()), incident);
+		
+		//return incident
 		return incident;
+	}
+	
+	/**
+	 * Creates a new user in the MySQL database, handling errors and firing events accordingly.
+	 * @param responderType The user's type (i.e. what sort of Incident they can respond to).
+	 * @param nameFirst The user's first (given) name.
+	 * @param nameMiddle The user's middle (given) name(s).
+	 * @param nameLast The user's last (family) name.
+	 * @return the new User object, or null if an error occurred.
+	 * @throws NullPointerException if any of the name parameters are null.
+	 */
+	public final User createUser(Incident.Type responderType, String nameFirst, String nameMiddle, String nameLast)
+	{
+		//sanity checks
+		if (nameMiddle == null)
+			throw new NullPointerException("Parameter 'nameMiddle' cannot be null.");
+		if (nameLast == null)
+			throw new NullPointerException("Parameter 'nameLast' cannot be null.");
+		
+		//manipulate database
+		//TODO: execute database INSERT query, store auto-generated id
+		
+		//manipulate data structures
+		User user = new User(users.size()+1,
+			responderType,
+			nameFirst,
+			nameMiddle,
+			nameLast,
+			this);
+		users.put(Integer.valueOf(user.getID()), user);
+		
+		//return user
+		return user;
+	}
+	
+	/**
+	 * Assigns a user to a device in the MySQL database, handling errors and firing events accordingly.
+	 * @param device The device to which the user will be assigned.
+	 * @param user The user to assign (pass null to 'unassign').
+	 * @return false if an error occurred, true otherwise.
+	 * @throws NullPointerException if the device was null.
+	 */
+	public final boolean setDeviceUser(Device device, User user)
+	{
+		//sanity checks
+		if (device == null)
+			throw new NullPointerException("Parameter 'device' cannot be null.");
+		if (user == device.getCurrentUser())
+			return true;
+		
+		//manipulate database
+		//TODO: SQL query for deletion of existing user/device link
+		if (user != null)
+		{
+			//TODO: SQL query for insert of new user/device link
+		}
+		
+		//manipulate data structures
+		device.updateUser(user);
+		
+		//return result
+		return true;
+	}
+	
+	/**
+	 * Assigns a device to an incident in the MySQL database, handling errors and firing events accordingly.
+	 * @param device The device to assign to the given incident.
+	 * @param incident The incident to assign (pass null to 'unassign').
+	 * @return false if an error occurred, true otherwise.
+	 * @throws NullPointerException if the device was null.
+	 * @throws IllegalArgumentException if incident is not null and the device does not have a user, or the incident's type does not match the user's type.
+	 */
+	public final boolean setDeviceIncident(Device device, Incident incident)
+	{
+		//sanity checks
+		if (device == null)
+			throw new NullPointerException("Parameter 'device' cannot be null.");
+		if (incident != null)
+		{
+			if (incident == device.getCurrentIncident())
+				return true;
+			if (device.getCurrentUser() == null)
+				throw new IllegalArgumentException("The given Device does not currently have an assigned User.");
+			if (device.getCurrentUser().getType().compareTo(incident.getType()) != 0)
+				throw new IllegalArgumentException("User assigned to the given device does not respond to Incidents of the given type.");
+		}
+		
+		//manipulate database
+		//TODO: SQL update query to set respondingIncidentID
+		
+		//manipulate data structures
+		device.updateIncident(incident);
+		
+		//return result
+		return true;
+		
 	}
 	
 	/////////////////////////////////////////////////////////////////////
