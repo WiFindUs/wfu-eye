@@ -1,5 +1,7 @@
 package wifindus.eye;
 
+import java.net.InetAddress;
+
 /**
  * An object which listens for changes in the state of a Device object. 
  * @author Mark 'marzer' Gillard
@@ -41,22 +43,26 @@ public interface DeviceEventListener
 	 * Event fired when a Device's location details change.
 	 * Corresponds to the event key "location".
 	 * @param device The device object.
+	 * @param oldLocation The device's previous Location.
+	 * @param newLocation The device's new Location.
 	 */
-	public void deviceLocationChanged(Device device);
+	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation);
 	
 	/**
 	 * Event fired when a Device's atmosphere details change.
 	 * Corresponds to the event key "atmosphere".
 	 * @param device The device object.
+	 * @param oldAtmosphere The device's previous Atmosphere.
+	 * @param newAtmosphere The device's new Atmosphere.
 	 */
-	public void deviceAtmosphereChanged(Device device);
+	public void deviceAtmosphereChanged(Device device, Atmosphere oldAtmosphere, Atmosphere newAtmosphere);
 	
 	/**
 	 * Event fired when a Device's network address changes.
 	 * Corresponds to the event key "address".
 	 * @param device The device object.
 	 */
-	public void deviceAddressChanged(Device device);
+	public void deviceAddressChanged(Device device, InetAddress oldAddress, InetAddress newAddress);
 	
 	/**
 	 * Event fired when the <code>lastUpdate</code> property of the device is changed.

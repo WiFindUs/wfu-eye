@@ -3,6 +3,7 @@ package wifindus.eye;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.net.InetAddress;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -146,7 +147,8 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	/////////////////////////////////////////////////////////////////////
 	
 	//WindowListener
-	@Override public void windowClosing(WindowEvent e)
+	@Override
+	public void windowClosing(WindowEvent e)
 	{
 		Debugger.i("Cleaning up...");
 		mysql.disconnect();
@@ -191,15 +193,15 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 	}
 	
 	@Override
-	public void deviceLocationChanged(Device device)
+	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
 	{
-		Debugger.v(device + " location data changed: " + device.getLocation());
+		Debugger.v(device + " location data changed: " + newLocation);
 	}
 	
 	@Override
-	public void deviceAtmosphereChanged(Device device)
+	public void deviceAtmosphereChanged(Device device, Atmosphere oldAtmosphere, Atmosphere newAtmosphere)
 	{
-		Debugger.v(device + " atmospheric data changed: " + device.getAtmosphere());
+		Debugger.v(device + " atmospheric data changed: " + newAtmosphere);
 	}
 	
 	@Override
@@ -208,13 +210,18 @@ public abstract class EyeApplication extends JFrame implements DeviceEventListen
 		Debugger.v(device + " updated: " + device.getLastUpdate());
 	}
 	
+	@Override
+	public void deviceAddressChanged(Device device, InetAddress oldAddress, InetAddress newAddress)
+	{
+		Debugger.v(device + " address changed: " + newAddress);
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// UNIMPLEMENTED INTERFACE METHODS
 	/////////////////////////////////////////////////////////////////////
 
 	//DeviceEventListener
 	@Override public void deviceTimedOut(Device device) { }
-	@Override public void deviceAddressChanged(Device device) { }
 	@Override public void deviceAssignedIncident(Device device, Incident incident) { }
 	@Override public void deviceUnassignedIncident(Device device, Incident incident) { }
 	

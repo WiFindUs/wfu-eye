@@ -1,7 +1,9 @@
 package wifindus.eye;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -208,8 +210,9 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 				(Double)resultRow.get("altitude"));
 		if (!loc.equals(location))
 		{
+			Location old = location;
 			location = loc;
-			fireEvent("location");
+			fireEvent("location", old, location);
 		}
 		
 		//update atmosphere data
@@ -220,8 +223,9 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 				(Double)resultRow.get("lightLevel"));
 		if (!atmos.equals(atmosphere))
 		{
+			Atmosphere old = atmosphere;
 			atmosphere = atmos;
-			fireEvent("atmosphere");
+			fireEvent("atmosphere", old, atmosphere);
 		}
 		
 		//lastUpdate
@@ -231,6 +235,30 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 			lastUpdate = ts;
 			fireEvent("updated");
 		}
+		
+		//internet address
+		String addressString = (String)resultRow.get("address");
+		InetAddress newAddress = null;
+		if (addressString != null)
+		{
+			try
+			{
+				newAddress = InetAddress.getByName(addressString);
+			}
+			catch (UnknownHostException e)
+			{
+				Debugger.ex(e);
+			}
+		}
+		if ((address == null && newAddress != null)
+			|| (address != null && (newAddress == null || !newAddress.equals(address))))
+		{
+			InetAddress old = address;
+			address = newAddress;
+			fireEvent("address", old, address);
+			
+		}
+
 	}
 	
 	@Override
@@ -289,13 +317,13 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 				listener.deviceNotInUse(this, (User)data[0]);
 				break;
 			case "location":
-				listener.deviceLocationChanged(this);
+				listener.deviceLocationChanged(this, (Location)data[0], (Location)data[1]);
 				break;
 			case "atmosphere":
-				listener.deviceAtmosphereChanged(this);
+				listener.deviceAtmosphereChanged(this, (Atmosphere)data[0], (Atmosphere)data[1]);
 				break;
 			case "address":
-				listener.deviceAddressChanged(this);
+				listener.deviceAddressChanged(this, (InetAddress)data[0], (InetAddress)data[1]);
 				break;
 			case "updated":
 				listener.deviceUpdated(this);
