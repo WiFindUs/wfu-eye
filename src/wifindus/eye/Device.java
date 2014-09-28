@@ -295,6 +295,34 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		}
 	}
 	
+	/**
+	 * Updates the current Incident of this device.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param currentIncident The current Incident of this device
+	 */
+	public void updateIncident(Incident currentIncident)
+	{
+		if (this.currentIncident == currentIncident)
+			return;
+
+		//unassigned
+		if (this.currentIncident != null)
+		{
+			Incident oldIncident = this.currentIncident;
+			this.currentIncident = null;
+			oldIncident.unassignDevice(this);
+			fireEvent("unassigned", oldIncident);
+		}
+		
+		//log in
+		if (currentIncident != null)
+		{
+			this.currentIncident = currentIncident;
+			currentIncident.assignDevice(this);
+			fireEvent("assigned", currentIncident);
+		}
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
