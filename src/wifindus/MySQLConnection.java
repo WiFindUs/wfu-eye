@@ -231,7 +231,7 @@ public class MySQLConnection
 	 * Gets a nullable Integer value, properly enforcing null returns in the case of SQL NULL.
 	 * @param resultSet The set of query results from which to get the nullable value.
 	 * @param columnLabel The name of the column holding the value
-	 * @return A Double containing the given value, or null if it was SQL NULL.
+	 * @return An Integer containing the given value, or null if it was SQL NULL.
 	 * @throws SQLException if an SQL error occurs.
 	 * @throws NullPointerException if resultSet or columnLabel are null. 
 	 */

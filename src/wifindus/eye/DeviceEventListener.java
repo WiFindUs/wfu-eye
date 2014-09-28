@@ -61,6 +61,8 @@ public interface DeviceEventListener
 	 * Event fired when a Device's network address changes.
 	 * Corresponds to the event key "address".
 	 * @param device The device object.
+	 * @param oldAddress The device's previous Address.
+	 * @param newAddress The device's new Address.
 	 */
 	public void deviceAddressChanged(Device device, InetAddress oldAddress, InetAddress newAddress);
 	

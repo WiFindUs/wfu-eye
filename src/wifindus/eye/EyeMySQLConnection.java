@@ -28,9 +28,7 @@ public class EyeMySQLConnection extends MySQLConnection
 				"nameLast", resultSet.getString("nameLast"),
 				"personnelType", Incident.getTypeFromDatabaseKey(resultSet.getString("personnelType"))
 				);
-			
 		}
-		
 		release(resultSet);
 		release(statement);
 		return results;
