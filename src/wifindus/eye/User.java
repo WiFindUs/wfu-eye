@@ -3,6 +3,7 @@ package wifindus.eye;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
+import wifindus.eye.Incident.Type;
 
 /**
  * A member of medical, security, or WiFindUs personnel.
@@ -30,6 +31,7 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 	 * @param listeners A variable-length list of event listeners that will watch this incident's state.
 	 * @throws NullPointerException if <code>nameFirst</code>, <code>nameMiddle</code> or <code>nameLast</code> are null.
 	 * @throws IllegalArgumentException if <code>id</code> is negative.
+	 * @throws UnsupportedOperationException if <code>Computer</code> is used as <code>type</code> (not currently supported).
 	 */
 	public User(int id, Incident.Type type, String nameFirst, String nameMiddle, String nameLast, UserEventListener... listeners)
 	{
@@ -37,6 +39,8 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 		
 		if (id < 0)
 			throw new IllegalArgumentException("Parameter 'id' cannot be negative.");
+		if (type == Type.None)
+			throw new UnsupportedOperationException("Parameter 'type' does not support Type.None.");
 		if (nameFirst == null)
 			throw new NullPointerException("Parameter 'nameFirst' cannot be null.");
 		if (nameMiddle == null)
@@ -126,7 +130,7 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 	public final String getNameFull()
 	{
 		return nameFirst + " "
-			+ (nameMiddle.isEmpty() ? "" : " " + nameMiddle)
+			+ (nameMiddle.isEmpty() ? "" : nameMiddle.substring(0,1) + " ")
 			+ nameLast;
 	}
 	
