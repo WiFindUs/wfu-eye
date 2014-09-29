@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -25,6 +26,7 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 		textPane = (JTextPane)this.getViewport().getView();
 		textDocument = textPane.getStyledDocument();
 		textPane.setBackground(Color.DARK_GRAY);
+		((DefaultCaret)textPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		//base
 		Style baseStyle = textDocument.addStyle( "base",
