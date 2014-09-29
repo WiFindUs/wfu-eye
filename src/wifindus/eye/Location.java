@@ -93,6 +93,18 @@ public class Location implements Serializable
 	}
 	
 	/**
+	 * Tests if this location structure has lat/long components
+	 * @return TRUE if latitude and longtitude are not null, FALSE otherwise.
+	 */
+	public final boolean hasLatLong()
+	{
+		if (this == Location.EMPTY)
+			return false;
+		
+		return latitude != null && longitude != null;
+	}
+	
+	/**
 	 * Returns the latitude of the location 
 	 * @return A value between -90.0 and 90.0 (inclusive), or null (for no data).
 	 */
@@ -177,10 +189,19 @@ public class Location implements Serializable
 	@Override
 	public String toString()
 	{
+		return (toShortString()+(accuracy == null ? "" : " (" + accuracy + "m acc.)")
+			+(altitude == null ? "" : " " + altitude + "m alt.")).trim();
+	}
+	
+	/**
+	 * Gets a short lat/long only representation of this Location.
+	 * @return A string object of the format 0.00000°N 0.000000°E
+	 */
+	public String toShortString()
+	{
 		return 
 			((latitude == null ? "" : Math.abs(latitude) + "°" + (latitude >= 0 ? "N" : "S"))
 			+(longitude == null ? "" : " " + Math.abs(longitude) + "°" + (longitude >= 0 ? "E" : "W"))
-			+(accuracy == null ? "" : " (" + accuracy + "m acc.)")
-			+(altitude == null ? "" : " " + altitude + "m alt.")).trim();
+			).trim();
 	}
 }
