@@ -65,7 +65,7 @@ public abstract class EyeApplication extends JFrame
 	 * @throws NullPointerException if <code>args</code> is null
 	 * @throws IllegalStateException if an existing EyeApplication instance exists.
 	 */
-	public EyeApplication(String[] args)
+	public EyeApplication(String[] args, boolean spawnConsole)
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
@@ -76,8 +76,8 @@ public abstract class EyeApplication extends JFrame
 		Dimension screenBounds = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
 		addWindowListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(screenBounds.width, (int)(screenBounds.height * 0.7));
-		setLocation(0,0);
+		setSize((int)(screenBounds.width * (spawnConsole ? 1.0 : 0.6)), (int)(screenBounds.height * (spawnConsole ? 0.7 : 0.6)));
+		setLocation((int)(screenBounds.width * (spawnConsole ? 0.0 : 0.2)),(int)(screenBounds.height * (spawnConsole ? 0.0 : 0.2)));
 		setVisible(true);
 		
 		//check for debugger verbosity flags & start debugger
@@ -89,11 +89,14 @@ public abstract class EyeApplication extends JFrame
 				continue;
 			verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
 		}
-		debuggerFrame = new DebuggerFrame();
-		debuggerFrame.setSize(screenBounds.width, (int)(screenBounds.height * 0.25));
-		debuggerFrame.setLocation(0,getLocation().y + getSize().height);
-		debuggerFrame.setVisible(true);
-		debuggerFrame.setTitle("WiFindUs Debugger Console");
+		if (spawnConsole)
+		{
+			debuggerFrame = new DebuggerFrame();
+			debuggerFrame.setSize(screenBounds.width, (int)(screenBounds.height * 0.25));
+			debuggerFrame.setLocation(0,getLocation().y + getSize().height);
+			debuggerFrame.setVisible(true);
+			debuggerFrame.setTitle("WiFindUs Debugger Console");
+		}
 		Debugger.open(verbosity);
 		
 		//parse command line arguments for config parameters
