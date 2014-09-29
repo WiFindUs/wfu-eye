@@ -1,44 +1,27 @@
 package wifindus.eye.dispatcher;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.TimerTask;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JTextArea;
-import javax.swing.border.Border;
-import wifindus.Debugger;
-
 
 public class IncidentRecordPanel extends JPanel implements ActionListener//implements ComponentListener 
 {
-	private static final long serialVersionUID = 6560417334000467287L;
-	boolean selected = false;
+
+	private static final long serialVersionUID = 4363655046753158080L;
+
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	/*
     String type = null;
     String description = null;
-    ArrayList<PersonnelRecordPanel> medicalPersonnel;
-    ArrayList<PersonnelRecordPanel> securityPersonnel;
-    
-    int severity = 0;
      
     static int seconds;
     static java.util.Timer timer;
     static int minutes = 0;
     static int hours = 0;
-     
-    JLabel incidentTime = new JLabel("Time: 00 : 00 : 00");
     
     JButton resolveIncident;
     JButton cancelIncident;
@@ -57,19 +40,7 @@ public class IncidentRecordPanel extends JPanel implements ActionListener//imple
         JRadioButton securityRadio;
     
     public IncidentRecordPanel(int incidentNo, int id, int latitude, int longitude) throws InterruptedException 
-    {
-        
-        incidentTime.setFont(incidentTime.getFont().deriveFont(18.0f));
-        
-        setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
-        setMaximumSize(new Dimension(2000, 350));
-        
-        
-        
-         Border recordBorder = BorderFactory.createMatteBorder(3,2,2,2,Color.black);
-        setBorder(recordBorder);
-        
+    {      
         ///////////////////////////////////////////////////////////
         // Incident Timer
         ////////////////////////////////////////////////////////////
@@ -104,91 +75,6 @@ public class IncidentRecordPanel extends JPanel implements ActionListener//imple
             }
         }, delay, period);
 
-        
-         Border blackLine = BorderFactory.createLineBorder(Color.black);
-        
-         
-        ///////////////////////////////////////////////////////////
-        // Top Panel
-        ////////////////////////////////////////////////////////////
-        JPanel topPanel = new JPanel(); 
-        topPanel.setBackground(Color.WHITE);
-        topPanel.setBorder(BorderFactory.createMatteBorder(0,0,2,0,Color.black));
-        
-        JPanel timeAndStatus = new JPanel(); 
-        timeAndStatus.setBackground(Color.WHITE);
-        JLabel statusDisplay = new JLabel("Status: Active");
-        statusDisplay.setFont(statusDisplay.getFont().deriveFont(18.0f));
-        //topPanel.setLayout(new GridLayout(1,3));
-        topPanel.setLayout(new BoxLayout (topPanel, BoxLayout.X_AXIS));
-        
-        timeAndStatus.setLayout(new GridLayout(2,1));
-        timeAndStatus.add(statusDisplay);
-        timeAndStatus.add(incidentTime);
-        JLabel typeLabel = new JLabel("Incident Report " + incidentNo);
-        typeLabel.setFont(typeLabel.getFont().deriveFont(30.0f));
-        
-        JButton showOnMap = new JButton("Show on Map");
-        
-        
-        topPanel.add(typeLabel);
-        //Glue
-        topPanel.add(Box.createHorizontalGlue());
-        topPanel.add(timeAndStatus);
-        //Glue
-        topPanel.add(showOnMap);
-        add(topPanel, BorderLayout.NORTH);
-        
-        ///////////////////////////////////////////////////////////
-        // Respondent Type
-        ///////////////////////////////////////////////////////////
-        JPanel westPanel = new JPanel();
-        westPanel.setLayout (new BoxLayout (westPanel, BoxLayout.Y_AXIS));
-       
-        JLabel incidentTypeTitle = new JLabel("Incident Type");
-        westPanel.setBackground(Color.WHITE);
-        incidentTypeTitle.setFont(incidentTypeTitle.getFont().deriveFont(21.0f));
-        westPanel.add(incidentTypeTitle);
-        JPanel respondentTypeSelectionPanel = new JPanel();
-        //respondentTypeSelectionPanel.setLayout (new BoxLayout(respondentTypeSelectionPanel, BoxLayout.Y_AXIS));
-         respondentTypeSelectionPanel.setLayout(new GridLayout(3,1));
-        //small image icons are 30 x 30
-        ImageIcon allLogo = null;
-        ImageIcon medicalLogo = null;
-        ImageIcon securityLogo = null;
-     
-         allRadio = new JRadioButton("All");
-         medicalRadio = new JRadioButton("Medical");
-         securityRadio = new JRadioButton("Security");
-        
-        allRadio.addActionListener(this);
-        medicalRadio.addActionListener(this);
-        securityRadio.addActionListener(this);
-        
-        allRadio.setFont(allRadio.getFont().deriveFont(18.0f));
-        medicalRadio.setFont(medicalRadio.getFont().deriveFont(18.0f));
-        securityRadio.setFont(securityRadio.getFont().deriveFont(18.0f));
-        
-        allLogo = new ImageIcon("images/all_logo_small.png");
-        medicalLogo = new ImageIcon("images/medical_logo_small.png");
-        securityLogo = new ImageIcon("images/security_logo_small.png");
-        
-        allRadio.setIcon(allLogo);
-        medicalRadio.setIcon(medicalLogo);
-        securityRadio.setIcon(securityLogo);
-        
-        allRadio.setSelected(true);
-        allRadio.setBackground(new Color(0x00CCFF));
-   
-        respondentTypeSelectionPanel.add(allRadio);
-        respondentTypeSelectionPanel.add(medicalRadio);
-        respondentTypeSelectionPanel.add(securityRadio);
-        
-        westPanel.add(respondentTypeSelectionPanel);
-        westPanel.setBorder(blackLine);
-        add(westPanel, BorderLayout.WEST);
-        
-     
         ///////////////////////////////////////////////////////////
         // Add Respondents
         ////////////////////////////////////////////////////////////
@@ -467,4 +353,5 @@ public class IncidentRecordPanel extends JPanel implements ActionListener//imple
         }
     return seconds;
     }
+    */
 }
