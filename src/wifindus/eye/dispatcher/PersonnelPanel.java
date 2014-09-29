@@ -11,6 +11,7 @@ public class PersonnelPanel extends JPanel
 	public PersonnelPanel()
     {
         setLayout (new BoxLayout (this, BoxLayout.Y_AXIS));
+        /*
         
         // List of Medical personnel
         MedicalPersonnelPanel medicalPersonnelPanel = new MedicalPersonnelPanel();
@@ -26,5 +27,6 @@ public class PersonnelPanel extends JPanel
         add (sp);
         
         setBackground(Color.CYAN);
+        */
     }
 }

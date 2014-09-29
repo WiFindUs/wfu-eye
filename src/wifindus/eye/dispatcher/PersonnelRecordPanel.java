@@ -137,7 +137,7 @@ public class PersonnelRecordPanel extends JPanel implements ActionListener,ItemL
     {
         if(e.getSource() == createIncidentButton)
         {
-            Dispatcher.incidentPanel.newIncident(p.id,p.latitude,p.longitude);
+           // Dispatcher.incidentPanel.newIncident(p.id,p.latitude,p.longitude);
         }
     }
      

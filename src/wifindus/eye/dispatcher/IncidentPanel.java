@@ -8,20 +8,18 @@ import wifindus.Debugger;
 public class IncidentPanel extends JPanel 
 {
 	private static final long serialVersionUID = -7397843910420550797L;
-	int width;
-    ArrayList<IncidentRecordPanel> incidents;
-    ArrayList<Incident> incidentRecords;
-    IncidentRecordPanel incident1;
-    int incidentNo = 1;
-    static boolean create = false;
+	//<IncidentRecordPanel> incidents;
+	//ArrayList<Incident> incidentRecords;
+	//int incidentNo = 1;
      
     public IncidentPanel()
     {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        incidents = new ArrayList<>();
-	incidentRecords = new ArrayList<>();
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		//incidents = new ArrayList<>();
+		//incidentRecords = new ArrayList<>();
     }
 
+    /*
     public void newIncident(int id, int latitude, int longitude)
     {
          incidentRecords.add(new Incident(incidentNo));
@@ -41,5 +39,6 @@ public class IncidentPanel extends JPanel
                 revalidate();
                 repaint();
     }
+    */
 }
 
