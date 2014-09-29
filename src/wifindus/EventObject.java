@@ -1,6 +1,7 @@
 package wifindus;
 
-import java.util.ArrayList;
+import java.util.ListIterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Generic parent object for event listener management.
@@ -9,7 +10,7 @@ import java.util.ArrayList;
  */
 public abstract class EventObject<T>
 {
-	private ArrayList<T> listeners = new ArrayList<>();
+	private transient volatile CopyOnWriteArrayList<T> listeners = new CopyOnWriteArrayList<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -46,7 +47,11 @@ public abstract class EventObject<T>
 	{
 		if (listener == null || listeners.contains(listener))
 			return;
-		listeners.add(listener);
+		
+		synchronized(listeners)
+		{
+			listeners.add(listener);
+		}
 	}
 	
 	/**
@@ -58,7 +63,10 @@ public abstract class EventObject<T>
 	{
 		if (listener == null)
 			return;
-		listeners.remove(listener);
+		synchronized(listeners)
+		{
+			listeners.remove(listener);
+		}
 	}
 	
 	/**
@@ -66,7 +74,10 @@ public abstract class EventObject<T>
 	 */
 	public final void clearEventListeners()
 	{
-		listeners.clear();
+		synchronized(listeners)
+		{
+			listeners.clear();
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -75,7 +86,7 @@ public abstract class EventObject<T>
 	
 	/**
 	 * Fires an internal event, calling the appropriate listener functions on all
-	 * subcribed listener objects.
+	 * subscribed listener objects.
 	 * @param event The key representing the recipient event. Case-insensitive; will be converted to lowercase. 
 	 * @param data Optional variable-length list of data to pass to recipient functions via {@link #mapEvents}.
 	 */
@@ -84,8 +95,12 @@ public abstract class EventObject<T>
 		if (event == null || event.equals(""))
 			return;
 		event = event.toLowerCase();
-		for (T listener : listeners)
-			mapEvents(event, listener, data);
+		synchronized(listeners)
+		{
+			ListIterator<T> iterator = listeners.listIterator();
+			while(iterator.hasNext())
+				mapEvents(event, iterator.next(), data);
+		}
 	}
 	
 	/**
