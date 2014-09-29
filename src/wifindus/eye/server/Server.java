@@ -1,6 +1,7 @@
 package wifindus.eye.server;
 
 import javax.swing.SwingUtilities;
+import wifindus.DebuggerPanel;
 import wifindus.eye.EyeApplication;
 
 /**
@@ -19,7 +20,8 @@ public class Server extends EyeApplication
 	 */
 	public Server(String[] args)
 	{
-		super(args);
+		super(args, false);
+		getContentPane().add(new DebuggerPanel());
 	}
 	
 	/**
