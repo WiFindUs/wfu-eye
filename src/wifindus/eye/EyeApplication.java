@@ -1,6 +1,7 @@
 package wifindus.eye;
 
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -15,10 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
-import wifindus.DebuggerFrame;
+import wifindus.DebuggerPanel;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
 
@@ -32,18 +35,18 @@ public abstract class EyeApplication extends JFrame
 {
 	//properties
 	private static final long serialVersionUID = -3410394016911856177L;
-	private static final Pattern PATTERN_VERBOSITY = Pattern.compile( "^-([0-4])$" );
+	private transient static final Pattern PATTERN_VERBOSITY = Pattern.compile( "^-([0-4])$" );
 	private volatile ConfigFile config = null;
-	private volatile boolean abortThreads = false;
-	private volatile MySQLUpdateWorker mysqlWorker = null;
-	private EyeMySQLConnection mysql = new EyeMySQLConnection();
-	private static EyeApplication singleton;
-	private static DebuggerFrame debuggerFrame = null;
+	private transient volatile boolean abortThreads = false;
+	private transient volatile MySQLUpdateWorker mysqlWorker = null;
+	private transient EyeMySQLConnection mysql = new EyeMySQLConnection();
+	private transient static EyeApplication singleton;
+	private transient JPanel clientPanel = null;
 	//database structures
-	private volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
-	private volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
-	private volatile ConcurrentHashMap<Integer,Incident> incidents = new ConcurrentHashMap<>();
-	private volatile ConcurrentHashMap<Integer,User> users = new ConcurrentHashMap<>();
+	private transient volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
+	private transient volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
+	private transient volatile ConcurrentHashMap<Integer,Incident> incidents = new ConcurrentHashMap<>();
+	private transient volatile ConcurrentHashMap<Integer,User> users = new ConcurrentHashMap<>();
 	
 
 	/////////////////////////////////////////////////////////////////////
@@ -65,19 +68,20 @@ public abstract class EyeApplication extends JFrame
 	 * @throws NullPointerException if <code>args</code> is null
 	 * @throws IllegalStateException if an existing EyeApplication instance exists.
 	 */
-	public EyeApplication(String[] args, boolean spawnConsole)
+	public EyeApplication(String[] args)
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
 		if (singleton != null)
 			throw new IllegalStateException("An EyeApplication object has already been instantiated..");
+		singleton = this;
 		
 		//set frame properties
 		Dimension screenBounds = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
 		addWindowListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize((int)(screenBounds.width * (spawnConsole ? 1.0 : 0.6)), (int)(screenBounds.height * (spawnConsole ? 0.7 : 0.6)));
-		setLocation((int)(screenBounds.width * (spawnConsole ? 0.0 : 0.2)),(int)(screenBounds.height * (spawnConsole ? 0.0 : 0.2)));
+		setSize((int)(screenBounds.width * 0.6), (int)(screenBounds.height * 0.6));
+		setLocation((int)(screenBounds.width * 0.2),(int)(screenBounds.height * 0.2));
 		setVisible(true);
 		
 		//check for debugger verbosity flags & start debugger
@@ -89,15 +93,13 @@ public abstract class EyeApplication extends JFrame
 				continue;
 			verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
 		}
-		if (spawnConsole)
-		{
-			debuggerFrame = new DebuggerFrame();
-			debuggerFrame.setSize(screenBounds.width, (int)(screenBounds.height * 0.25));
-			debuggerFrame.setLocation(0,getLocation().y + getSize().height);
-			debuggerFrame.setVisible(true);
-			debuggerFrame.setTitle("WiFindUs Debugger Console");
-		}
+        JSplitPane sp = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+            	clientPanel = new JPanel(),
+            	new DebuggerPanel());
+        getContentPane().add(sp);
+        sp.setResizeWeight(0.85);
 		Debugger.open(verbosity);
+		clientPanel.setLayout(new GridLayout(1,1));
 		
 		//parse command line arguments for config parameters
 		Debugger.i("Parsing command line arguments for config files...");
@@ -131,7 +133,7 @@ public abstract class EyeApplication extends JFrame
 		config.defaultString("mysql.address", "localhost");
 		config.defaultInt("mysql.port", 3306, 1024, 65535);
 		config.defaultString("mysql.database", "wfu_eye_db");
-		config.defaultInt("mysql.update_interval", 3000, 1000, 30000);
+		config.defaultInt("mysql.update_interval", 1000, 100, 30000);
 		//server
 		config.defaultInt("server.udp_port", 33339, 1024, 65535);
 		config.defaultInt("server.tcp_port", 33340, 1024, 65535);
@@ -205,6 +207,12 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	@Override
+	public void incidentArchived(Incident incident)
+	{
+		Debugger.v(incident + " archived");
+	}
+	
+	@Override
 	public void nodeCreated(Node node)
 	{
 		Debugger.v(node + " created");
@@ -265,7 +273,7 @@ public abstract class EyeApplication extends JFrame
 	 * @return the new Incident object, or null if an error occurred.
 	 * @throws NullPointerException if location is null.
 	 */
-	public final Incident createIncident(Incident.Type type, Location location)
+	public final Incident db_createIncident(Incident.Type type, Location location)
 	{
 		//sanity checks
 		if (location == null)
@@ -295,9 +303,11 @@ public abstract class EyeApplication extends JFrame
 	 * @return the new User object, or null if an error occurred.
 	 * @throws NullPointerException if any of the name parameters are null.
 	 */
-	public final User createUser(Incident.Type responderType, String nameFirst, String nameMiddle, String nameLast)
+	public final User db_createUser(Incident.Type responderType, String nameFirst, String nameMiddle, String nameLast)
 	{
 		//sanity checks
+		if (nameFirst == null)
+			throw new NullPointerException("Parameter 'nameFirst' cannot be null.");
 		if (nameMiddle == null)
 			throw new NullPointerException("Parameter 'nameMiddle' cannot be null.");
 		if (nameLast == null)
@@ -326,7 +336,7 @@ public abstract class EyeApplication extends JFrame
 	 * @return false if an error occurred, true otherwise.
 	 * @throws NullPointerException if the device was null.
 	 */
-	public final boolean setDeviceUser(Device device, User user)
+	public final boolean db_setDeviceUser(Device device, User user)
 	{
 		//sanity checks
 		if (device == null)
@@ -356,7 +366,7 @@ public abstract class EyeApplication extends JFrame
 	 * @throws NullPointerException if the device was null.
 	 * @throws IllegalArgumentException if incident is not null and the device does not have a user, or the incident's type does not match the user's type.
 	 */
-	public final boolean setDeviceIncident(Device device, Incident incident)
+	public final boolean db_setDeviceIncident(Device device, Incident incident)
 	{
 		//sanity checks
 		if (device == null)
@@ -379,18 +389,38 @@ public abstract class EyeApplication extends JFrame
 		
 		//return result
 		return true;
+	}
+	
+	public final boolean db_archiveIncident(Incident incident)
+	{
+		//sanity checks
+		if (incident == null)
+			throw new NullPointerException("Parameter 'incident' cannot be null.");
+		if (incident.isArchived())
+			return true;
 		
+		//manipulate database
+		//TODO: SQL query to un-assign all devices from this incident
+		//TODO: SQL query to set incident assigned flag to TRUE
+		
+		//manipulate data structures
+		for (Device device : incident.getRespondingDevices())
+			device.updateIncident(null);
+		incident.archive();
+		
+		return true;
 	}
 	
 	/////////////////////////////////////////////////////////////////////
-	// UNIMPLEMENTED METHODS
+	// UNIMPLEMENTED INTERFACE METHODS
 	/////////////////////////////////////////////////////////////////////
 
 	//DeviceEventListener
 	@Override public void deviceTimedOut(Device device) { }
 	
 	//IncidentEventListener
-	@Override public void incidentArchived(Incident incident) { }
+	@Override public void incidentAssignedDevice(Incident incident, Device device) { }
+	@Override public void incidentUnassignedDevice(Incident incident, Device device) { }
 	
 	//NodeEventListener
 	@Override public void nodeTimedOut(Node node) { }
@@ -406,6 +436,19 @@ public abstract class EyeApplication extends JFrame
 	@Override public void windowDeiconified(WindowEvent e) { }
 	@Override public void windowActivated(WindowEvent e) { }
 	@Override public void windowDeactivated(WindowEvent e) { }
+	
+	/////////////////////////////////////////////////////////////////////
+	// PROTECTED METHODS
+	/////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Gets the client area panel made available for use in child applications. 
+	 * @return A JFrame object
+	 */
+	protected final JPanel getClientPanel()
+	{
+		return clientPanel;
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS

@@ -2,7 +2,9 @@ package wifindus.eye;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.swing.ImageIcon;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -32,7 +34,12 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		/**
 		 * This incident is technical/internal, and should be responded to by WiFindUs personnel.
 		 */
-		WiFindUs
+		WiFindUs,
+		
+		/**
+		 * This incident does not have a type (this is for UI purposes, do not create instances with this).
+		 */
+		None
 	}
 	
 	//properties
@@ -43,6 +50,8 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private boolean archived = false;
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
+	private transient static HashMap<Incident.Type, ImageIcon> iconsLarge = new HashMap<>();
+	private transient static HashMap<Incident.Type, ImageIcon> iconsSmall = new HashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -58,6 +67,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	 * @throws NullPointerException if <code>location</code> or <code>created</code> are null.
 	 * @throws IllegalArgumentException if <code>id</code> is negative,
 	 * <code>location.isEmpty()</code> returns TRUE, or if <code>location</code> is missing horizontal positoning data (lat/long).
+	 * @throws UnsupportedOperationException if <code>None</code> is used as <code>type</code>.
 	 */
 	public Incident(int id, Type type, Location location, Timestamp created, IncidentEventListener... listeners)
 	{
@@ -65,6 +75,8 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		
 		if (id < 0)
 			throw new IllegalArgumentException("Parameter 'id' cannot be negative.");
+		if (type == Type.None)
+			throw new UnsupportedOperationException("Parameter 'type' does not support Type.None.");
 		if (location == null)
 			throw new NullPointerException("Parameter 'location' cannot be null.");
 		if (created == null)
@@ -179,6 +191,9 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		if (((Integer)resultRow.get("id")).intValue() != getID())
 			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
 		
+		boolean archived = (boolean)resultRow.get("archived");
+		if (!this.archived && archived)
+			archive();
 	}
 	
 	/**
@@ -191,6 +206,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		if (newDevice == null)
 			throw new NullPointerException("Parameter 'newDevice' cannot be null.");
 		respondingDevices.put(newDevice.getHash(), newDevice);
+		fireEvent("assigned", newDevice);
 	}
 	
 	/**
@@ -202,8 +218,47 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	{
 		if (oldDevice == null)
 			throw new NullPointerException("Parameter 'oldDevice' cannot be null.");
-		respondingDevices.remove(oldDevice.getHash());
+		if (respondingDevices.remove(oldDevice.getHash()) != null)
+			fireEvent("unassigned", oldDevice);
 	}
+
+	/**
+	 * Flags this incident as being archived.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 */
+	public void archive()
+	{
+		if (archived)
+			return;
+		archived = true;
+		fireEvent("archived", this);
+	}
+	
+	/**
+	 * Gets ImageIcons based on incident type.
+	 * @param type The type of incident you need an icon for.
+	 * @param small true for 30x30, false for 50x50.
+	 * @return An ImageIcon loaded with the appropriate image resource.
+	 */
+	public static ImageIcon getIcon(Incident.Type type, boolean small)
+	{
+		HashMap<Incident.Type, ImageIcon> collection = (small ? iconsSmall : iconsLarge);
+		ImageIcon icon = collection.get(type);
+		if (icon == null)
+		{
+			String filename = (small ? "_small" : "") + ".png";
+			switch (type)
+			{
+				case Medical: filename = "images/medical_logo" + filename; break;
+				case Security: filename = "images/security_logo" + filename; break;
+				case WiFindUs: filename = "images/wifi_logo" + filename; break;
+				case None: filename = "images/none_logo" + filename; break;
+			}
+			collection.put(type, icon = new ImageIcon(filename));
+		}
+		return icon;
+	}
+	
 	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
@@ -219,7 +274,13 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 				break;
 			case "archived":
 				listener.incidentArchived(this);
-				break;	
+				break;
+			case "assigned":
+				listener.incidentAssignedDevice(this, (Device)data[0]);
+				break;
+			case "unassigned":
+				listener.incidentUnassignedDevice(this, (Device)data[0]);
+				break;
 		}
 		
 	}
