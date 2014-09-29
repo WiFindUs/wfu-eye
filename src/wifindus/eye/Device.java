@@ -60,8 +60,8 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	private Atmosphere atmosphere = Atmosphere.EMPTY;
 	private Timestamp lastUpdate = new Timestamp(0);
 	//database relationships
-	private User currentUser = null;
-	private Incident currentIncident = null;
+	private transient User currentUser = null;
+	private transient Incident currentIncident = null;
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -195,7 +195,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	}
 	
 	@Override
-	public void update(MySQLResultRow resultRow)
+	public final void update(MySQLResultRow resultRow)
 	{
 		if (resultRow == null)
 			throw new NullPointerException("Parameter 'resultRow' cannot be null.");
@@ -272,7 +272,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
 	 * @param currentUser The current User of this device
 	 */
-	public void updateUser(User currentUser)
+	public final void updateUser(User currentUser)
 	{
 		if (this.currentUser == currentUser)
 			return;
@@ -300,7 +300,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
 	 * @param currentIncident The current Incident of this device
 	 */
-	public void updateIncident(Incident currentIncident)
+	public final void updateIncident(Incident currentIncident)
 	{
 		if (this.currentIncident == currentIncident)
 			return;

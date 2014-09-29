@@ -14,7 +14,7 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 	private int id;
 	private String nameFirst, nameLast, nameMiddle;
 	private Incident.Type type;
-	private Device currentDevice = null;
+	private transient Device currentDevice = null;
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS

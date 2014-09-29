@@ -42,7 +42,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private Timestamp created = new Timestamp(0);
 	private boolean archived = false;
 	//database relationships
-	private volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
+	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
