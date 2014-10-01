@@ -1,8 +1,10 @@
 package wifindus.eye.dispatcher;
 
 import java.awt.*;
+
 import javax.swing.*;
 import javax.swing.border.Border;
+
 import wifindus.eye.Device;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
@@ -26,6 +28,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         setBorder(BorderFactory.createMatteBorder(3,2,2,2,Color.black));
         Border blackLine = BorderFactory.createLineBorder(Color.black);
 
+        
         //time/status panels
         JPanel timeAndStatus = new JPanel(); 
         timeAndStatus.setLayout(new GridLayout(2,1));

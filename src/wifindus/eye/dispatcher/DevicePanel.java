@@ -1,14 +1,17 @@
 package wifindus.eye.dispatcher;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.net.InetAddress;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,6 +19,8 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
+
 import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
@@ -30,8 +35,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 	private static final long serialVersionUID = -953467312117311967L;
     private transient volatile Device device = null;
     private transient JButton newMedicalButton, newSecurityButton, newWifibutton;
-    private transient JCheckBox selectedCheckBox;
-    private transient JPanel personnelDetailsPanel;
+    private transient JLabel incidentLabel, locationLabel;
+    private transient JPanel userPanel;
     private transient JLabel logo, name, location, status;
 
     /**
@@ -46,62 +51,54 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 		this.device = device;
 		
 		//cosmetic properties
-        setBorder(BorderFactory.createLineBorder(Color.black));
-        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-        Color trans = new Color(0f,0f,0f,0f);
-      
-        // Selected check box
-        selectedCheckBox = new JCheckBox();
-        selectedCheckBox.addItemListener(this);
-        add(selectedCheckBox);
-  
-        //logo
-        add(logo = new JLabel(Incident.getIcon(Type.None, false)));
-        add(Box.createRigidArea(new Dimension(5,0)));
-        logo.setBackground(trans);
+        setBorder(BorderFactory.createMatteBorder(1,0,1,0 , new Color(0x618197)));
+        setBackground(Color.white);
+        Font font, nameFont;
         
-        //personnel details
-        add(personnelDetailsPanel = new JPanel());
-        personnelDetailsPanel.setBackground(trans);
-        personnelDetailsPanel.setLayout(new BoxLayout (personnelDetailsPanel, BoxLayout.X_AXIS));        
-        Font font; 
+        //users list panels
+        add(userPanel = new JPanel());
+        userPanel.setBackground(Color.white);
+        userPanel.setLayout(null);
+        userPanel.setPreferredSize(new Dimension(380,90));
+        
+        //user number&name OR device ID
         name = new JLabel();
-        name.setFont(font = name.getFont().deriveFont(13.0f));
+        name.setFont(nameFont = name.getFont().deriveFont(15.0f));
         name.setOpaque(true);
-        name.setBackground(new Color(0, 0, 0, 10));
+        name.setBackground(Color.white);
+        
+        //logo
+        logo = new JLabel(Incident.getIcon(Type.None, false));
+        logo.setBackground(Color.white);
+                
+        // "buttons" for creating incidents & locating users
+        incidentLabel = new JLabel("New Incident");
+        locationLabel = new JLabel("Locate on map");
+        font = locationLabel.getFont().deriveFont(13.0f);
+        
+        //user coordinates - DO NOT DELETE: data is not retrieved if not declared!
         location = new JLabel();
-        location.setFont(font);
+        
+        //status of user: Patrolling/Incident#/No User
         status = new JLabel();
         status.setFont(font);
+        status.setPreferredSize(new Dimension(116,30));
+        status.setForeground(Color.white);
+        status.setOpaque(true);
+        Border paddingBorder = BorderFactory.createEmptyBorder(0,15,0,15);
+        status.setBorder(paddingBorder);
         
-        JPanel panel = new JPanel();
-        panel.setBackground(trans);
-        panel.setLayout(new GridLayout (3,1));
-        panel.add(name);
-        panel.add(status);
-        panel.add(location);
-        personnelDetailsPanel.add(panel);
-        personnelDetailsPanel.add(Box.createRigidArea(new Dimension(5,0)));
+        userPanel.add(name);
+        userPanel.add(logo);
+        userPanel.add(incidentLabel);
+        userPanel.add(locationLabel);
+        userPanel.add(status);
         
-        //'create incident' panel and button
-        personnelDetailsPanel.add(panel = new JPanel());
-        panel.setBackground(trans);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(new JLabel("New Incident:"));
-        panel.add(panel = new JPanel());
-        panel.setBackground(trans);
-        panel.setLayout(new GridLayout(1,3));
-        panel.add(newMedicalButton = new JButton(Incident.getIcon(Type.Medical, true)));
-        newMedicalButton.addActionListener(this);
-        newMedicalButton.setMaximumSize(new Dimension(32,32));
-        panel.add(newSecurityButton = new JButton(Incident.getIcon(Type.Security, true)));
-        newSecurityButton.addActionListener(this);
-        newSecurityButton.setMaximumSize(new Dimension(32,32));
-        panel.add(newWifibutton = new JButton(Incident.getIcon(Type.WiFindUs, true)));
-        newWifibutton.addActionListener(this);
-        newWifibutton.setMaximumSize(new Dimension(32,32));
-        
-        personnelDetailsPanel.add(Box.createRigidArea(new Dimension(5,0)));
+        name.setBounds(20, 3, 300, 20);
+        logo.setBounds(20,30,60,60);
+        incidentLabel.setBounds(110,37,100,20);
+        locationLabel.setBounds(110,60,100,20);
+        status.setBounds(250,45,100,25);
         
         deviceNotInUse(device,null);
         device.addEventListener(this);
@@ -114,7 +111,7 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
     @Override
     public void itemStateChanged(ItemEvent e) 
     {
-    	setBackground(selectedCheckBox.isSelected() ? new Color(0xCCFFFF) : Color.WHITE);
+   // 	setBackground(selectedCheckBox.isSelected() ? new Color(0xCCFFFF) : Color.WHITE);
     }
     
     // Listener for New Incident button 
@@ -135,10 +132,10 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
     }
 
     // Return if a person is selected
-    public final boolean isSelected()
+    /*public final boolean isSelected()
     {
         return selectedCheckBox.isSelected();
-    }
+    }*/
 
     @Override
     public void deviceInUse(Device device, User user)
@@ -202,13 +199,13 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 			name.setText(device.getCurrentUser().toString() + ": " + device.getCurrentUser().getNameFull());
 			if (device.getCurrentIncident() != null)
 			{
-				status.setText("Assigned to " + device.getCurrentIncident().toString());
-				status.setForeground(Color.red);
+				status.setText(device.getCurrentIncident().toString());
+				status.setBackground(new Color(0xfd0b15));
 			}
 			else
 			{
 				status.setText("Patrolling");
-				status.setForeground(new Color(0x006600));
+				status.setBackground(new Color(0x0a9a06));
 			}
 			location.setText(device.getLocation().hasLatLong() ? device.getLocation().toShortString() : "");
 		}
@@ -217,7 +214,7 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 			logo.setIcon(Incident.getIcon(Type.None,false));
 			name.setText(device.toString());
 			status.setText("No user.");
-			status.setForeground(Color.gray);
+			status.setBackground(Color.gray);
 			location.setText("");
 		}
 		repaint();
@@ -233,8 +230,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 			&& device.getCurrentIncident() == null
 			&& device.getLocation().hasLatLong();
 		
-		newMedicalButton.setEnabled(enabled);
+		/*newMedicalButton.setEnabled(enabled);
 		newSecurityButton.setEnabled(enabled);
-		newWifibutton.setEnabled(enabled);
+		newWifibutton.setEnabled(enabled);*/
 	}
 }

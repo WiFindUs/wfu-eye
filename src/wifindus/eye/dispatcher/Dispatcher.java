@@ -1,18 +1,25 @@
 package wifindus.eye.dispatcher;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
+
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+
 import javax.swing.*;
 
 
 public class Dispatcher extends EyeApplication
 {
 	private static final long serialVersionUID = 12094147960785467L;
-	private JPanel incidentPanel, devicePanel;
+	private JPanel menuPanel, incidentPanel, devicePanel;
     
 
 	/////////////////////////////////////////////////////////////////////
@@ -22,20 +29,31 @@ public class Dispatcher extends EyeApplication
 	public Dispatcher(String[] args)
 	{
 		super(args);
+		getClientPanel().setLayout(new BoxLayout(getClientPanel(), BoxLayout.Y_AXIS));
+		getClientPanel().setBackground(Color.white);
+		menuPanel = new JPanel();
+		menuPanel.setBackground(Color.white);
+		menuPanel.setPreferredSize(new Dimension(800, 70));
+		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
 		
-		//create two panels with a splitter
-        JSplitPane sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-        	new JScrollPane(devicePanel = new JPanel()),
-        	new JScrollPane(incidentPanel = new JPanel()));
-        
-        devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
+		devicePanel = new JPanel();
+		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
+		
+		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+        incidentPanel = new JPanel();
         incidentPanel.setLayout(new BoxLayout(incidentPanel, BoxLayout.Y_AXIS));
+        
+        JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel);
         incidentPanel.setBackground(Color.WHITE);
         
-        // Specify location of pane split
-        sp.setResizeWeight(0.25);
-        sp.setOneTouchExpandable(true);
-        getClientPanel().add(sp);
+        getClientPanel().setLayout(new BorderLayout());
+        getClientPanel().add(menuPanel, BorderLayout.NORTH);
+        getClientPanel().add(devicePanelScroll, BorderLayout.WEST);
+        getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
+        
+        
 	}
 	
 	/////////////////////////////////////////////////////////////////////
