@@ -1,5 +1,6 @@
 package wifindus.eye.dispatcher;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -57,9 +58,10 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         setBorder(BorderFactory.createMatteBorder(1,0,1,0 , new Color(0x618197)));
         setBackground(Color.white);
         Font font, nameFont;
-        
+        //setLayout(new BorderLayout());
         
         //users list panels
+        //add(userPanel= new JPanel(), BorderLayout.CENTER);
         add(userPanel = new JPanel());
         userPanel.setBackground(Color.white);
         userPanel.setLayout(null);

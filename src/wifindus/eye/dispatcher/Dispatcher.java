@@ -73,7 +73,8 @@ public class Dispatcher extends EyeApplication
         
         
         
-        JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel);
+        JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         incidentPanel.setBackground(Color.WHITE);
         
         getClientPanel().setLayout(new BorderLayout());
