@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,12 +16,15 @@ import java.net.InetAddress;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import wifindus.Debugger;
 import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
@@ -34,7 +38,7 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 {
 	private static final long serialVersionUID = -953467312117311967L;
     private transient volatile Device device = null;
-    private transient JButton newMedicalButton, newSecurityButton, newWifibutton;
+    private transient JButton newMedicalButton, newSecurityButton, newWifibutton, newIncidentButton, locateOnMapButton;
     private transient JLabel incidentLabel, locationLabel;
     private transient JPanel userPanel;
     private transient JLabel logo, name, location, status;
@@ -70,11 +74,39 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         //logo
         logo = new JLabel(Incident.getIcon(Type.None, false));
         logo.setBackground(Color.white);
-                
+               
+        //icons for buttons
+        ImageIcon newIncidentLogo = new ImageIcon("images/plus.png");
+        ImageIcon showOnMapLogo = new ImageIcon("images/minus.png");
+        
+        //resize images icon to fit button
+        Image plusImg = newIncidentLogo.getImage() ;  
+        Image scaledPlus = plusImg.getScaledInstance( 20, 20,  java.awt.Image.SCALE_SMOOTH ) ;  
+        newIncidentLogo = new ImageIcon(scaledPlus);
+        
+        Image showMapImg = showOnMapLogo.getImage() ;  
+        Image scaledShowMap = showMapImg.getScaledInstance( 20, 20,  java.awt.Image.SCALE_SMOOTH ) ;  
+        showOnMapLogo = new ImageIcon(scaledShowMap);
+        
+        
+        
         // "buttons" for creating incidents & locating users
-        incidentLabel = new JLabel("New Incident");
-        locationLabel = new JLabel("Locate on map");
-        font = locationLabel.getFont().deriveFont(13.0f);
+        newIncidentButton = new JButton("New Incident");
+        newIncidentButton.setIcon(newIncidentLogo);
+        newIncidentButton.setBackground(Color.white);
+        newIncidentButton.addActionListener(this);
+        newIncidentButton.setHorizontalAlignment(SwingConstants.LEFT);
+        newIncidentButton.setMargin(new Insets(0,0,0,0));
+        
+        
+        //incidentLabel = new JLabel("New Incident");
+        locateOnMapButton = new JButton("Locate on map");
+        locateOnMapButton.setIcon(showOnMapLogo);
+        font = locateOnMapButton.getFont().deriveFont(13.0f);
+        locateOnMapButton.setBackground(Color.white);
+        locateOnMapButton.addActionListener(this);
+        locateOnMapButton.setHorizontalAlignment(SwingConstants.LEFT);
+        locateOnMapButton.setMargin(new Insets(0,0,0,0));
         
         //user coordinates - DO NOT DELETE: data is not retrieved if not declared!
         location = new JLabel();
@@ -90,15 +122,20 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         
         userPanel.add(name);
         userPanel.add(logo);
-        userPanel.add(incidentLabel);
-        userPanel.add(locationLabel);
+        //userPanel.add(incidentLabel);
+        userPanel.add(newIncidentButton);
+        //userPanel.add(locationLabel);
+        userPanel.add(locateOnMapButton);
         userPanel.add(status);
         
         name.setBounds(20, 3, 300, 20);
         logo.setBounds(20,30,60,60);
-        incidentLabel.setBounds(110,37,100,20);
-        locationLabel.setBounds(110,60,100,20);
+        //incidentLabel.setBounds(110,37,100,20);
+        newIncidentButton.setBounds(110,37,120,20);
+        locateOnMapButton.setBounds(110,60,120,20);
         status.setBounds(250,45,100,25);
+        
+        
         
         deviceNotInUse(device,null);
         device.addEventListener(this);
@@ -118,6 +155,14 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
     @Override
     public void actionPerformed(ActionEvent e) 
     {
+    	//Listener for new incident
+    	if (e.getSource() == newIncidentButton)
+    		System.out.println("New Incident");
+    	
+    	else if (e.getSource() == locateOnMapButton)
+    		System.out.println("Locate on map");
+   		
+    	
         if (device.getCurrentUser() == null
         	|| device.getCurrentIncident() != null
         	|| !device.getLocation().hasLatLong())
@@ -129,6 +174,10 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         	EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
     	else if (e.getSource() == newWifibutton)
         	EyeApplication.get().db_createIncident(Type.WiFindUs, device.getLocation());
+    	
+    
+    	
+    	
     }
 
     // Return if a person is selected
