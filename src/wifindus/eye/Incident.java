@@ -72,7 +72,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	public Incident(int id, Type type, Location location, Timestamp created, IncidentEventListener... listeners)
 	{
 		super(listeners);
-		
+				
 		if (id < 0)
 			throw new IllegalArgumentException("Parameter 'id' cannot be negative.");
 		if (type == Type.None)

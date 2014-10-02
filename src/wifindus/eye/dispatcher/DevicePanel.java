@@ -157,7 +157,9 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
     {
     	//Listener for new incident
     	if (e.getSource() == newIncidentButton)
-    		System.out.println("New Incident");
+    	{
+    		EyeApplication.get().db_createIncident(Type.Medical, device.getLocation());	    	
+    	}
     	
     	else if (e.getSource() == locateOnMapButton)
     		System.out.println("Locate on map");
