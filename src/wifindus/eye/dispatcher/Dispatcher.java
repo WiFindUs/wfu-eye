@@ -17,10 +17,14 @@ import java.awt.event.ActionListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.*;
 
 import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 
 public class Dispatcher extends EyeApplication
@@ -47,14 +51,20 @@ public class Dispatcher extends EyeApplication
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
 		
+		JPanel deviceControlPanel = new JPanel();
+		deviceControlPanel.setLayout(new BoxLayout(deviceControlPanel, BoxLayout.Y_AXIS));
+		
 		devicePanel = new JPanel();
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
+		
 		
 				 
 		String[] choices = { "ID", "First Name", "Last Name", "Availible First", "Currently Responding First"};
 		final JComboBox<String> sort = new JComboBox<String>(choices);
 		sort.setVisible(true);
-		devicePanel.add(sort);
+		
+		deviceControlPanel.add(sort);
+		 deviceControlPanel.add(devicePanel);
 		    
 		sort.addActionListener (new ActionListener () 
 		{
@@ -65,7 +75,7 @@ public class Dispatcher extends EyeApplication
 		});
 		    
 		
-		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+		JScrollPane devicePanelScroll = new JScrollPane(deviceControlPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
         incidentPanel = new JPanel();
@@ -78,6 +88,7 @@ public class Dispatcher extends EyeApplication
         
         getClientPanel().setLayout(new BorderLayout());
         getClientPanel().add(menuPanel, BorderLayout.NORTH);
+        //getClientPanel().add(sort, BorderLayout.WEST);
         getClientPanel().add(devicePanelScroll, BorderLayout.WEST);
         getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
         
@@ -98,8 +109,8 @@ public class Dispatcher extends EyeApplication
 		
 	
 		
-				devicePanel.add(new DevicePanel(device));
-				devicePanel.revalidate();
+		devicePanel.add(new DevicePanel(device));
+		devicePanel.revalidate();
 		deviceStack.add(device);
 		
 	}
@@ -146,8 +157,57 @@ public class Dispatcher extends EyeApplication
 				{
 					devicePanel.add(new DevicePanel(obj));
 				}
-		break;
-		
+				
+			break;
+			
+			
+			
+			case "First Name":
+				
+				Map<String, Device> sortedNames = new TreeMap<String, Device>();
+				
+				//add records without names
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentUser() == null)
+						sortedDeviceStack.push(obj);
+				}
+				
+				//add records with names
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentUser() != null)
+					{
+						sortedNames.put(obj.getCurrentUser().getNameFull() , obj);
+					}
+				
+				}
+			
+				//put sorted tree map into an array list
+				ArrayList<Device> reversedDeviceList = new ArrayList<Device>();
+				for(Map.Entry<String,Device> entry : sortedNames.entrySet()) 
+				{
+					  Device device = entry.getValue();
+					  reversedDeviceList.add(device);
+					  
+				}
+				
+				//add sorted names in reverse order
+				for (int i = reversedDeviceList.size()-1; i >= 0; i--)
+				{
+					 sortedDeviceStack.push(reversedDeviceList.get(i));
+				}
+				
+				
+				
+				
+				for(Device obj : sortedDeviceStack)
+				{
+					devicePanel.add(new DevicePanel(obj));
+				}
+				
+				break;
+			
 		}
 		
 		devicePanel.revalidate();
