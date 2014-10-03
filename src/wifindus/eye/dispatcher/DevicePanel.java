@@ -61,7 +61,6 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         //setLayout(new BorderLayout());
         
         //users list panels
-        //add(userPanel= new JPanel(), BorderLayout.CENTER);
         add(userPanel = new JPanel());
         userPanel.setBackground(Color.white);
         userPanel.setLayout(null);
@@ -85,11 +84,11 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         
         //resize images icon to fit button
         Image plusImg = newIncidentLogo.getImage() ;  
-        Image scaledPlus = plusImg.getScaledInstance( 12, 12,  java.awt.Image.SCALE_SMOOTH ) ;  
+        Image scaledPlus = plusImg.getScaledInstance( 12, 12,  java.awt.Image.SCALE_SMOOTH );
         newIncidentLogo = new ImageIcon(scaledPlus);
         
         Image showMapImg = showOnMapLogo.getImage() ;  
-        Image scaledShowMap = showMapImg.getScaledInstance( 12, 20,  java.awt.Image.SCALE_SMOOTH ) ;  
+        Image scaledShowMap = showMapImg.getScaledInstance( 12, 20,  java.awt.Image.SCALE_SMOOTH );  
         showOnMapLogo = new ImageIcon(scaledShowMap);
         
         Border emptyBorder = BorderFactory.createEmptyBorder();

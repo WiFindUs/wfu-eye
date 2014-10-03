@@ -13,8 +13,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
     private transient Incident incident = null;
-    private transient JLabel incidentTime, idLabel, statusLabel, codeLabel, incidentTypeTitle, onTaskLabel;
-    private transient JButton locateOnMap, addRespondent, removeIncident;
+    private transient JLabel incidentTime, idLabel, onTaskLabel;
+    private transient JButton locateOnMap, addRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
     private transient JList onTaskList;
      
     public IncidentPanel(Incident incident)
@@ -25,10 +25,13 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
     	
 		
 		//cosmetic properties
-		setBackground(new Color(0xf6f9fc));
+		Color lightBlue = new Color(0xf6f9fc);
+		Color red = new Color(0xfd0b15);
+		setBackground(lightBlue);
 		setBorder(BorderFactory.createMatteBorder(0,1,1,0,new Color(0x618197)));
         Border emptyBorder = BorderFactory.createEmptyBorder();
 
+        
         GroupLayout layout = new GroupLayout(this);
         setLayout(layout);
         
@@ -36,14 +39,44 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
         
         idLabel = new JLabel("Incident #" + incident.getID());
-        JLabel incidentIcon = new JLabel(Incident.getIcon(incident.getType(), false));
+        //JLabel incidentIcon = new JLabel(Incident.getIcon(incident.getType(), false));
+        incidentIconButton = new JButton(Incident.getIcon(incident.getType(), false));
+        incidentIconButton.setBorder(emptyBorder);
+        incidentIconButton.setBackground(lightBlue);
         
+        //Locate on map icon
         ImageIcon locateIcon = new ImageIcon("images/locate.png");
-        locateOnMap = new JButton("Locate on Map");
+        Image locateIconImage = locateIcon.getImage() ; 
+        Image scaledLocateIcon = locateIconImage.getScaledInstance( 12, 20,  java.awt.Image.SCALE_SMOOTH );  
+        locateIcon = new ImageIcon(scaledLocateIcon);
+        
+        //Add respondent (plus) icon
         ImageIcon plusIcon = new ImageIcon("images/plus.png");
-        addRespondent = new JButton("Add Respondent");
+        Image plusIconImage = plusIcon.getImage() ; 
+        Image scaledPlusIcon = plusIconImage.getScaledInstance( 12, 12,  java.awt.Image.SCALE_SMOOTH );  
+        plusIcon = new ImageIcon(scaledPlusIcon);
+        
+        //Remove Incident (x) Icon [will be changed]
         ImageIcon minusIcon = new ImageIcon("images/minus.png");
+        Image minusIconImage = minusIcon.getImage() ; 
+        Image scaledMinusIcon = minusIconImage.getScaledInstance( 12, 12,  java.awt.Image.SCALE_SMOOTH );  
+        minusIcon = new ImageIcon(scaledMinusIcon);
+        
+        locateOnMap = new JButton("Locate on Map");
+        locateOnMap.setBackground(lightBlue);
+        locateOnMap.setIcon(locateIcon);
+        locateOnMap.setBorder(emptyBorder);
+        
+        addRespondent = new JButton("Add Respondent");
+        addRespondent.setBackground(lightBlue);
+        addRespondent.setIcon(plusIcon);
+        addRespondent.setBorder(emptyBorder);
+        
         removeIncident = new JButton("Remove Incident");
+        removeIncident.setBackground(lightBlue);
+        removeIncident.setIcon(minusIcon);
+        removeIncident.setBorder(emptyBorder);
+        
         
         onTaskLabel = new JLabel ("On Task:");
         String	testList[] =
@@ -62,9 +95,17 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         onTaskListScroll.setPreferredSize(new Dimension(100,60));
         
-        incidentTime = new JLabel("Time: 00 : 00 : 00");
-        codeLabel = new JLabel("Code");
-        statusLabel = new JLabel("Active");
+        
+        incidentTime = new JLabel("00 : 00 : 00");
+        
+        codeButton = new JButton("code");
+        codeButton.setBackground(Color.gray);
+        codeButton.setBorder(emptyBorder);
+        
+        statusButton = new JButton("Active");
+        statusButton.setBackground(red);
+        statusButton.setForeground(Color.white);
+        statusButton.setBorder(emptyBorder);
         
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
@@ -96,7 +137,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         GroupLayout.ParallelGroup columnRight = layout.createParallelGroup();
         
         columnLeft.addComponent(idLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-        columnLeft.addComponent(incidentIcon, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        columnLeft.addComponent(incidentIconButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         
         columnButtons.addComponent(locateOnMap, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         columnButtons.addComponent(addRespondent, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
@@ -106,8 +147,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         
         columnRight.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-        columnRight.addComponent(codeLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-        columnRight.addComponent(statusLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        columnRight.addComponent(codeButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        columnRight.addComponent(statusButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         
         horizontal.addGroup(columnLeft);
         horizontal.addGroup(columnButtons);
@@ -128,10 +169,10 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         onTaskGroup.addComponent(onTaskListScroll);
         
         rightGroup.addComponent(incidentTime);
-        rightGroup.addComponent(codeLabel);
-        rightGroup.addComponent(statusLabel);
+        rightGroup.addComponent(codeButton);
+        rightGroup.addComponent(statusButton);
         
-        rowBottom.addComponent(incidentIcon);
+        rowBottom.addComponent(incidentIconButton);
         rowBottom.addGroup(buttonGroup);
         rowBottom.addGroup(onTaskGroup);
         rowBottom.addGroup(rightGroup);
