@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
@@ -33,7 +35,7 @@ public class Dispatcher extends EyeApplication
 	private JPanel menuPanel, incidentPanel, devicePanel;
 	//ArrayList<Device> deviceList;
 	private Deque<Device> deviceStack;
-
+	private String sortType = "ID";
 	
 
 	
@@ -58,22 +60,47 @@ public class Dispatcher extends EyeApplication
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
 		
 		
-				 
-		String[] choices = { "ID", "First Name", "Last Name", "Availible First", "Currently Responding First"};
+		
+		// search
+		final JTextField search = new JTextField();		 
+		search.getDocument().addDocumentListener(new DocumentListener() 
+		{
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				searchName(search.getText());
+			}
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				searchName(search.getText());
+			}
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				searchName(search.getText());
+				
+			}
+		});
+		
+		
+		
+		// sort
+		String[] choices = { "ID", "First Name", "Last Name", "Availible First", "Currently Responding First", "Unused Devices First"};
 		final JComboBox<String> sort = new JComboBox<String>(choices);
 		sort.setVisible(true);
-		
-		deviceControlPanel.add(sort);
-		 deviceControlPanel.add(devicePanel);
-		    
+		 
 		sort.addActionListener (new ActionListener () 
 		{
 		    public void actionPerformed(ActionEvent e) 
 		    {
-		        sortDeviceList(sort.getSelectedItem().toString());
+		    	sortType = sort.getSelectedItem().toString();
+		        sortDeviceList(sortType);
 		    }
 		});
-		    
+		
+		deviceControlPanel.add(sort);
+		deviceControlPanel.add(search);
+		deviceControlPanel.add(devicePanel);
+		
+		
 		
 		JScrollPane devicePanelScroll = new JScrollPane(deviceControlPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -89,31 +116,32 @@ public class Dispatcher extends EyeApplication
         
         getClientPanel().setLayout(new BorderLayout());
         getClientPanel().add(menuPanel, BorderLayout.NORTH);
-        //getClientPanel().add(sort, BorderLayout.WEST);
         getClientPanel().add(devicePanelScroll, BorderLayout.WEST);
         getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
         
-       //deviceList=new ArrayList();
         
         deviceStack = new ArrayDeque<Device>();
+        
+        
+        
         
 	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-
 	@Override
 	public void deviceCreated(Device device)
 	{
 		super.deviceCreated(device);
 		
-	
 		
 		devicePanel.add(new DevicePanel(device));
+		deviceStack.push(device);
 		devicePanel.revalidate();
-		deviceStack.add(device);
 		
+		//Not working (Users not assigned to devices yet?)
+		sortDeviceList(sortType);
 	}
 	
 	@Override
@@ -124,22 +152,85 @@ public class Dispatcher extends EyeApplication
 		incidentPanel.revalidate();
 	}
 	
+	
+	public void searchName(String searchText)
+	{
+		devicePanel.removeAll();
+
+		Deque<Device> searchedDeviceStack  = new ArrayDeque<Device>();
+
+		for(Device obj : deviceStack)
+		{
+			if(obj.getCurrentUser() != null)
+			{
+				if(obj.getCurrentUser().getNameFull().toLowerCase().contains(searchText.toLowerCase()))
+					searchedDeviceStack.push(obj);
+			}
+		}
+			
+		for(Device obj : searchedDeviceStack)
+		{
+			devicePanel.add(new DevicePanel(obj));
+		}
+		devicePanel.revalidate();
+	}
+	
+	
+	
+	
 	public void sortDeviceList(String sortType)
 	{
 		devicePanel.removeAll();
-		
-	   
 		Deque<Device> sortedDeviceStack  = new ArrayDeque<Device>();
-		
-				
-		switch(sortType)
+
+		if(sortType == "ID")
 		{
-			case "Availible First":
+				Map<Integer, Device> sortedID = new TreeMap<Integer, Device>();
+				
+				//add records without names
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentUser() == null)
+						sortedDeviceStack.push(obj);
+				}
+				
+				//add records with names
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentUser() != null)
+					{
+						sortedID.put(obj.getCurrentUser().getID() , obj);
+					}
+				}
+			
+				//put sorted tree map into an array list
+				ArrayList<Device> reversedDeviceList = new ArrayList<Device>();
+				for(Map.Entry<Integer,Device> entry : sortedID.entrySet()) 
+				{
+					  Device device = entry.getValue();
+					  reversedDeviceList.add(device);
+				}
+				
+				for (int i = reversedDeviceList.size()-1; i >= 0; i--)
+				{
+					sortedDeviceStack.push(reversedDeviceList.get(i));
+				}
+					
+				for(Device obj : sortedDeviceStack)
+				{
+						devicePanel.add(new DevicePanel(obj));
+				}
+			}
+			
+		
+		
+			if(sortType == "Availible First")
+			{
 		
 				for(Device obj : deviceStack)
 				{
 					if(obj.getCurrentUser() == null)
-						sortedDeviceStack.add(obj);
+						sortedDeviceStack.push(obj);
 				}
 		
 				for(Device obj : deviceStack)
@@ -159,12 +250,71 @@ public class Dispatcher extends EyeApplication
 					devicePanel.add(new DevicePanel(obj));
 				}
 				
-			break;
+			}
 			
 			
 			
-			case "First Name":
+
+			if(sortType == "Currently Responding First")
+			{
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentUser() == null)
+						sortedDeviceStack.push(obj);
+				}
 				
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
+						sortedDeviceStack.push(obj);
+				}
+		
+				
+		
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
+						sortedDeviceStack.push(obj);
+				}
+						
+				for(Device obj : sortedDeviceStack)
+				{
+					devicePanel.add(new DevicePanel(obj));
+				}
+			}
+			
+			
+			if(sortType == "Unused Devices First")
+			{
+				
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
+						sortedDeviceStack.push(obj);
+				}
+				
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
+						sortedDeviceStack.push(obj);
+				}
+				
+				for(Device obj : deviceStack)
+				{
+					if(obj.getCurrentUser() == null)
+						sortedDeviceStack.push(obj);
+				}
+			
+				
+				for(Device obj : sortedDeviceStack)
+				{
+					devicePanel.add(new DevicePanel(obj));
+				}
+			}
+			
+			// sort by first name
+			if(sortType == "First Name" || sortType == "Last Name")
+			{
 				Map<String, Device> sortedNames = new TreeMap<String, Device>();
 				
 				//add records without names
@@ -181,7 +331,6 @@ public class Dispatcher extends EyeApplication
 					{
 						sortedNames.put(obj.getCurrentUser().getNameFull() , obj);
 					}
-				
 				}
 			
 				//put sorted tree map into an array list
@@ -190,30 +339,35 @@ public class Dispatcher extends EyeApplication
 				{
 					  Device device = entry.getValue();
 					  reversedDeviceList.add(device);
-					  
 				}
-				
-				//add sorted names in reverse order
-				for (int i = reversedDeviceList.size()-1; i >= 0; i--)
-				{
-					 sortedDeviceStack.push(reversedDeviceList.get(i));
-				}
-				
-				
-				
-				
+					// sort by first name
+					if(sortType == "First Name")
+					{
+						for (int i = reversedDeviceList.size()-1; i >= 0; i--)
+						{
+							sortedDeviceStack.push(reversedDeviceList.get(i));
+						}
+					}
+					// sort by last name
+					else
+					{
+						for (int i = 0; i < reversedDeviceList.size(); i++)
+						{
+							sortedDeviceStack.push(reversedDeviceList.get(i));
+						}
+					}
+					
+					
 				for(Device obj : sortedDeviceStack)
 				{
 					devicePanel.add(new DevicePanel(obj));
 				}
-				
-				break;
-			
+			}
+			devicePanel.revalidate();
 		}
 		
-		devicePanel.revalidate();
 		
-	}
+	
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
