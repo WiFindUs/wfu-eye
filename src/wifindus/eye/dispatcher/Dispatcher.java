@@ -60,6 +60,10 @@ public class Dispatcher extends EyeApplication
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
 		
 		
+		MapFrame map = new MapFrame();
+		map.setVisible(true);
+		
+		
 		
 		// search
 		final JTextField search = new JTextField();		 
