@@ -62,6 +62,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         setMinimumSize(new Dimension(380,95));
         
         Font font, nameFont;
+        nameFont = getFont().deriveFont(Font.BOLD, 15.0f);
+        font = getFont().deriveFont(Font.BOLD, 13.0f);
         
         setBackground(Color.white);
         setLayout(null);
@@ -69,8 +71,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         
         //user number&name OR device ID
         name = new JLabel();
-        nameFont = name.getFont().deriveFont(15.0f);
-        font = name.getFont().deriveFont(13.0f);
+        //nameFont = name.getFont().deriveFont(15.0f);
+        //font = name.getFont().deriveFont(13.0f);
         name.setFont(nameFont);
         name.setOpaque(true);
         name.setBackground(Color.white);
@@ -134,8 +136,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         
         name.setBounds(20, 3, 300, 20);
         logo.setBounds(20,30,60,60);
-        newIncidentButton.setBounds(110,37,120,20);
-        locateOnMapButton.setBounds(110,60,120,20);
+        newIncidentButton.setBounds(90,37,120,20);
+        locateOnMapButton.setBounds(90,60,120,20);
         status.setBounds(250,45,100,25);
         
      

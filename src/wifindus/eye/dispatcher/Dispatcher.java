@@ -33,7 +33,7 @@ import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 public class Dispatcher extends EyeApplication
 {
 	private static final long serialVersionUID = 12094147960785467L;
-	private JPanel menuPanel, incidentPanel, devicePanel;
+	private JPanel menuPanel, queryPanel, incidentPanel, devicePanel;
 	//ArrayList<Device> deviceList;
 	private Deque<Device> deviceStack;
 	private String sortType = "ID";
@@ -61,16 +61,49 @@ public class Dispatcher extends EyeApplication
         deviceControlPanel.setLayout(layout);
         GroupLayout.SequentialGroup horizontal = layout.createSequentialGroup();
         GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
-        layout.setAutoCreateGaps(true);
+        //layout.setAutoCreateGaps(true);
         //layout.setAutoCreateContainerGaps(true);
 		
 		devicePanel = new JPanel();
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
+		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		int scrollbarWidth = devicePanelScroll.getWidth();
 		
 		MapFrame map = new MapFrame();
-		map.setVisible(true);
+		//map.setVisible(true);
 		
+		queryPanel = new JPanel();
+		queryPanel.setBackground(new Color(0xedf4fb));
+		//int queryPanelWidth = scrollbarWidth+380;
+		//System.out.println(scrollbarWidth);
+		queryPanel.setMinimumSize(new Dimension(397, 125));
+		queryPanel.setMaximumSize(new Dimension(397, 125));
+		GroupLayout queryPanelLayout = new GroupLayout(queryPanel);
+		queryPanel.setLayout(queryPanelLayout);
+        GroupLayout.SequentialGroup queryPanelLayoutHorizontal = queryPanelLayout.createSequentialGroup();
+        GroupLayout.SequentialGroup queryPanelLayoutVertical = queryPanelLayout.createSequentialGroup();
+        queryPanelLayout.setAutoCreateGaps(true);
+        queryPanelLayout.setAutoCreateContainerGaps(true);
 		
+        
+        ButtonGroup filterButtonGroup = new ButtonGroup();
+        JToggleButton allFilterButton = new JToggleButton("All");
+        JToggleButton medicalFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Medical, true));
+        JToggleButton securityFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Security, true));
+        JToggleButton techFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.WiFindUs, true));
+        
+        filterButtonGroup.add(allFilterButton);
+        filterButtonGroup.add(medicalFilterButton);
+        filterButtonGroup.add(securityFilterButton);
+        filterButtonGroup.add(techFilterButton);
+        
+        allFilterButton.setSelected(true);
+        
+        JLabel sortLabel = new JLabel("Sort by:");
+        JLabel searchLabel = new JLabel("Search:");
+        
+        
 		
 		// search
 		final JTextField search = new JTextField();		 
@@ -107,36 +140,82 @@ public class Dispatcher extends EyeApplication
 		    }
 		});
 				
+		sort.setMaximumSize(new Dimension(295,25));
+        sort.setMinimumSize(new Dimension(295,25));
+        search.setMaximumSize(new Dimension(295,25));
+        search.setMinimumSize(new Dimension(295,25));
 		
-		//horizontal
+		//queryPanelLayoutHorizontal
+        GroupLayout.ParallelGroup queryColumn = queryPanelLayout.createParallelGroup(GroupLayout.Alignment.CENTER);
+        GroupLayout.SequentialGroup rowButtons = queryPanelLayout.createSequentialGroup();
+        GroupLayout.SequentialGroup rowBottom = queryPanelLayout.createSequentialGroup();
+        GroupLayout.ParallelGroup columnLabels = queryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING);
+        GroupLayout.ParallelGroup columnSortSearch = queryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING);
+        
+        rowButtons.addComponent(allFilterButton);
+        rowButtons.addComponent(medicalFilterButton);
+        rowButtons.addComponent(securityFilterButton);
+        rowButtons.addComponent(techFilterButton);
+        
+        columnLabels.addComponent(sortLabel);
+        columnLabels.addComponent(searchLabel);
+        columnSortSearch.addComponent(sort);
+        columnSortSearch.addComponent(search);
+        
+        rowBottom.addGroup(columnLabels);
+        rowBottom.addGroup(columnSortSearch);
+        
+        queryColumn.addGroup(rowButtons);
+        queryColumn.addGroup(rowBottom);
+        
+        queryPanelLayoutHorizontal.addGroup(queryColumn);
+        
+        //queryPanelLayoutVertical
+        GroupLayout.ParallelGroup rowButtonsParallel = queryPanelLayout.createParallelGroup();
+        GroupLayout.ParallelGroup rowSortParallel = queryPanelLayout.createParallelGroup();
+        GroupLayout.ParallelGroup rowSearchParallel = queryPanelLayout.createParallelGroup();
+        
+        rowButtonsParallel.addComponent(allFilterButton);
+        rowButtonsParallel.addComponent(medicalFilterButton);
+        rowButtonsParallel.addComponent(securityFilterButton);
+        rowButtonsParallel.addComponent(techFilterButton);
+        
+        rowSortParallel.addComponent(sortLabel);
+        rowSortParallel.addComponent(sort);
+        
+        rowSearchParallel.addComponent(searchLabel);
+        rowSearchParallel.addComponent(search);
+        
+        queryPanelLayoutVertical.addGroup(rowButtonsParallel);
+        queryPanelLayoutVertical.addGroup(rowSortParallel);
+        queryPanelLayoutVertical.addGroup(rowSearchParallel);
+        
+        
+        queryPanelLayout.setHorizontalGroup(queryPanelLayoutHorizontal);
+        queryPanelLayout.setVerticalGroup(queryPanelLayoutVertical);
+        
+        
+        
+        
+		//devicePanel horizontal
         GroupLayout.ParallelGroup column = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 		
-        sort.setMaximumSize(new Dimension(380,20));
-        sort.setMinimumSize(new Dimension(380,20));
-        search.setMaximumSize(new Dimension(380,20));
-        search.setMinimumSize(new Dimension(380,20));
-        
-        column.addComponent(sort);
-        column.addComponent(search);
-        column.addComponent(devicePanel);
+        column.addComponent(queryPanel);
+        column.addComponent(devicePanelScroll);
         
         horizontal.addGroup(column);
         
-        //vertical
-        vertical.addComponent(sort);
-        vertical.addComponent(search);
-        vertical.addComponent(devicePanel);
+        //devicePanel vertical
+        vertical.addComponent(queryPanel);
+        vertical.addComponent(devicePanelScroll);
         
         
         layout.setHorizontalGroup(horizontal);
         layout.setVerticalGroup(vertical);
 		
-		JScrollPane devicePanelScroll = new JScrollPane(deviceControlPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
-        incidentPanel = new JPanel();
+		incidentPanel = new JPanel();
         incidentPanel.setLayout(new BoxLayout(incidentPanel, BoxLayout.Y_AXIS));
-        
         
         
         JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -145,7 +224,7 @@ public class Dispatcher extends EyeApplication
         
         getClientPanel().setLayout(new BorderLayout());
         getClientPanel().add(menuPanel, BorderLayout.NORTH);
-        getClientPanel().add(devicePanelScroll, BorderLayout.WEST);
+        getClientPanel().add(deviceControlPanel, BorderLayout.WEST);
         getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
         
         

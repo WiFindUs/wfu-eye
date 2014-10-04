@@ -30,6 +30,12 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 		setBackground(lightBlue);
 		setBorder(BorderFactory.createMatteBorder(0,1,1,0,new Color(0x618197)));
         Border emptyBorder = BorderFactory.createEmptyBorder();
+        setMaximumSize(new Dimension(1000,150));
+        setMinimumSize(new Dimension(500,150));
+        
+        Font font, idFont;
+        font = getFont().deriveFont(Font.BOLD, 15.0f);
+        idFont = getFont().deriveFont(Font.BOLD, 17.0f);
 
         //Layout
         GroupLayout layout = new GroupLayout(this);
@@ -44,6 +50,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         incidentIconButton = new JButton(Incident.getIcon(incident.getType(), false));
         incidentIconButton.setBorder(emptyBorder);
         incidentIconButton.setBackground(lightBlue);
+        idLabel.setFont(idFont);
         
         //Locate on map icon
         ImageIcon locateIcon = new ImageIcon("images/locate.png");
@@ -67,19 +74,22 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         locateOnMap.setBackground(lightBlue);
         locateOnMap.setIcon(locateIcon);
         locateOnMap.setBorder(emptyBorder);
+        locateOnMap.setFont(font);
         
         addRespondent = new JButton("Add Respondent");
         addRespondent.setBackground(lightBlue);
         addRespondent.setIcon(plusIcon);
         addRespondent.setBorder(emptyBorder);
+        addRespondent.setFont(font);
         
         removeIncident = new JButton("Remove Incident");
         removeIncident.setBackground(lightBlue);
         removeIncident.setIcon(minusIcon);
         removeIncident.setBorder(emptyBorder);
-        
+        removeIncident.setFont(font);
         
         onTaskLabel = new JLabel ("On Task:");
+        onTaskLabel.setFont(font);
         String	testList[] =
     		{
     			"Item 1",
@@ -98,6 +108,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         
         
         incidentTime = new JLabel("00 : 00 : 00");
+        incidentTime.setFont(font);
         
         codeButton = new JButton("code");
         codeButton.setBackground(Color.gray);
