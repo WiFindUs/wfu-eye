@@ -31,12 +31,13 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 		setBorder(BorderFactory.createMatteBorder(0,1,1,0,new Color(0x618197)));
         Border emptyBorder = BorderFactory.createEmptyBorder();
 
-        
+        //Layout
         GroupLayout layout = new GroupLayout(this);
         setLayout(layout);
-        
         GroupLayout.SequentialGroup horizontal = layout.createSequentialGroup();
         GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
         
         idLabel = new JLabel("Incident #" + incident.getID());
         //JLabel incidentIcon = new JLabel(Incident.getIcon(incident.getType(), false));
@@ -107,8 +108,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         statusButton.setForeground(Color.white);
         statusButton.setBorder(emptyBorder);
         
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
         
         /*
           The panel is divided into 4 columns and 2 main rows.

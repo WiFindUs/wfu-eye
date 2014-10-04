@@ -2,6 +2,7 @@ package wifindus.eye.dispatcher;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.GroupLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -54,11 +55,17 @@ public class Dispatcher extends EyeApplication
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
 		
 		JPanel deviceControlPanel = new JPanel();
-		deviceControlPanel.setLayout(new BoxLayout(deviceControlPanel, BoxLayout.Y_AXIS));
+		
+		//Layout
+        GroupLayout layout = new GroupLayout(deviceControlPanel);
+        deviceControlPanel.setLayout(layout);
+        GroupLayout.SequentialGroup horizontal = layout.createSequentialGroup();
+        GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
+        layout.setAutoCreateGaps(true);
+        //layout.setAutoCreateContainerGaps(true);
 		
 		devicePanel = new JPanel();
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
-		
 		
 		MapFrame map = new MapFrame();
 		map.setVisible(true);
@@ -99,12 +106,30 @@ public class Dispatcher extends EyeApplication
 		        sortDeviceList(sortType);
 		    }
 		});
+				
 		
-		deviceControlPanel.add(sort);
-		deviceControlPanel.add(search);
-		deviceControlPanel.add(devicePanel);
+		//horizontal
+        GroupLayout.ParallelGroup column = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 		
-		
+        sort.setMaximumSize(new Dimension(380,20));
+        sort.setMinimumSize(new Dimension(380,20));
+        search.setMaximumSize(new Dimension(380,20));
+        search.setMinimumSize(new Dimension(380,20));
+        
+        column.addComponent(sort);
+        column.addComponent(search);
+        column.addComponent(devicePanel);
+        
+        horizontal.addGroup(column);
+        
+        //vertical
+        vertical.addComponent(sort);
+        vertical.addComponent(search);
+        vertical.addComponent(devicePanel);
+        
+        
+        layout.setHorizontalGroup(horizontal);
+        layout.setVerticalGroup(vertical);
 		
 		JScrollPane devicePanelScroll = new JScrollPane(deviceControlPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
