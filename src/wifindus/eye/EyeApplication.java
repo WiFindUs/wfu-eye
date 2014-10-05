@@ -174,7 +174,16 @@ public abstract class EyeApplication extends JFrame
 	 */
 	public static final EyeApplication get()
 	{
-		return singleton;		
+		return singleton;
+	}
+	
+	/**
+	 * Gets the config file object loaded with the application.
+	 * @return A reference to the EyeApplication's ConfigFile object.
+	 */
+	public final ConfigFile getConfig()
+	{
+		return config;		
 	}
 	
 	//WindowListener
