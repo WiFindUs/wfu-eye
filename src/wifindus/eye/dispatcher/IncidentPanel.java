@@ -33,9 +33,10 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         setMaximumSize(new Dimension(1000,150));
         setMinimumSize(new Dimension(500,150));
         
-        Font font, idFont;
+        Font font, rightColumnFont, idFont;
         font = getFont().deriveFont(Font.BOLD, 15.0f);
         idFont = getFont().deriveFont(Font.BOLD, 17.0f);
+        rightColumnFont = getFont().deriveFont(Font.BOLD, 16.0f);
 
         //Layout
         GroupLayout layout = new GroupLayout(this);
@@ -106,18 +107,28 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         onTaskListScroll.setPreferredSize(new Dimension(100,60));
         
-        
+        //time
+        ImageIcon timeIcon = new ImageIcon("images/time.png");
+        Image timeIconImage = timeIcon.getImage() ; 
+        Image scaledTimeIcon = timeIconImage.getScaledInstance( 25, 25,  java.awt.Image.SCALE_SMOOTH );  
+        timeIcon = new ImageIcon(scaledTimeIcon);
+        JLabel timeIconLabel = new JLabel(timeIcon);
         incidentTime = new JLabel("00 : 00 : 00");
-        incidentTime.setFont(font);
+        incidentTime.setFont(idFont);
         
         codeButton = new JButton("code");
         codeButton.setBackground(Color.gray);
+        codeButton.setForeground(Color.white);
+        codeButton.setFont(rightColumnFont);
         codeButton.setBorder(emptyBorder);
+        codeButton.setMinimumSize(new Dimension(186,30));
         
         statusButton = new JButton("Active");
         statusButton.setBackground(red);
         statusButton.setForeground(Color.white);
+        statusButton.setFont(rightColumnFont);
         statusButton.setBorder(emptyBorder);
+        statusButton.setMinimumSize(new Dimension(186,30));
         
         
         /*
@@ -145,6 +156,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         GroupLayout.ParallelGroup columnButtons = layout.createParallelGroup();
         GroupLayout.ParallelGroup columnList = layout.createParallelGroup();
         GroupLayout.ParallelGroup columnRight = layout.createParallelGroup();
+        GroupLayout.SequentialGroup timeRowSequential = layout.createSequentialGroup();
         
         columnLeft.addComponent(idLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         columnLeft.addComponent(incidentIconButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
@@ -156,7 +168,10 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         columnList.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         
-        columnRight.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        timeRowSequential.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        timeRowSequential.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        
+        columnRight.addGroup(timeRowSequential);
         columnRight.addComponent(codeButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         columnRight.addComponent(statusButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         
@@ -170,6 +185,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         GroupLayout.SequentialGroup buttonGroup = layout.createSequentialGroup();
         GroupLayout.SequentialGroup onTaskGroup = layout.createSequentialGroup();
         GroupLayout.SequentialGroup rightGroup = layout.createSequentialGroup();
+        GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
         
         buttonGroup.addComponent(locateOnMap);
         buttonGroup.addComponent(addRespondent);
@@ -178,7 +194,10 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         onTaskGroup.addComponent(onTaskLabel);
         onTaskGroup.addComponent(onTaskListScroll);
         
-        rightGroup.addComponent(incidentTime);
+        timeRowParallel.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        timeRowParallel.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        
+        rightGroup.addGroup(timeRowParallel);
         rightGroup.addComponent(codeButton);
         rightGroup.addComponent(statusButton);
         
