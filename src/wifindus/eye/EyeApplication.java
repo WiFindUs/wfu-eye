@@ -140,6 +140,12 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("server.tcp_count", 33340, 1, 5);
 		//dispatcher
 		config.defaultInt("dispatcher.tcp_port", 33340, 1024, 65535);
+		//map
+		config.defaultString("map.image", "maps/base.png");
+		config.defaultDouble("map.latitude_start", -34.908591);
+		config.defaultDouble("map.longitude_start", 138.576943);
+		config.defaultDouble("map.latitude_end", -34.919506);
+		config.defaultDouble("map.longitude_end", 138.593057);
 		
 		//connect to mysql
 		Debugger.i("Connecting to MySQL database '" + config.getString("mysql.database") + "@"
