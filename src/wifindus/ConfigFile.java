@@ -457,6 +457,35 @@ public class ConfigFile implements Serializable
 		return this;
 	}
 	
+	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists,
+	 * is of the correct type, and is within an acceptable range. If any of these conditions
+	 * fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param defaultValue The value to assign at the given key by default.
+	 * @param min The minimum acceptable value.
+	 * @param max The maximum acceptable value.
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultDouble(String key, double defaultValue, double min, double max)
+	{
+		setDouble((key = checkKey(key)),
+			Math.min(Math.max(getDouble(key, defaultValue),min),max));
+		return this;		
+	}
+	
+	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists and
+	 * is of the correct type. If any of these conditions fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param defaultValue The value to assign at the given key by default.
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultDouble(String key, double defaultValue)
+	{
+		return defaultDouble(key,defaultValue,Double.MIN_VALUE,Double.MAX_VALUE);		
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
