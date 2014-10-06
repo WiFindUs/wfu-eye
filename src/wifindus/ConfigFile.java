@@ -483,7 +483,7 @@ public class ConfigFile implements Serializable
 	 */
 	public ConfigFile defaultDouble(String key, double defaultValue)
 	{
-		return defaultDouble(key,defaultValue,Double.MIN_VALUE,Double.MAX_VALUE);		
+		return defaultDouble(key,defaultValue,(Double.MAX_VALUE-1.0)*-1.0,Double.MAX_VALUE);		
 	}
 	
 	/////////////////////////////////////////////////////////////////////
