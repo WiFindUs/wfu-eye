@@ -9,6 +9,7 @@ import javax.swing.SwingUtilities;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
+import wifindus.eye.Location;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -71,7 +72,7 @@ public class Dispatcher extends EyeApplication
 		int scrollbarWidth = devicePanelScroll.getWidth();
 		
 		MapFrame map = new MapFrame();
-		//map.setVisible(true);
+		map.setVisible(true);
 		
 		queryPanel = new JPanel();
 		queryPanel.setBackground(new Color(0xedf4fb));
@@ -251,6 +252,19 @@ public class Dispatcher extends EyeApplication
 		//Not working (Users not assigned to devices yet?)
 		sortDeviceList(sortType);
 	}
+	
+	@Override
+	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
+	{
+		super.deviceCreated(device);
+		
+		//Update Location on the map
+		MapImagePanel.deviceLocationChanged( device,  oldLocation,  newLocation);
+		
+	}
+	
+	
+	
 	
 	@Override
 	public void incidentCreated(Incident incident)

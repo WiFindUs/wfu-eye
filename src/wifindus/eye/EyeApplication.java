@@ -140,6 +140,7 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("server.tcp_count", 33340, 1, 5);
 		//dispatcher
 		config.defaultInt("dispatcher.tcp_port", 33340, 1024, 65535);
+		
 		//map
 		config.defaultString("map.image", "maps/base.png");
 		config.defaultDouble("map.latitude_start", -34.908591);
