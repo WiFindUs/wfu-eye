@@ -57,13 +57,12 @@ public class MapImagePanel extends JPanel implements ComponentListener{
        mapImage = resize.scaleImage(300, 300, path);
        
        //Get latitude and longitude for corners of map
-       Location starts = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_start"), EyeApplication.get().getConfig().getDouble("map.longitude_start"));
-       Location ends = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_end"), EyeApplication.get().getConfig().getDouble("map.longitude_end"));
-
-       Double startLat = starts.getLatitude();
-       Double endLat = ends.getLatitude();
-       
-       System.out.println("Map Corners:" + starts);
+       Location starts = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_start"),
+    		   EyeApplication.get().getConfig().getDouble("map.longitude_start"));
+       Debugger.v("Map Top-Left:" + starts);
+       Location ends = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_end"),
+    		   EyeApplication.get().getConfig().getDouble("map.longitude_end"));
+       Debugger.v("Map Bottom-Right:" + ends);
     }
     
 	////////////////////////////////////////////////////////////////
