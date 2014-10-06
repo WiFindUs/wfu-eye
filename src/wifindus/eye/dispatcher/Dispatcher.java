@@ -8,15 +8,19 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import wifindus.eye.Device;
+import wifindus.Debugger;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
+import wifindus.eye.Incident.Type;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -38,7 +42,10 @@ public class Dispatcher extends EyeApplication
 	private JPanel menuPanel, queryPanel, incidentPanel, devicePanel;
 	//ArrayList<Device> deviceList;
 	private Deque<Device> deviceStack;
+	private final JComboBox<String> sortComboBox;
 	private String sortType = "ID";
+	private ButtonGroup filterButtonGroup;
+	private JToggleButton allFilterButton, medicalFilterButton, securityFilterButton, techFilterButton;
 	
 
 	
@@ -49,13 +56,14 @@ public class Dispatcher extends EyeApplication
 	public Dispatcher(String[] args)
 	{
 		super(args);
+		deviceStack = new ArrayDeque<Device>();
 		getClientPanel().setLayout(new BoxLayout(getClientPanel(), BoxLayout.Y_AXIS));
 		getClientPanel().setBackground(Color.white);
 		menuPanel = new JPanel();
 		menuPanel.setBackground(Color.white);
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
-		
+		ItemListener listener = new itemListener(); 
 		MapFrame map = new MapFrame();
 		map.setVisible(true);
 		
@@ -76,17 +84,27 @@ public class Dispatcher extends EyeApplication
         queryPanelLayout.setAutoCreateContainerGaps(true);
 		
         ImageIcon medicalIcon = new ImageIcon("images/medical_logo_small-30.png");
-        ButtonGroup filterButtonGroup = new ButtonGroup();
-        JToggleButton allFilterButton = new JToggleButton("All");
-        JToggleButton medicalFilterButton = new JToggleButton(medicalIcon);
-        JToggleButton securityFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Security, true));
-        JToggleButton techFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.WiFindUs, true));
+        filterButtonGroup = new ButtonGroup();
+        allFilterButton = new JToggleButton("All");
+        medicalFilterButton = new JToggleButton(medicalIcon);
+        securityFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Security, true));
+        techFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.WiFindUs, true));
+        
+        allFilterButton.setActionCommand("All");
+        medicalFilterButton.setActionCommand("Medical");
+        securityFilterButton.setActionCommand("Security");
+        techFilterButton.setActionCommand("WiFindUs");
+        
+        allFilterButton.addItemListener(listener);
+        medicalFilterButton.addItemListener(listener);
+        securityFilterButton.addItemListener(listener);
+        techFilterButton.addItemListener(listener);
         
         filterButtonGroup.add(allFilterButton);
         filterButtonGroup.add(medicalFilterButton);
         filterButtonGroup.add(securityFilterButton);
         filterButtonGroup.add(techFilterButton);
-        
+        filterButtonGroup.getSelection();
         allFilterButton.setSelected(true);
         
         JLabel sortLabel = new JLabel("Sort by:");
@@ -117,20 +135,25 @@ public class Dispatcher extends EyeApplication
 		
 		// sort
 		String[] choices = { "ID", "First Name", "Last Name", "Availible First", "Currently Responding First", "Unused Devices First"};
-		final JComboBox<String> sort = new JComboBox<String>(choices);
-		sort.setVisible(true);
-		 
-		sort.addActionListener (new ActionListener () 
+		sortComboBox = new JComboBox<String>(choices);
+		sortComboBox.setVisible(true);
+		sortComboBox.setSelectedIndex(0);
+		sortComboBox.addItemListener(listener);
+		
+		/*sortComboBox.addActionListener (new ActionListener () 
 		{
 		    public void actionPerformed(ActionEvent e) 
 		    {
-		    	sortType = sort.getSelectedItem().toString();
-		        sortDeviceList(sortType);
+		    	sortType = sortComboBox.getSelectedItem().toString();
+		    	if(!deviceStack.isEmpty())
+		    	{
+		    		updateDevicePanel(sortFromMenu(sortType, deviceStack));
+		    	}
 		    }
-		});
+		});*/
 				
-		sort.setMaximumSize(new Dimension(295,25));
-        sort.setMinimumSize(new Dimension(295,25));
+		sortComboBox.setMaximumSize(new Dimension(295,25));
+		sortComboBox.setMinimumSize(new Dimension(295,25));
         search.setMaximumSize(new Dimension(295,25));
         search.setMinimumSize(new Dimension(295,25));
 		
@@ -148,7 +171,7 @@ public class Dispatcher extends EyeApplication
         
         columnLabels.addComponent(sortLabel);
         columnLabels.addComponent(searchLabel);
-        columnSortSearch.addComponent(sort);
+        columnSortSearch.addComponent(sortComboBox);
         columnSortSearch.addComponent(search);
         
         rowBottom.addGroup(columnLabels);
@@ -170,7 +193,7 @@ public class Dispatcher extends EyeApplication
         rowButtonsParallel.addComponent(techFilterButton);
         
         rowSortParallel.addComponent(sortLabel);
-        rowSortParallel.addComponent(sort);
+        rowSortParallel.addComponent(sortComboBox);
         
         rowSearchParallel.addComponent(searchLabel);
         rowSearchParallel.addComponent(search);
@@ -240,7 +263,7 @@ public class Dispatcher extends EyeApplication
         getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
         
         
-        deviceStack = new ArrayDeque<Device>();
+        
         
         
         
@@ -260,8 +283,12 @@ public class Dispatcher extends EyeApplication
 		deviceStack.push(device);
 		devicePanel.revalidate();
 		
+		
+		
+		//updateDevicePanel(deviceStack);
 		//Not working (Users not assigned to devices yet?)
-		sortDeviceList(sortType);
+		//updateDevicePanel(sortFromMenu(sortType,deviceStack));
+		sort(deviceStack);
 	}
 	
 	@Override
@@ -306,29 +333,32 @@ public class Dispatcher extends EyeApplication
 			devicePanel.add(new DevicePanel(obj));
 		}
 		devicePanel.revalidate();
+		
+		Debugger.i("Users searched by text.");
 	}
 	
 	
 	
 	
-	public void sortDeviceList(String sortType)
+	public Deque<Device> sortFromMenu(String sortType, Deque<Device> stack)
 	{
 		devicePanel.removeAll();
 		Deque<Device> sortedDeviceStack  = new ArrayDeque<Device>();
-
+		
+		
 		if(sortType == "ID")
 		{
 				Map<Integer, Device> sortedID = new TreeMap<Integer, Device>();
 				
 				//add records without names
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() == null)
 						sortedDeviceStack.push(obj);
 				}
 				
 				//add records with names
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() != null)
 					{
@@ -349,10 +379,7 @@ public class Dispatcher extends EyeApplication
 					sortedDeviceStack.push(reversedDeviceList.get(i));
 				}
 					
-				for(Device obj : sortedDeviceStack)
-				{
-						devicePanel.add(new DevicePanel(obj));
-				}
+				Debugger.i("Users sorted by ID.");
 			}
 			
 		
@@ -360,29 +387,26 @@ public class Dispatcher extends EyeApplication
 			if(sortType == "Availible First")
 			{
 		
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() == null)
 						sortedDeviceStack.push(obj);
 				}
 		
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
 						sortedDeviceStack.push(obj);
 				}
 		
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
 						sortedDeviceStack.push(obj);
 				}
 		
-				for(Device obj : sortedDeviceStack)
-				{
-					devicePanel.add(new DevicePanel(obj));
-				}
 				
+				Debugger.i("Users sorted by Available First.");
 			}
 			
 			
@@ -390,59 +414,53 @@ public class Dispatcher extends EyeApplication
 
 			if(sortType == "Currently Responding First")
 			{
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() == null)
 						sortedDeviceStack.push(obj);
 				}
 				
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
 						sortedDeviceStack.push(obj);
 				}
 		
-				
 		
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
 						sortedDeviceStack.push(obj);
 				}
 						
-				for(Device obj : sortedDeviceStack)
-				{
-					devicePanel.add(new DevicePanel(obj));
-				}
+				
+				Debugger.i("Users sorted by Currently Responding First.");
 			}
 			
 			
 			if(sortType == "Unused Devices First")
 			{
 				
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
 						sortedDeviceStack.push(obj);
 				}
 				
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
 						sortedDeviceStack.push(obj);
 				}
 				
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() == null)
 						sortedDeviceStack.push(obj);
 				}
 			
 				
-				for(Device obj : sortedDeviceStack)
-				{
-					devicePanel.add(new DevicePanel(obj));
-				}
+				Debugger.i("Users sorted by Unused Devices First.");
 			}
 			
 			// sort by first name
@@ -451,14 +469,14 @@ public class Dispatcher extends EyeApplication
 				Map<String, Device> sortedNames = new TreeMap<String, Device>();
 				
 				//add records without names
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() == null)
 						sortedDeviceStack.push(obj);
 				}
 				
 				//add records with names
-				for(Device obj : deviceStack)
+				for(Device obj : stack)
 				{
 					if(obj.getCurrentUser() != null)
 					{
@@ -480,6 +498,7 @@ public class Dispatcher extends EyeApplication
 						{
 							sortedDeviceStack.push(reversedDeviceList.get(i));
 						}
+						Debugger.i("Users sorted by First Name.");
 					}
 					// sort by last name
 					else
@@ -488,16 +507,96 @@ public class Dispatcher extends EyeApplication
 						{
 							sortedDeviceStack.push(reversedDeviceList.get(i));
 						}
+						Debugger.i("Users sorted by Last Name.");
 					}
-					
-					
-				for(Device obj : sortedDeviceStack)
+			}
+			
+			return sortedDeviceStack;
+		}
+	
+	
+	
+		public Deque<Device> sortByUserType(String type, Deque<Device> stack)
+		{
+			devicePanel.removeAll();
+			Deque<Device> sortedDeviceStack  = new ArrayDeque<Device>();
+			
+			if(type == "Medical")
+			{
+				for(Device obj : stack)
 				{
-					devicePanel.add(new DevicePanel(obj));
+					if(obj.getCurrentUser()!=null && obj.getCurrentUser().getType().toString().equals("Medical"))
+					{
+						sortedDeviceStack.push(obj);
+						Debugger.i("Type: "+obj.getCurrentUser().getType().toString());
+					}
 				}
+				Debugger.i("Users sorted by Medical type.");
+			}
+			
+			if(type == "Security")
+			{
+				for(Device obj : stack)
+				{
+					if(obj.getCurrentUser()!=null && obj.getCurrentUser().getType().toString().equals("Security"))
+					{
+						sortedDeviceStack.push(obj);
+						Debugger.i("Type: "+obj.getCurrentUser().getType().toString());
+					}
+				}
+				Debugger.i("Users sorted by Security type.");
+			}
+			
+			if(type == "WiFindUs")
+			{
+				for(Device obj : stack)
+				{
+					if(obj.getCurrentUser()!=null && obj.getCurrentUser().getType().toString().equals("WiFindUs"))
+					{
+						sortedDeviceStack.push(obj);
+						Debugger.i("Type: "+obj.getCurrentUser().getType().toString());
+					}
+				}
+				Debugger.i("Users sorted by Wifindus/Tech type.");
+			}
+			
+			if(type == "All")
+			{
+				sortedDeviceStack = stack;
+				Debugger.i("Users sorted by no type (all).");
+			}
+			
+			return sortedDeviceStack;
+		}
+		
+		
+		public void sort(Deque<Device> stack){
+			String userType = filterButtonGroup.getSelection().getActionCommand();
+			String sortCriteria = sortComboBox.getSelectedItem().toString();
+			Deque<Device> sortedStack  = new ArrayDeque<Device>();
+			sortedStack = sortByUserType(userType, stack);
+			sortedStack = sortFromMenu(sortCriteria, sortedStack);
+			updateDevicePanel(sortedStack);
+		}
+		
+		public void updateDevicePanel(Deque<Device> stack){
+			devicePanel.removeAll();
+			for(Device obj : stack)
+			{
+				devicePanel.add(new DevicePanel(obj));
 			}
 			devicePanel.revalidate();
 		}
+	
+		
+	class itemListener implements ItemListener{
+	      public void itemStateChanged(ItemEvent e) {
+	    	  if(!deviceStack.isEmpty())
+	    	  {
+	    		  sort(deviceStack);
+	    	  }
+	      }
+	   }	
 		
 		
 	

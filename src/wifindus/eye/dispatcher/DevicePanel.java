@@ -163,12 +163,14 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
     	//Listener for new incident
     	if (e.getSource() == newIncidentButton)
     	{
-    		EyeApplication.get().db_createIncident(Type.Medical, device.getLocation());	    	
+    		EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
+    		Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
     	}
     	
     	else if (e.getSource() == locateOnMapButton)
-    		System.out.println("Locate on map");
-   		
+    	{
+    		Debugger.i("Locate "+ device.getCurrentUser().getNameFull() +" on map.");
+    	}
     	
         if (device.getCurrentUser() == null
         	|| device.getCurrentIncident() != null
