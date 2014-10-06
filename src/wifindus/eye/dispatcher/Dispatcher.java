@@ -3,6 +3,7 @@ package wifindus.eye.dispatcher;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -55,25 +56,12 @@ public class Dispatcher extends EyeApplication
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
 		
-		JPanel deviceControlPanel = new JPanel();
-		
-		//Layout
-        GroupLayout layout = new GroupLayout(deviceControlPanel);
-        deviceControlPanel.setLayout(layout);
-        GroupLayout.SequentialGroup horizontal = layout.createSequentialGroup();
-        GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
-        //layout.setAutoCreateGaps(true);
-        //layout.setAutoCreateContainerGaps(true);
-		
-		devicePanel = new JPanel();
-		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
-		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		int scrollbarWidth = devicePanelScroll.getWidth();
-		
 		MapFrame map = new MapFrame();
 		map.setVisible(true);
 		
+		/////////////////////////////////////////////////////////////////////
+		// query Panel
+		/////////////////////////////////////////////////////////////////////
 		queryPanel = new JPanel();
 		queryPanel.setBackground(new Color(0xedf4fb));
 		//int queryPanelWidth = scrollbarWidth+380;
@@ -87,10 +75,10 @@ public class Dispatcher extends EyeApplication
         queryPanelLayout.setAutoCreateGaps(true);
         queryPanelLayout.setAutoCreateContainerGaps(true);
 		
-        
+        ImageIcon medicalIcon = new ImageIcon("images/medical_logo_small-30.png");
         ButtonGroup filterButtonGroup = new ButtonGroup();
         JToggleButton allFilterButton = new JToggleButton("All");
-        JToggleButton medicalFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Medical, true));
+        JToggleButton medicalFilterButton = new JToggleButton(medicalIcon);
         JToggleButton securityFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Security, true));
         JToggleButton techFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.WiFindUs, true));
         
@@ -197,8 +185,31 @@ public class Dispatcher extends EyeApplication
         
         
         
+        /////////////////////////////////////////////////////////////////////
+        // device Panel
+        /////////////////////////////////////////////////////////////////////
+        devicePanel = new JPanel();
+		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
+		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		int scrollbarWidth = devicePanelScroll.getWidth();
         
-		//devicePanel horizontal
+        
+		
+        /////////////////////////////////////////////////////////////////////
+        // device control Panel: contains query and device panels
+        /////////////////////////////////////////////////////////////////////
+        JPanel deviceControlPanel = new JPanel();
+		
+		//Layout
+        GroupLayout layout = new GroupLayout(deviceControlPanel);
+        deviceControlPanel.setLayout(layout);
+        GroupLayout.SequentialGroup horizontal = layout.createSequentialGroup();
+        GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
+        //layout.setAutoCreateGaps(true);
+        //layout.setAutoCreateContainerGaps(true);
+		
+		//deviceControlPanel horizontal
         GroupLayout.ParallelGroup column = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 		
         column.addComponent(queryPanel);
@@ -206,7 +217,7 @@ public class Dispatcher extends EyeApplication
         
         horizontal.addGroup(column);
         
-        //devicePanel vertical
+        //deviceControlPanel vertical
         vertical.addComponent(queryPanel);
         vertical.addComponent(devicePanelScroll);
         

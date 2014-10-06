@@ -78,7 +78,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         name.setBackground(Color.white);
         
         //logo
-        logo = new JLabel(Incident.getIcon(Type.None, false));
+        //ImageIcon typeIcon = Incident.getIcon(Type.None, true);
+        logo = new JLabel(Incident.getIcon(Type.None, true));
         logo.setBackground(Color.white);
                
         //icons for buttons
@@ -250,7 +251,7 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 	{
 		if (device.getCurrentUser() != null)
 		{
-			logo.setIcon(Incident.getIcon(device.getCurrentUser().getType(),false));
+			logo.setIcon(Incident.getIcon(device.getCurrentUser().getType(),true));
 			name.setText(device.getCurrentUser().toString() + ": " + device.getCurrentUser().getNameFull());
 			if (device.getCurrentIncident() != null)
 			{
