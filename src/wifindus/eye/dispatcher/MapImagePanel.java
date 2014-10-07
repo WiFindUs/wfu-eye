@@ -4,22 +4,33 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 import wifindus.Debugger;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
+import wifindus.eye.Incident;
+import wifindus.eye.Node;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -30,48 +41,218 @@ import wifindus.eye.Location;
 
 public class MapImagePanel extends JPanel implements ComponentListener{
 
-    BufferedImage mapImage;
-    String path;
+	private transient static MapImagePanel singleton;
+	
+    static BufferedImage mapImage, medicalIcon, securityIcon, wfuIcon,
+    unavailibleMedicalIcon,  unavailibleSecurityIcon, unassignedDeviceIcon,
+    medicalIncidentIcon, securityIncidentIcon,
+    activeNodeIcon, inactiveNodeIcon;
+   
+    
+    
+    String path, medicalIconPath, securityIconPath, wfuIconPath,
+    unavailibleMedicalIconPath,  unavailibleSecurityIconPath, unassignedDeviceIconPath,
+    medicalIncidentIconPath, securityIncidentIconPath,
+    activeNodeIconPath, inactiveNodeIconPath;
+    
     BufferedImage scaledImage;
     resizedImage resize;
-    ImageIcon ii;
+    static Location starts;
+	static Location ends;
+	
+	static Device device;
+	static Location oldLocation,  newLocation;
+	
+	static Node node;
+		
+	ImageIcon ii;
+	
+	static Map<String, Device> devices = new TreeMap<String, Device>();
+	static Map<String, Point> deviceLocations = new TreeMap<String, Point>();
 
+	 
+	static Map<String, Node> nodes = new TreeMap<String, Node>();
+	static Map<String, Point> nodeLocations = new TreeMap<String, Point>();
+	
+	public static boolean displayGrid = false;
+	
+	
+	
     public MapImagePanel() 
     {
+    	
     	addComponentListener(this);
     	path = EyeApplication.get().getConfig().getString("map.image");
     	resize = new resizedImage();
     	
-    	ii = new ImageIcon(path);
+    	medicalIconPath = "images/medical_marker.png";
+    	securityIconPath = "images/security_marker.png";
+    	wfuIconPath = "images/wfu_marker.png";
+        unavailibleMedicalIconPath = "images/medical_marker_unavailible.png";
+        unavailibleSecurityIconPath = "images/security_marker_unavailible.png";
+        unassignedDeviceIconPath = "images/unassigned_device_marker.png";
+        medicalIncidentIconPath = "images/medical_incident_marker.png";
+        securityIncidentIconPath = "images/security_incident_marker.png";
+        activeNodeIconPath = "images/node_marker_active.png";
+        inactiveNodeIconPath = "images/node_marker_inactive.png";
+    	
+    	// Get size of the image
+        BufferedImage bimg = null;
+        try 
+        {
+        	bimg = ImageIO.read(new File(path));
+        } 
+        catch (IOException e) 
+        {
+        	e.printStackTrace();
+        }
+        mapImage = resize.scaleImage(1052, 871, path);
+        medicalIcon = resize.scaleImage(87, 201, medicalIconPath);
+       	securityIcon = resize.scaleImage(87, 201, securityIconPath);
+       	wfuIcon = resize.scaleImage(87, 201, wfuIconPath);
+       	unavailibleMedicalIcon = resize.scaleImage(87, 201, unavailibleMedicalIconPath);
+       	unavailibleSecurityIcon = resize.scaleImage(87, 201, unavailibleSecurityIconPath);
+       	unassignedDeviceIcon = resize.scaleImage(87, 201, unassignedDeviceIconPath);
+       	medicalIncidentIcon = resize.scaleImage(77, 99, medicalIncidentIconPath);
+       	securityIncidentIcon = resize.scaleImage(77, 99, securityIncidentIconPath);
+       	activeNodeIcon = resize.scaleImage(77, 99, activeNodeIconPath);
+       	inactiveNodeIcon = resize.scaleImage(77, 99, inactiveNodeIconPath);
        
-       // Get size of the image
-       BufferedImage bimg = null;
-       try 
-       {
-    	   	bimg = ImageIO.read(new File(path));
-       } 
-       catch (IOException e) 
-       {
-    	   e.printStackTrace();
-       }
-       mapImage = resize.scaleImage(300, 300, path);
-       
-       //Get latitude and longitude for corners of map
-       Location starts = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_start"),
+       	//Get latitude and longitude for corners of map
+        starts = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_start"),
     		   EyeApplication.get().getConfig().getDouble("map.longitude_start"));
-       Debugger.v("Map Top-Left:" + starts);
-       Location ends = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_end"),
+        		Debugger.v("Map Top-Left:" + starts);
+       
+       
+        ends = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_end"),
     		   EyeApplication.get().getConfig().getDouble("map.longitude_end"));
-       Debugger.v("Map Bottom-Right:" + ends);
+        		Debugger.v("Map Bottom-Right:" + ends);
     }
     
 	////////////////////////////////////////////////////////////////
     // Move map markers when the device location changes
 	////////////////////////////////////////////////////////////////
-    public static void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
+    public static void deviceLocationChanged(Device localDevice, Location localOldLocation, Location localNewLocation)
     {
-    	System.out.println("device: " + device + "old: " + oldLocation + "new: "+ newLocation);
+    	device = localDevice;
+    	oldLocation = localOldLocation;
+    	newLocation = localNewLocation;
+    	
+    	try
+    	{
+    	//Vertical Position
+    	Double deviceLatDifference = newLocation.getLatitude() - starts.getLatitude();
+    	Double latDifference = starts.getLatitude() - ends.getLatitude();
+    	Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
+    	Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
+    	
+    	//Horizontal Position
+    	Double deviceLongDifference = newLocation.getLongitude() - starts.getLongitude();
+    	Double longDifference = starts.getLongitude() - ends.getLongitude();
+    	Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
+    	Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
+    	
+    	Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
+    
+    	devices.put(device.getHash(), device); //Should replace existing value with the same hash
+    	deviceLocations.put(device.getHash(), deviceLocation);
+    	}
+    	catch(NullPointerException e)
+    	{
+    		
+    	}
+    	
     }
+    
+    
+    
+	////////////////////////////////////////////////////////////////
+    // Place Incident markers on the map when incidents are created
+	////////////////////////////////////////////////////////////////
+	public static void incidentCreated(Incident incident)
+	{
+		
+	}
+
+    
+	////////////////////////////////////////////////////////////////
+	// Place Node markers on the map when nodes are created
+	////////////////////////////////////////////////////////////////
+	public static void nodeCreated(Node localNode)
+	{
+		node = localNode;
+    	newLocation = localNode.getLocation();
+    	
+    	
+		try
+    	{
+			
+    	//Vertical Position
+    	Double deviceLatDifference = newLocation.getLatitude() - starts.getLatitude();
+    	
+    	Double latDifference = starts.getLatitude() - ends.getLatitude();
+
+    	
+    	Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
+
+    	
+    	Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
+
+    	//Horizontal Position
+    	Double deviceLongDifference = newLocation.getLongitude() - starts.getLongitude();
+    	Double longDifference = starts.getLongitude() - ends.getLongitude();
+    	Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
+    	Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
+    	
+    	
+    	Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
+    
+    	nodes.put(node.getHash(), node); //Should replace existing value with the same hash
+    	nodeLocations.put(node.getHash(), deviceLocation);
+    	
+    	}
+    	catch(NullPointerException e)
+    	{
+    		System.out.println("EXCEPTION");
+    	}
+	}
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    //Toggle Grid on and off
+    public static void toggleGrid(boolean toggle)
+    {
+    	displayGrid = toggle;
+    }
+	
+    
+    
+    
+    
     
 	////////////////////////////////////////////////////////////////
     // paint component
@@ -82,9 +263,13 @@ public class MapImagePanel extends JPanel implements ComponentListener{
         super.paintComponent(g);
         g.drawImage(mapImage, 0, 0, null); 
         
+        
+    	///////////////////////////////////////////////////////////////////////////////////
+        //Grid Lines
+        if(displayGrid == true)
+        {
         int wStep = 0;
         int hStep = 0;
-       
         g.setColor(Color.WHITE);
         try
         {
@@ -104,14 +289,45 @@ public class MapImagePanel extends JPanel implements ComponentListener{
         		 g.drawLine(wStep * (i + 1),0, wStep * (i + 1), mapImage.getHeight());
         		 g.drawString(Integer.toString(i+1), wStep / 2 + (wStep * i), 12);
         	 }
+        
+      
+    	//////////////////////////////////////////////////////////////////////////////////////
+
+        
         }
         catch(NullPointerException e)
         {
         	
         }
+        }
+        
+        // Draw devices on the map
+        for(Map.Entry<String,Device> currentDevice : devices.entrySet()) 
+		{
+        	
+        	
+        	if(currentDevice.getValue().getType().toString().equals("Medical"))
+        	g.drawImage(medicalIcon, (deviceLocations.get(currentDevice.getKey()).x)- medicalIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - medicalIcon.getHeight(), null); 
+        	
+        	else if(currentDevice.getValue().getType().toString().equals("Security"))
+            	g.drawImage(securityIcon, (deviceLocations.get(currentDevice.getKey()).x)- securityIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - securityIcon.getHeight(), null); 
+		
+        	else
+        	{
+            	g.drawImage(unassignedDeviceIcon, (deviceLocations.get(currentDevice.getKey()).x)- unassignedDeviceIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - unassignedDeviceIcon.getHeight(), null); 
+        	
+        	
+        	}
+		}
+        
+        // Draw nodes on the map
+        for(Map.Entry<String,Node> currentNode : nodes.entrySet()) 
+    		{
+            	g.drawImage(activeNodeIcon, (nodeLocations.get(currentNode.getKey()).x)- activeNodeIcon.getWidth() / 2, (nodeLocations.get(currentNode.getKey()).y) - activeNodeIcon.getHeight(), null); 
+    		}
     }
-    
-    ////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////
     // create resized image
     ////////////////////////////////////////////////////////////////
 	public class resizedImage
@@ -123,7 +339,8 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 		    	scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		    	Graphics2D g = (Graphics2D) scaledImage.createGraphics();
 		        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY));
-		        g.drawImage(ii.getImage(), 0, 0, width, height, null);
+		        ii = new ImageIcon(filename);
+				g.drawImage(ii.getImage(), 0, 0, width, height, null);
 		        repaint();
 		        revalidate();
 		    } 
@@ -144,12 +361,10 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 	@Override
 	public void componentHidden(ComponentEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("componentHidden");
 			}
 	@Override
 	public void componentMoved(ComponentEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("componentMoved");
 	}
 	@Override
 	public void componentResized(ComponentEvent e) 
@@ -158,11 +373,49 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 		Dimension imgSize = new Dimension(1052 * 2, 871 * 2);
 		Dimension d = getScaledDimension(imgSize, boundary);
 		mapImage = resize.scaleImage(d.width, d.height, path);
+		
+		//Person Marker
+		Dimension markerBoundary = new Dimension(getWidth()/20, getHeight()/20);
+		Dimension personMarkerImgSize = new Dimension(87 * 2, 201 * 2);
+		Dimension personMarkerScaled = getScaledDimension(personMarkerImgSize, markerBoundary);
+		
+		//Nodes and Incident markers
+		Dimension incidentNodeMarkerImgSize = new Dimension(77 * 2, 99 * 2);
+		Dimension incidentNodeMarkerScaled = getScaledDimension(personMarkerImgSize, markerBoundary);
+
+		medicalIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, medicalIconPath);
+		securityIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, securityIconPath);
+		wfuIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, wfuIconPath);
+		unavailibleMedicalIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, unavailibleMedicalIconPath);
+		unavailibleSecurityIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, unavailibleSecurityIconPath);
+		unassignedDeviceIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, unassignedDeviceIconPath);
+		medicalIncidentIcon = resize.scaleImage(incidentNodeMarkerScaled.width, incidentNodeMarkerScaled.height, medicalIncidentIconPath);
+		securityIncidentIcon = resize.scaleImage(incidentNodeMarkerScaled.width, incidentNodeMarkerScaled.height, securityIncidentIconPath);
+		activeNodeIcon = resize.scaleImage(incidentNodeMarkerScaled.width, incidentNodeMarkerScaled.height, activeNodeIconPath);
+		inactiveNodeIcon = resize.scaleImage(incidentNodeMarkerScaled.width, incidentNodeMarkerScaled.height, inactiveNodeIconPath);
+
+		
+		
+		
+		//Resize for the other images
+		
+		for(Map.Entry<String,Device> currentDevice : devices.entrySet()) 
+		{
+			deviceLocationChanged(devices.get(currentDevice.getKey()),devices.get(currentDevice.getKey()).getLocation(),devices.get(currentDevice.getKey()).getLocation());
+		}
+		
+		
+		for(Map.Entry<String,Node> currentNode : nodes.entrySet()) 
+		{
+			nodeCreated(nodes.get(currentNode.getKey()));
+		}
+		
+		
+	
 	}
 	@Override
 	public void componentShown(ComponentEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("componentShown");
 	}
 
 	
@@ -173,33 +426,32 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 
 	public static Dimension getScaledDimension(Dimension imgSize, Dimension boundary) {
 
-	    int original_width = imgSize.width;
-	    int original_height = imgSize.height;
+	    int startWidth = imgSize.width;
+	    int startHeight = imgSize.height;
 	    
-	    int bound_width = boundary.width;
-	    int bound_height = boundary.height;
+	    int boundaryWidth = boundary.width;
+	    int boundaryHeight = boundary.height;
 	   
-	    int new_width = original_width;
-	    int new_height = original_height;
+	    int newWidth = startWidth;
+	    int newHeight = startHeight;
 
-	    // first check if we need to scale width
-	    if (original_width > bound_width) {
-	        //scale width to fit
-	        new_width = bound_width;
-	        //scale height to maintain aspect ratio
-	        new_height = (new_width * original_height) / original_width;
+	    // scale width
+	    if (startWidth > boundaryWidth) {
+	    	newWidth = boundaryWidth;
+	    	newHeight = (newWidth * startHeight) / startWidth;
 	    }
 
-	    // then check if we need to scale even with the new height
-	    if (new_height > bound_height) {
-	        //scale height to fit instead
-	        new_height = bound_height;
-	        //scale width to maintain aspect ratio
-	        new_width = (new_height * original_width) / original_height;
+	    // scale height
+	    if (newHeight > boundaryHeight) 
+	    {
+	    	newHeight = boundaryHeight;
+	        newWidth = (newHeight * startWidth) / startHeight;
 	    }
 
-	    return new Dimension(new_width, new_height);
+	    return new Dimension(newWidth, newHeight);
 	}
+
+
 	
 }
 	

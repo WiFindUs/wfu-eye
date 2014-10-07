@@ -4,50 +4,155 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSplitPane;
 
 import wifindus.eye.EyeApplication;
 
 
-public class MapFrame extends JFrame
+public class MapFrame extends JFrame implements ComponentListener, ActionListener
 {
+	MapImagePanel mp;
+	JSplitPane splitPane;
+	
+	JRadioButton grid;
+	
 	public MapFrame()
 	{
 		
+		JPanel mapControls = new JPanel();
+		mapControls.setLayout(new BoxLayout(mapControls, BoxLayout.Y_AXIS));
 		
+		 grid = new JRadioButton("Grid");
+		JRadioButton incidents = new JRadioButton("Incidents");
+		JRadioButton allPeople = new JRadioButton("All People");
+		JCheckBox onlyAvailible = new JCheckBox("Only Availible");
+		JCheckBox onlyUnavailible = new JCheckBox("Only Unavailible");
+		JCheckBox medical = new JCheckBox("Medical");
+		JCheckBox security = new JCheckBox("Security");
+		JCheckBox wfuPersonnel = new JCheckBox("WFU Personnel");
+		JRadioButton nodes = new JRadioButton("Nodes");
 		
-		//setMinimumSize(new Dimension(400,400));
-		JLabel mapText = new JLabel("Map");
-		add(mapText);
+		grid.addActionListener(this);
 		
+		mapControls.add(grid);
+		mapControls.add(incidents);
+		mapControls.add(allPeople);
+		mapControls.add(onlyAvailible);
+		mapControls.add(onlyUnavailible);
+		mapControls.add(medical);
+		mapControls.add(security);
+		mapControls.add(wfuPersonnel);
+		mapControls.add(nodes);
 		
+		addComponentListener(this);
 		
+		JPanel mapPanel = new JPanel();
+		mapPanel.setLayout(new BoxLayout(mapPanel, BoxLayout.X_AXIS));
 		
+		setMinimumSize(new Dimension(400,400));
 		
+		 mp = new MapImagePanel();
+	 
+		mapPanel.add(mp);
+		mapPanel.add(mapControls);
 	
 		
-		  MapImagePanel mp = new MapImagePanel();
-	
-	
-		 add(mp);
-		 
-		 
-		 
+		 splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,mp, mapControls);
 		
+		
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setDividerLocation(300);
+
+		//Provide minimum sizes for the two components in the split pane
+		double minSplitSize = getWidth() * 0.80;
+		
+		Dimension minimumSize = new Dimension((int)minSplitSize, 50);
+		mp.setMinimumSize(minimumSize);
+		
+		
+		
+		add(splitPane);
+	}
 	
-		 
-		 
+	public MapImagePanel getMapPanel()
+	{
+		return mp;
+	}
+
+	@Override
+	public void componentHidden(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	public void componentMoved(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+	
+
+	}
+
+	@Override
+	public void componentResized(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		double minSplitSize = getWidth() * 0.75;
+		Dimension minimumSize = new Dimension((int)minSplitSize, 50);
+		splitPane.setDividerLocation((int)minSplitSize);
+		mp.setMinimumSize(minimumSize);
+		
+	}
+
+	@Override
+	public void componentShown(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+	
+	
+	
+	
+	
+	
+@Override
+	   public void actionPerformed(ActionEvent e) {
+	        if(e.getSource() == grid)
+	        {
+	        	if(grid.isSelected())
+	        	{
+	        		//System.out.println(MapFrame.getFrames()[0]);
+	        	
+	        		/*.toggleGrid(true)*/
+	        		MapImagePanel.toggleGrid(true);
+	        		//MapFrame.g
+	        	
+	        	}
+	        	
+	        	else
+	        	{
+	        		MapImagePanel.toggleGrid(false);
+	        	}
+
+	        	repaint();
+	        	revalidate();
+	        }
+	    } 
 	
 	
 	

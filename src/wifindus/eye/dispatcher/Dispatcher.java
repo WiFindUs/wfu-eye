@@ -12,6 +12,7 @@ import wifindus.Debugger;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
+import wifindus.eye.Node;
 import wifindus.eye.Incident.Type;
 
 import java.awt.BorderLayout;
@@ -295,22 +296,38 @@ public class Dispatcher extends EyeApplication
 	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
 	{
 		super.deviceCreated(device);
-		
 		//Update Location on the map
 		MapImagePanel.deviceLocationChanged( device,  oldLocation,  newLocation);
 		
 	}
 	
 	
+	@Override
+	public void nodeCreated(Node node)
+	{
+		super.nodeCreated(node);
+		MapImagePanel.nodeCreated(node);
+	}
 	
 	
 	@Override
 	public void incidentCreated(Incident incident)
 	{
 		super.incidentCreated(incident);
+		MapImagePanel.incidentCreated(incident);
 		incidentPanel.add(new IncidentPanel(incident));
 		incidentPanel.revalidate();
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public void searchName(String searchText)
