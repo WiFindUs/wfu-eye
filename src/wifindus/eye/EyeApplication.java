@@ -240,9 +240,9 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	@Override
-	public void deviceNotInUse(Device device, User user)
+	public void deviceNotInUse(Device device, User oldUser)
 	{
-		Debugger.v(user + " logged out of " + device);
+		Debugger.v(oldUser + " logged out of " + device);
 	}
 	
 	@Override

@@ -35,9 +35,9 @@ public interface DeviceEventListener
 	 * Event fired when a User is detached from (or 'logs out of') a Device.
 	 * Corresponds to the event key "loggedout".
 	 * @param device The device object.
-	 * @param user The user that logged out of the device.
+	 * @param oldUser The user that logged out of the device.
 	 */
-	public void deviceNotInUse(Device device, User user);
+	public void deviceNotInUse(Device device, User oldUser);
 	
 	/**
 	 * Event fired when a Device's location details change.
