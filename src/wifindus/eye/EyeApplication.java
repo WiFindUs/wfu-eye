@@ -228,7 +228,7 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	@Override
-	public void nodeCreated(Node node, Location nodeLocation)
+	public void nodeCreated(Node node)
 	{
 		Debugger.v(node + " created");
 	}
@@ -279,6 +279,30 @@ public abstract class EyeApplication extends JFrame
 	public void deviceUnassignedIncident(Device device, Incident incident)
 	{
 		Debugger.v(device + " unassigned from " + incident);		
+	}
+	
+	@Override
+	public void nodeLocationChanged(Node node, Location oldLocation, Location newLocation)
+	{
+		Debugger.v(node + " location data changed: " + newLocation);
+	}
+	
+	@Override
+	public void nodeVoltageChanged(Node node, Double oldVoltage, Double newVoltage)
+	{
+		Debugger.v(node + " input voltage changed: " + newVoltage);
+	}
+	
+	@Override
+	public void nodeUpdated(Node node)
+	{
+		Debugger.v(node + " updated: " + node.getLastUpdate());
+	}
+	
+	@Override
+	public void nodeAddressChanged(Node node, InetAddress oldAddress, InetAddress newAddress)
+	{
+		Debugger.v(node + " address changed: " + newAddress);
 	}
 
 	/**
@@ -439,10 +463,6 @@ public abstract class EyeApplication extends JFrame
 	
 	//NodeEventListener
 	@Override public void nodeTimedOut(Node node) { }
-	@Override public void nodeLocationChanged(Node node, Location nodeLocation) { }
-	@Override public void nodeVoltageChanged(Node node) { }
-	@Override public void nodeUpdated(Node node) { }
-	@Override public void nodeAddressChanged(Node node) { }
 
 	//WindowListener
 	@Override public void windowOpened(WindowEvent e) { }

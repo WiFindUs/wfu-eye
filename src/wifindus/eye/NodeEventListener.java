@@ -1,5 +1,7 @@
 package wifindus.eye;
 
+import java.net.InetAddress;
+
 /**
  * An object which listens for changes in the state of a Node object. 
  * @author Mark 'marzer' Gillard
@@ -11,7 +13,7 @@ public interface NodeEventListener
 	 * Corresponds to the event key "created".
 	 * @param node The new node object.
 	 */
-	public void nodeCreated(Node node, Location nodeLocation);
+	public void nodeCreated(Node node);
 	
 	/**
 	 * Event fired when a Node 'times out' (i.e. when it is deemed inactive
@@ -25,15 +27,19 @@ public interface NodeEventListener
 	 * Event fired when a Node's location details change.
 	 * Corresponds to the event key "location".
 	 * @param node The node object.
+	 * @param oldLocation The node's previous Location.
+	 * @param newLocation The node's new Location.
 	 */
-	public void nodeLocationChanged(Node node, Location nodeLocation);
+	public void nodeLocationChanged(Node node, Location oldLocation, Location newLocation);
 	
 	/**
 	 * Event fired when a Node's power source voltage reading changes.
 	 * Corresponds to the event key "voltage".
 	 * @param node The node object.
+	 * @param oldVoltage The node's previous Voltage.
+	 * @param newVoltage The node's new Voltage.
 	 */
-	public void nodeVoltageChanged(Node node);
+	public void nodeVoltageChanged(Node node, Double oldVoltage, Double newVoltage);
 	
 	/**
 	 * Event fired when the <code>lastUpdate</code> property of the node is changed.
@@ -46,6 +52,8 @@ public interface NodeEventListener
 	 * Event fired when a Node's network address changes.
 	 * Corresponds to the event key "address".
 	 * @param node The node object.
+	 * @param oldAddress The node's previous Address.
+	 * @param newAddress The node's new Address.
 	 */
-	public void nodeAddressChanged(Node node);
+	public void nodeAddressChanged(Node node, InetAddress oldAddress, InetAddress newAddress);
 }

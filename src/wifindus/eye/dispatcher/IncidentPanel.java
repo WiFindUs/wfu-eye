@@ -228,17 +228,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         
         layout.setHorizontalGroup(horizontal);
         layout.setVerticalGroup(vertical);
-        
-        
-        /*
-         * 
-         * 
-         * TODO: finish importing the rest of the code here...
-         * 
-         * 
-         * 
-         */
-        
+   
         incident.addEventListener(this);
     }
 

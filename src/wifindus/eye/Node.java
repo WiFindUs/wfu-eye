@@ -1,8 +1,10 @@
 package wifindus.eye;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 
+import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -124,6 +126,46 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 			location = loc;
 			fireEvent("location", old, location);
 		}
+		
+		//internet address
+		String addressString = (String)resultRow.get("address");
+		InetAddress newAddress = null;
+		if (addressString != null)
+		{
+			try
+			{
+				newAddress = InetAddress.getByName(addressString);
+			}
+			catch (UnknownHostException e)
+			{
+				Debugger.ex(e);
+			}
+		}
+		if ((address == null && newAddress != null)
+			|| (address != null && (newAddress == null || !newAddress.equals(address))))
+		{
+			InetAddress old = address;
+			address = newAddress;
+			fireEvent("address", old, address);
+		}
+		
+		//input voltage
+		Double newVoltage = (Double)resultRow.get("voltage");
+		if ((voltage == null && newVoltage != null)
+				|| (voltage != null && (newVoltage == null || !newVoltage.equals(voltage))))
+		{
+			Double old = voltage;
+			voltage = newVoltage;
+			fireEvent("voltage", old, newVoltage);
+		}
+		
+		//lastUpdate
+		Timestamp ts = (Timestamp)resultRow.get("lastUpdate");
+		if (ts != null && !lastUpdate.equals(ts))
+		{
+			lastUpdate = ts;
+			fireEvent("updated");
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -136,19 +178,19 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		switch(event)
 		{
 			case "created":
-				listener.nodeCreated(this, location);
+				listener.nodeCreated(this);
 				break;
 			case "timedout":
 				listener.nodeTimedOut(this);
 				break;
 			case "location":
-				listener.nodeLocationChanged(this, location);
+				listener.nodeLocationChanged(this, (Location)data[0], (Location)data[1]);
 				break;
 			case "voltage":
-				listener.nodeVoltageChanged(this);
+				listener.nodeVoltageChanged(this, (Double)data[0], (Double)data[1]);
 				break;
 			case "address":
-				listener.nodeAddressChanged(this);
+				listener.nodeAddressChanged(this, (InetAddress)data[0], (InetAddress)data[1]);
 				break;
 			case "updated":
 				listener.nodeUpdated(this);

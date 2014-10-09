@@ -227,15 +227,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 			atmosphere = atmos;
 			fireEvent("atmosphere", old, atmosphere);
 		}
-		
-		//lastUpdate
-		Timestamp ts = (Timestamp)resultRow.get("lastUpdate");
-		if (ts != null && !lastUpdate.equals(ts))
-		{
-			lastUpdate = ts;
-			fireEvent("updated");
-		}
-		
+	
 		//internet address
 		String addressString = (String)resultRow.get("address");
 		InetAddress newAddress = null;
@@ -256,9 +248,15 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 			InetAddress old = address;
 			address = newAddress;
 			fireEvent("address", old, address);
-			
 		}
-
+		
+		//lastUpdate
+		Timestamp ts = (Timestamp)resultRow.get("lastUpdate");
+		if (ts != null && !lastUpdate.equals(ts))
+		{
+			lastUpdate = ts;
+			fireEvent("updated");
+		}
 	}
 	
 	@Override
