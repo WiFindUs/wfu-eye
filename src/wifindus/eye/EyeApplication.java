@@ -11,8 +11,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
@@ -31,7 +33,7 @@ import wifindus.MySQLResultSet;
  * @author Mark 'marzer' Gillard
  */
 public abstract class EyeApplication extends JFrame
-	implements DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener, WindowListener
+	implements EyeApplicationListener, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener, WindowListener
 {
 	//properties
 	private static final long serialVersionUID = -3410394016911856177L;
@@ -42,6 +44,7 @@ public abstract class EyeApplication extends JFrame
 	private transient EyeMySQLConnection mysql = new EyeMySQLConnection();
 	private transient static EyeApplication singleton;
 	private transient JPanel clientPanel = null;
+	private transient volatile CopyOnWriteArrayList<EyeApplicationListener> listeners = new CopyOnWriteArrayList<>();
 	//database structures
 	private transient volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
 	private transient volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
@@ -167,6 +170,9 @@ public abstract class EyeApplication extends JFrame
 			Debugger.ex(e);
 			dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		}
+		
+		//attach self as creation listener
+		addEventListener(this);
 		
 		//create and launch mysql worker task
 		mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
@@ -323,14 +329,15 @@ public abstract class EyeApplication extends JFrame
 		
 		//manipulate database
 		//TODO: execute database INSERT query, store auto-generated id
+		int generatedID = incidents.size()+1;
 		
 		//manipulate data structures
-		Incident incident = new Incident(incidents.size()+1,
+		Incident incident = new Incident(generatedID,
 			type,
 			location,
 			new Timestamp(new Date().getTime()),
 			this);
-		incidents.put(Integer.valueOf(incident.getID()), incident);
+		addNewIncident(Integer.valueOf(generatedID), incident);
 		
 		//return incident
 		return incident;
@@ -357,15 +364,16 @@ public abstract class EyeApplication extends JFrame
 		
 		//manipulate database
 		//TODO: execute database INSERT query, store auto-generated id
+		int generatedID = users.size()+1;
 		
 		//manipulate data structures
-		User user = new User(users.size()+1,
+		User user = new User(generatedID,
 			responderType,
 			nameFirst,
 			nameMiddle,
 			nameLast,
 			this);
-		users.put(Integer.valueOf(user.getID()), user);
+		addNewUser(Integer.valueOf(generatedID), user);
 		
 		//return user
 		return user;
@@ -433,6 +441,12 @@ public abstract class EyeApplication extends JFrame
 		return true;
 	}
 	
+	/**
+	 * Flags an incident as being archived in the MySQL database, handling errors and firing events accordingly. All assigned devices will be unassigned.
+	 * @param incident The incident to archive.
+	 * @return false if an error occurred, true otherwise.
+	 * @throws NullPointerException if the incident was null.
+	 */
 	public final boolean db_archiveIncident(Incident incident)
 	{
 		//sanity checks
@@ -443,7 +457,7 @@ public abstract class EyeApplication extends JFrame
 		
 		//manipulate database
 		//TODO: SQL query to un-assign all devices from this incident
-		//TODO: SQL query to set incident assigned flag to TRUE
+		//TODO: SQL query to set incident archived flag to TRUE
 		
 		//manipulate data structures
 		for (Device device : incident.getRespondingDevices())
@@ -451,6 +465,47 @@ public abstract class EyeApplication extends JFrame
 		incident.archive();
 		
 		return true;
+	}
+	
+	/**
+	 * Adds a new EyeApplicationListener.
+	 * @param listener subscribes an EyeApplicationListener to this application's state events.
+	 */
+	public final void addEventListener(EyeApplicationListener listener)
+	{
+		if (listener == null || listeners.contains(listener))
+			return;
+		
+		synchronized(listeners)
+		{
+			listeners.add(listener);
+		}
+	}
+	
+	/**
+	 * Removes an existing EyeApplicationListener. 
+	 * @param listener unsubscribes an EyeApplicationListener from this application's state events.
+	 * Has no effect if this parameter is null, or is not currently subscribed to this object.
+	 */
+	public final void removeEventListener(EyeApplicationListener listener)
+	{
+		if (listener == null)
+			return;
+		synchronized(listeners)
+		{
+			listeners.remove(listener);
+		}
+	}
+	
+	/**
+	 * Unsubscribes all EyeApplicationListeners from this application's state events.
+	 */
+	public final void clearEventListeners()
+	{
+		synchronized(listeners)
+		{
+			listeners.clear();
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -611,10 +666,7 @@ public abstract class EyeApplication extends JFrame
 			Integer id = (Integer)entry.getKey();
 			User user = users.get(id);
 			if (user == null)
-			{
-				user = new User(entry.getValue(), this);
-				users.put(id, user);
-			}
+				addNewUser(id, user = new User(entry.getValue(), this));
 			user.updateFromMySQL(entry.getValue());
 		}
 	}
@@ -634,8 +686,7 @@ public abstract class EyeApplication extends JFrame
 			Device device = devices.get(hash);
 			if (device == null)
 			{
-				device = new Device(hash, (Device.Type)(entry.getValue().get("deviceType")), this);
-				devices.put(hash, device);
+				addNewDevice(hash, device = new Device(hash, (Device.Type)(entry.getValue().get("deviceType")), this));
 				incidentlessDevices.add(device);
 			}
 			device.updateFromMySQL(entry.getValue());	
@@ -688,10 +739,7 @@ public abstract class EyeApplication extends JFrame
 			String hash = (String)entry.getKey();
 			Node node = nodes.get(hash);
 			if (node == null)
-			{
-				node = new Node(hash, this);
-				nodes.put(hash, node);
-			}
+				addNewNode(hash, node = new Node(hash, this));
 			node.updateFromMySQL(entry.getValue());	
 		}
 	}
@@ -707,7 +755,7 @@ public abstract class EyeApplication extends JFrame
 			{
 				Double accuracy = entry.getValue().get("accuracy") == null ? null : (Double)entry.getValue().get("accuracy");
 				Double altitude = entry.getValue().get("altitude") == null ? null : (Double)entry.getValue().get("altitude");
-				incident = new Incident(id.intValue(),
+				addNewIncident(id, incident = new Incident(id.intValue(),
 					(Incident.Type)(entry.getValue().get("incidentType")),
 					new Location(
 						(Double)entry.getValue().get("latitude"),
@@ -716,10 +764,66 @@ public abstract class EyeApplication extends JFrame
 						altitude
 					),
 					(Timestamp)(entry.getValue().get("created")),
-					this);
-				incidents.put(id, incident);
+					this));
+
 			}
 			incident.updateFromMySQL(entry.getValue());
+		}
+	}
+	
+	private void addNewIncident(Integer id, Incident incident)
+	{
+		//add to array
+		incidents.put(id, incident);
+		
+		//fire creation event
+		synchronized(listeners)
+		{
+			ListIterator<EyeApplicationListener> iterator = listeners.listIterator();
+			while(iterator.hasNext())
+				iterator.next().incidentCreated(incident);
+		}
+	}
+	
+	private void addNewUser(Integer id, User user)
+	{
+		//add to array
+		users.put(id, user);
+		
+		//fire creation event
+		synchronized(listeners)
+		{
+			ListIterator<EyeApplicationListener> iterator = listeners.listIterator();
+			while(iterator.hasNext())
+				iterator.next().userCreated(user);
+		}
+	}
+	
+	private void addNewDevice(String hash, Device device)
+	{
+		//add to array
+		devices.put(hash, device);
+		
+		//fire creation event
+		synchronized(listeners)
+		{
+			ListIterator<EyeApplicationListener> iterator = listeners.listIterator();
+			while(iterator.hasNext())
+				iterator.next().deviceCreated(device);
+		}
+	}
+	
+	private void addNewNode(String hash, Node node)
+	{
+		//add to array
+		nodes.put(hash, node);
+		
+		//fire creation event
+		synchronized(listeners)
+		{
+			ListIterator<EyeApplicationListener> iterator = listeners.listIterator();
+			while(iterator.hasNext())
+				iterator.next().nodeCreated(node);
 		}
 	}
 }

@@ -42,8 +42,6 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 			throw new IllegalArgumentException("Parameter 'hash' is not a valid WFU device hash ("+hash+").");
 		
 		this.hash = hash;
-		
-		fireEvent("created");
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -176,9 +174,6 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	{
 		switch(event)
 		{
-			case "created":
-				listener.nodeCreated(this);
-				break;
 			case "timedout":
 				listener.nodeTimedOut(this);
 				break;

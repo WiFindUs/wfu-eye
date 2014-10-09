@@ -9,13 +9,6 @@ import java.net.InetAddress;
 public interface NodeEventListener
 {
 	/**
-	 * Event fired when a Node is first created.
-	 * Corresponds to the event key "created".
-	 * @param node The new node object.
-	 */
-	public void nodeCreated(Node node);
-	
-	/**
 	 * Event fired when a Node 'times out' (i.e. when it is deemed inactive
 	 * as a result of no updates being received within a set interval).
 	 * Corresponds to the event key "timedout".

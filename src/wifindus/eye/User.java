@@ -53,8 +53,6 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 		this.nameFirst = nameFirst.trim();
 		this.nameMiddle = nameMiddle.trim();
 		this.nameLast = nameLast.trim();
-		
-		fireEvent("created");
 	}
 
 	/**
@@ -187,12 +185,15 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 	@Override
 	protected void mapEvents(String event, UserEventListener listener, Object... data)
 	{
+		//unused atm...
+		/*
 		switch(event)
 		{
 			case "created":
 				listener.userCreated(this);
 				break;
 		}
+		*/
 		
 	}
 

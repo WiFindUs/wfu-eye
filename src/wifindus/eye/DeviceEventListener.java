@@ -9,13 +9,6 @@ import java.net.InetAddress;
 public interface DeviceEventListener
 {
 	/**
-	 * Event fired when a Device is first created.
-	 * Corresponds to the event key "created".
-	 * @param device The new device object.
-	 */
-	public void deviceCreated(Device device);
-	
-	/**
 	 * Event fired when a Device 'times out' (i.e. when it is deemed inactive
 	 * as a result of no updates being received within a set interval).
 	 * Corresponds to the event key "timedout".

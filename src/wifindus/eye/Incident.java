@@ -2,9 +2,7 @@ package wifindus.eye;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.swing.ImageIcon;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -50,8 +48,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private boolean archived = false;
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
-	private transient static HashMap<Incident.Type, ImageIcon> iconsLarge = new HashMap<>();
-	private transient static HashMap<Incident.Type, ImageIcon> iconsSmall = new HashMap<>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -90,8 +86,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		this.type = type;
 		this.location = location;
 		this.created = created;
-		
-		fireEvent("created");
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -240,25 +234,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	 * @param small true for 30x30, false for 50x50.
 	 * @return An ImageIcon loaded with the appropriate image resource.
 	 */
-	public static ImageIcon getIcon(Incident.Type type, boolean small)
-	{
-		HashMap<Incident.Type, ImageIcon> collection = (small ? iconsSmall : iconsLarge);
-		ImageIcon icon = collection.get(type);
-		if (icon == null)
-		{
-			String filename = (small ? "_small" : "") + ".png";
-			switch (type)
-			{
-				case Medical: filename = "images/medical_logo" + filename; break;
-				case Security: filename = "images/security_logo" + filename; break;
-				case WiFindUs: filename = "images/wifi_logo" + filename; break;
-				case None: filename = "images/none_logo" + filename; break;
-			}
-			collection.put(type, icon = new ImageIcon(filename));
-		}
-		return icon;
-	}
-	
 	
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
@@ -269,9 +244,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	{
 		switch(event)
 		{
-			case "created":
-				listener.incidentCreated(this);
-				break;
 			case "archived":
 				listener.incidentArchived(this);
 				break;
@@ -282,7 +254,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 				listener.incidentUnassignedDevice(this, (Device)data[0]);
 				break;
 		}
-		
 	}
 
 	/////////////////////////////////////////////////////////////////////

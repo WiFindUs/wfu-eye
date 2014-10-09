@@ -89,8 +89,6 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		
 		this.hash = hash;
 		this.type = type;
-		
-		fireEvent("created");
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -330,9 +328,6 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	{
 		switch(event)
 		{
-			case "created":
-				listener.deviceCreated(this);
-				break;
 			case "timedout":
 				listener.deviceTimedOut(this);
 				break;

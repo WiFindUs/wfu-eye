@@ -6,10 +6,5 @@ package wifindus.eye;
  */
 public interface UserEventListener
 {
-	/**
-	 * Event fired when an User is first created.
-	 * Corresponds to the event key "created".
-	 * @param user The new user object.
-	 */
-	public void userCreated(User user);
+
 }
