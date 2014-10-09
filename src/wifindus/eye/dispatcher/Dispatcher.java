@@ -25,6 +25,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import wifindus.Debugger;
+import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
@@ -47,6 +48,13 @@ public class Dispatcher extends EyeApplication
 	private String sortType = "ID";
 	private ButtonGroup filterButtonGroup;
 	private JToggleButton allFilterButton, medicalFilterButton, securityFilterButton, techFilterButton;
+	
+    static
+    {
+    	ResourcePool.loadImage("medical_small", "images/medical_small.png");
+    	ResourcePool.loadImage("security_small", "images/security_small.png");
+    	ResourcePool.loadImage("wfu_small", "images/wfu_small.png");
+    }
 
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -80,12 +88,11 @@ public class Dispatcher extends EyeApplication
         queryPanelLayout.setAutoCreateGaps(true);
         queryPanelLayout.setAutoCreateContainerGaps(true);
 		
-        ImageIcon medicalIcon = new ImageIcon("images/medical_logo_small-30.png");
         filterButtonGroup = new ButtonGroup();
         allFilterButton = new JToggleButton("All");
-        medicalFilterButton = new JToggleButton(medicalIcon);
-        securityFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.Security, true));
-        techFilterButton = new JToggleButton(Incident.getIcon(Incident.Type.WiFindUs, true));
+        medicalFilterButton = new JToggleButton(ResourcePool.getIcon("medical_small"));
+        securityFilterButton = new JToggleButton(ResourcePool.getIcon("security_small"));
+        techFilterButton = new JToggleButton(ResourcePool.getIcon("wfu_small"));
         
         allFilterButton.setActionCommand("All");
         medicalFilterButton.setActionCommand("Medical");
@@ -301,7 +308,7 @@ public class Dispatcher extends EyeApplication
 	public void nodeCreated(Node node)
 	{
 		super.nodeCreated(node);
-		MapImagePanel.nodeCreated(node, nodeLocation);
+		MapImagePanel.nodeCreated(node);
 	}
 	
 	

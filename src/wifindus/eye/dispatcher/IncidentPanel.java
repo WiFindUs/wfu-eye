@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
@@ -26,6 +27,17 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
     private transient JLabel incidentTime, idLabel, onTaskLabel;
     private transient JButton locateOnMap, addRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
 	private transient JList onTaskList;
+	
+    static
+    {
+    	ResourcePool.loadImage("plus_small",  "images/plus_small.png");
+    	ResourcePool.loadImage("minus_small",  "images/minus_small.png");
+    	ResourcePool.loadImage("locate_small", "images/locate_small.png");
+    	ResourcePool.loadImage("none", "images/none.png");
+    	ResourcePool.loadImage("medical", "images/medical.png");
+    	ResourcePool.loadImage("security", "images/security.png");
+    	ResourcePool.loadImage("wfu", "images/wfu.png");
+    }
      
     public IncidentPanel(Incident incident)
     {
@@ -56,47 +68,29 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
         
-        idLabel = new JLabel("Incident #" + incident.getID());
-        incidentIconButton = new JButton(Incident.getIcon(incident.getType(), false));
+        (idLabel = new JLabel("Incident #" + incident.getID())).setFont(idFont);
+        incidentIconButton = new JButton();
         incidentIconButton.setBorder(emptyBorder);
         incidentIconButton.setBackground(lightBlue);
-        idLabel.setFont(idFont);
-        
-        //Locate on map icon
-        ImageIcon locateIcon = new ImageIcon("images/locate.png");
-        Image locateIconImage = locateIcon.getImage() ; 
-        Image scaledLocateIcon = locateIconImage.getScaledInstance( 12, 20,  java.awt.Image.SCALE_SMOOTH );  
-        locateIcon = new ImageIcon(scaledLocateIcon);
-        
-        //Add respondent (plus) icon
-        ImageIcon plusIcon = new ImageIcon("images/plus.png");
-        Image plusIconImage = plusIcon.getImage() ; 
-        Image scaledPlusIcon = plusIconImage.getScaledInstance( 12, 12,  java.awt.Image.SCALE_SMOOTH );  
-        plusIcon = new ImageIcon(scaledPlusIcon);
-        
-        //Remove Incident (x) Icon [will be changed]
-        ImageIcon minusIcon = new ImageIcon("images/minus.png");
-        Image minusIconImage = minusIcon.getImage() ; 
-        Image scaledMinusIcon = minusIconImage.getScaledInstance( 12, 12,  java.awt.Image.SCALE_SMOOTH );  
-        minusIcon = new ImageIcon(scaledMinusIcon);
-        
+        updateButtonState();
+       
         locateOnMap = new JButton("Locate on Map");
         locateOnMap.setBackground(lightBlue);
-        locateOnMap.setIcon(locateIcon);
+        locateOnMap.setIcon(ResourcePool.getIcon("locate_small"));
         locateOnMap.setBorder(emptyBorder);
         locateOnMap.setFont(font);
         locateOnMap.setHorizontalAlignment(SwingConstants.LEFT);
         
         addRespondent = new JButton("Add Respondent");
         addRespondent.setBackground(lightBlue);
-        addRespondent.setIcon(plusIcon);
+        addRespondent.setIcon(ResourcePool.getIcon("plus_small"));
         addRespondent.setBorder(emptyBorder);
         addRespondent.setFont(font);
         addRespondent.setHorizontalAlignment(SwingConstants.LEFT);
         
         removeIncident = new JButton("Remove Incident");
         removeIncident.setBackground(lightBlue);
-        removeIncident.setIcon(minusIcon);
+        removeIncident.setIcon(ResourcePool.getIcon("minus_small"));
         removeIncident.setBorder(emptyBorder);
         removeIncident.setFont(font);
         removeIncident.setHorizontalAlignment(SwingConstants.LEFT);
@@ -257,7 +251,21 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 		
 	}
 	
-	//do not implement this
-	@Override public void incidentCreated(Incident incident) { }
+	/////////////////////////////////////////////////////////////////////
+	// PRIVATE METHODS
+	/////////////////////////////////////////////////////////////////////
+	
+	private void updateButtonState()
+	{
+		ImageIcon icon = null;
+		switch (incident.getType())
+		{
+			case Medical: icon = ResourcePool.getIcon("medical"); break;
+			case Security: icon = ResourcePool.getIcon("security"); break;
+			case WiFindUs: icon = ResourcePool.getIcon("wfu"); break;
+			default: icon = ResourcePool.getIcon("none"); break;
+		}
+		incidentIconButton.setIcon(icon);
+	}
 }
 

@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import wifindus.Debugger;
+import wifindus.ResourcePool;
 import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
@@ -31,6 +32,16 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     private transient volatile Device device = null;
     private transient JButton newIncidentButton, locateOnMapButton;
     private transient JLabel logo, name, location, status;
+    
+    static
+    {
+    	ResourcePool.loadImage("plus_small",  "images/plus_small.png");
+    	ResourcePool.loadImage("locate_small", "images/locate_small.png");
+    	ResourcePool.loadImage("none", "images/none.png");
+    	ResourcePool.loadImage("medical", "images/medical.png");
+    	ResourcePool.loadImage("security", "images/security.png");
+    	ResourcePool.loadImage("wfu", "images/wfu.png");
+    }
 
     /**
      * Creates a new DevicePanel, binding it to a particular device and responding to its events.
@@ -64,27 +75,12 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
         name.setBackground(Color.white);
         
         //logo
-        logo = new JLabel(Incident.getIcon(Type.None, true));
-        logo.setBackground(Color.white);
+        (logo = new JLabel()).setBackground(Color.white);
                
-        //icons for buttons
-        ImageIcon newIncidentLogo = new ImageIcon("images/plus.png");
-        ImageIcon showOnMapLogo = new ImageIcon("images/locate.png");
-        
-        //resize images icon to fit button
-        Image plusImg = newIncidentLogo.getImage();  
-        Image scaledPlus = plusImg.getScaledInstance( 13, 13,  java.awt.Image.SCALE_SMOOTH );
-        newIncidentLogo = new ImageIcon(scaledPlus);
-        
-        Image showMapImg = showOnMapLogo.getImage();  
-        Image scaledShowMap = showMapImg.getScaledInstance( 12, 20,  java.awt.Image.SCALE_SMOOTH );  
-        showOnMapLogo = new ImageIcon(scaledShowMap);
-        
+        //create a new incident button
         Border emptyBorder = BorderFactory.createEmptyBorder();
-        
-        // buttons for creating incidents & locating users
         newIncidentButton = new JButton("New Incident");
-        newIncidentButton.setIcon(newIncidentLogo);
+        newIncidentButton.setIcon(ResourcePool.getIcon("plus_small"));
         newIncidentButton.setBackground(Color.white);
         newIncidentButton.addActionListener(this);
         newIncidentButton.setHorizontalAlignment(SwingConstants.LEFT);
@@ -92,8 +88,9 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
         newIncidentButton.setBorder(emptyBorder);
         newIncidentButton.setFont(font);
         
+        //locate a device/user on the map button
         locateOnMapButton = new JButton("Locate on map");
-        locateOnMapButton.setIcon(showOnMapLogo);
+        locateOnMapButton.setIcon(ResourcePool.getIcon("locate_small"));
         locateOnMapButton.setBackground(Color.white);
         locateOnMapButton.addActionListener(this);
         locateOnMapButton.setHorizontalAlignment(SwingConstants.LEFT);
@@ -204,14 +201,12 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 		updateLabelState();
 		updateButtonState();
 	}
+	
 	@Override public void deviceAtmosphereChanged(Device device,
 			Atmosphere oldAtmosphere, Atmosphere newAtmosphere) { }
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,
 			InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
-	
-	//do not implement this
-	@Override public void deviceCreated(Device device) { }
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
@@ -223,7 +218,16 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 		
 		if (device.getCurrentUser() != null)
 		{
-			logo.setIcon(Incident.getIcon(device.getCurrentUser().getType(),true));
+			ImageIcon icon = null;
+			switch (device.getCurrentUser().getType())
+			{
+				case Medical: icon = ResourcePool.getIcon("medical"); break;
+				case Security: icon = ResourcePool.getIcon("security"); break;
+				case WiFindUs: icon = ResourcePool.getIcon("wfu"); break;
+				default: icon = ResourcePool.getIcon("none"); break;
+			}
+			logo.setIcon(icon);
+			
 			name.setText(device.getCurrentUser().toString() + ": " + device.getCurrentUser().getNameFull());
 			if (device.getCurrentIncident() != null)
 			{
@@ -239,7 +243,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 		}
 		else
 		{
-			logo.setIcon(Incident.getIcon(Type.None,false));
+			logo.setIcon(ResourcePool.getIcon("none"));
 			name.setText(device.toString());
 			status.setText("No user.");
 			status.setBackground(Color.gray);
