@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities;
 import wifindus.eye.Device;
 import wifindus.Debugger;
 import wifindus.eye.EyeApplication;
+import wifindus.eye.EyeMySQLConnection;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
 import wifindus.eye.Node;
@@ -73,8 +74,6 @@ public class Dispatcher extends EyeApplication
 		/////////////////////////////////////////////////////////////////////
 		queryPanel = new JPanel();
 		queryPanel.setBackground(new Color(0xedf4fb));
-		//int queryPanelWidth = scrollbarWidth+380;
-		//System.out.println(scrollbarWidth);
 		queryPanel.setMinimumSize(new Dimension(397, 125));
 		queryPanel.setMaximumSize(new Dimension(397, 125));
 		GroupLayout queryPanelLayout = new GroupLayout(queryPanel);
@@ -215,7 +214,7 @@ public class Dispatcher extends EyeApplication
         devicePanel = new JPanel();
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
 		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+	    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		int scrollbarWidth = devicePanelScroll.getWidth();
         
         
@@ -262,33 +261,25 @@ public class Dispatcher extends EyeApplication
         getClientPanel().add(menuPanel, BorderLayout.NORTH);
         getClientPanel().add(deviceControlPanel, BorderLayout.WEST);
         getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
-        
-        
-        
-        
-        
-        
-        
 	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	
+	
+	
+	/////////////////////////////////////////////////////////////////////
+	// Create a new device 
+	/////////////////////////////////////////////////////////////////////
 	@Override
 	public void deviceCreated(Device device)
 	{
 		super.deviceCreated(device);
-		
-		
 		devicePanel.add(new DevicePanel(device));
 		deviceStack.push(device);
 		devicePanel.revalidate();
-		
-		
-		
-		//updateDevicePanel(deviceStack);
-		//Not working (Users not assigned to devices yet?)
-		//updateDevicePanel(sortFromMenu(sortType,deviceStack));
 		sort(deviceStack);
 	}
 	
@@ -300,36 +291,56 @@ public class Dispatcher extends EyeApplication
 		MapImagePanel.deviceLocationChanged( device,  oldLocation,  newLocation);
 		
 	}
-	
-	
+	/*
 	@Override
-	public void nodeCreated(Node node)
+	public void nodeLocationChanged(Node node, Location nodeLocation)
 	{
-		super.nodeCreated(node);
+		super.nodeCreated(node, nodeLocation);
+		//Update Location on the map
 		MapImagePanel.nodeCreated(node);
+		
 	}
+	
+*/
+	
+	/////////////////////////////////////////////////////////////////////
+	// Node Created 
+	/////////////////////////////////////////////////////////////////////
+	@Override
+	public void nodeCreated(Node node, Location nodeLocation)
+	{
+		super.nodeCreated(node, nodeLocation);
+		
+		
+		
+		MapImagePanel.nodeCreated(node, nodeLocation);
+	}
+	
+	
+	
+	@Override 
+	public void incidentAssignedDevice(Incident incident, Device device) 
+	{ 
+		super.incidentAssignedDevice(incident, device);
+		MapImagePanel.incidentCreated(incident, device); 
+	}
+	
 	
 	
 	@Override
 	public void incidentCreated(Incident incident)
 	{
 		super.incidentCreated(incident);
-		MapImagePanel.incidentCreated(incident);
+		
+		//MapImagePanel.incidentCreated(incident, incident.getRespondingDevices().get(0));
 		incidentPanel.add(new IncidentPanel(incident));
 		incidentPanel.revalidate();
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////
+	// Search
+	/////////////////////////////////////////////////////////////////////
 	public void searchName(String searchText)
 	{
 		devicePanel.removeAll();

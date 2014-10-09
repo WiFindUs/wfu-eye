@@ -39,31 +39,43 @@ import javax.swing.event.DocumentListener;
 import wifindus.eye.Location;
 
 
-public class MapImagePanel extends JPanel implements ComponentListener{
-
+public class MapImagePanel extends JPanel implements ComponentListener
+{
 	private transient static MapImagePanel singleton;
 	
+	// Images for the display
     static BufferedImage mapImage, medicalIcon, securityIcon, wfuIcon,
     unavailibleMedicalIcon,  unavailibleSecurityIcon, unassignedDeviceIcon,
     medicalIncidentIcon, securityIncidentIcon,
     activeNodeIcon, inactiveNodeIcon;
-   
     
+    // Paths for images used in display
+    static String path,medicalIconPath,
+	securityIconPath,
+	wfuIconPath,
+	unavailibleMedicalIconPath,
+	unavailibleSecurityIconPath,
+	unassignedDeviceIconPath,
+	medicalIncidentIconPath,
+	securityIncidentIconPath,
+	activeNodeIconPath,
+	inactiveNodeIconPath;
     
-    String path, medicalIconPath, securityIconPath, wfuIconPath,
-    unavailibleMedicalIconPath,  unavailibleSecurityIconPath, unassignedDeviceIconPath,
-    medicalIncidentIconPath, securityIncidentIconPath,
-    activeNodeIconPath, inactiveNodeIconPath;
-    
+    //Used for updating the panel when a user is moved (There is without doubt a better way of doing this)
+	static updatePanel updateDisplay;
+	static boolean updated;
+	
     BufferedImage scaledImage;
-    resizedImage resize;
+    static resizedImage resize;
     static Location starts;
 	static Location ends;
 	
 	static Device device;
-	static Location oldLocation,  newLocation;
+	static Location oldLocation,  newLocation, nodeLocation, incidentLocation;
 	
 	static Node node;
+	
+	static Incident incident;
 		
 	ImageIcon ii;
 	
@@ -74,17 +86,23 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 	static Map<String, Node> nodes = new TreeMap<String, Node>();
 	static Map<String, Point> nodeLocations = new TreeMap<String, Point>();
 	
+	static Map<Integer, Incident> incidents = new TreeMap<Integer, Incident>();
+	static Map<Integer, Point> incidentLocations = new TreeMap<Integer, Point>();
+	
 	public static boolean displayGrid = false;
 	
 	
 	
     public MapImagePanel() 
     {
+    	updateDisplay = new updatePanel();
+    	updated = false;
     	
     	addComponentListener(this);
     	path = EyeApplication.get().getConfig().getString("map.image");
     	resize = new resizedImage();
     	
+    	// Set image paths
     	medicalIconPath = "images/medical_marker.png";
     	securityIconPath = "images/security_marker.png";
     	wfuIconPath = "images/wfu_marker.png";
@@ -96,16 +114,7 @@ public class MapImagePanel extends JPanel implements ComponentListener{
         activeNodeIconPath = "images/node_marker_active.png";
         inactiveNodeIconPath = "images/node_marker_inactive.png";
     	
-    	// Get size of the image
-        BufferedImage bimg = null;
-        try 
-        {
-        	bimg = ImageIO.read(new File(path));
-        } 
-        catch (IOException e) 
-        {
-        	e.printStackTrace();
-        }
+        // Initial scale of images
         mapImage = resize.scaleImage(1052, 871, path);
         medicalIcon = resize.scaleImage(87, 201, medicalIconPath);
        	securityIcon = resize.scaleImage(87, 201, securityIconPath);
@@ -123,7 +132,6 @@ public class MapImagePanel extends JPanel implements ComponentListener{
     		   EyeApplication.get().getConfig().getDouble("map.longitude_start"));
         		Debugger.v("Map Top-Left:" + starts);
        
-       
         ends = new Location(EyeApplication.get().getConfig().getDouble("map.latitude_end"),
     		   EyeApplication.get().getConfig().getDouble("map.longitude_end"));
         		Debugger.v("Map Bottom-Right:" + ends);
@@ -140,28 +148,31 @@ public class MapImagePanel extends JPanel implements ComponentListener{
     	
     	try
     	{
-    	//Vertical Position
-    	Double deviceLatDifference = newLocation.getLatitude() - starts.getLatitude();
-    	Double latDifference = starts.getLatitude() - ends.getLatitude();
-    	Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
-    	Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
+    		//Vertical Position
+    		Double deviceLatDifference = newLocation.getLatitude() - starts.getLatitude();
+    		Double latDifference = starts.getLatitude() - ends.getLatitude();
+    		Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
+    		Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
     	
-    	//Horizontal Position
-    	Double deviceLongDifference = newLocation.getLongitude() - starts.getLongitude();
-    	Double longDifference = starts.getLongitude() - ends.getLongitude();
-    	Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
-    	Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
+    		//Horizontal Position
+    		Double deviceLongDifference = newLocation.getLongitude() - starts.getLongitude();
+    		Double longDifference = starts.getLongitude() - ends.getLongitude();
+    		Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
+    		Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
     	
-    	Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
-    
-    	devices.put(device.getHash(), device); //Should replace existing value with the same hash
-    	deviceLocations.put(device.getHash(), deviceLocation);
+    		Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
+  
+    		//The map doesn't actually need resizing, we just want to get the panel repainted to reflect the changes 
+    		//mapImage = resize.scaleImage(mapImage.getWidth(), mapImage.getHeight(), path);
+    		updated = updateDisplay.updateUserMovement();
+    		
+    		devices.put(device.getHash(), device); //Should replace existing value with the same hash
+    		deviceLocations.put(device.getHash(), deviceLocation);
     	}
     	catch(NullPointerException e)
     	{
     		
     	}
-    	
     }
     
     
@@ -169,90 +180,84 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 	////////////////////////////////////////////////////////////////
     // Place Incident markers on the map when incidents are created
 	////////////////////////////////////////////////////////////////
-	public static void incidentCreated(Incident incident)
+	public static void incidentCreated(Incident localIncident, Device localDevice)
 	{
+    	incident = localIncident;
+    	incidentLocation = incident.getLocation();
+		incidents.put(incident.getID(), incident); //Should replace existing value with the same hash
+    	
+		System.out.println("CREATED AN INCIDENT  " + incident + "   "+incidentLocation);
 		
+    	try
+    	{
+    		//Vertical Position
+    		Double deviceLatDifference = incidentLocation.getLatitude() - starts.getLatitude();
+    		Double latDifference = starts.getLatitude() - ends.getLatitude();
+    		Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
+    		Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
+    	
+    		//Horizontal Position
+    		Double deviceLongDifference = incidentLocation.getLongitude() - starts.getLongitude();
+    		Double longDifference = starts.getLongitude() - ends.getLongitude();
+    		Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
+    		Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
+    	
+    		Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
+  
+    		//Update display to reflect change
+    		updated = updateDisplay.updateUserMovement();
+    		incidentLocations.put(incident.getID(), deviceLocation);
+    	}
+    	catch(NullPointerException e)
+    	{
+    	}
 	}
 
     
 	////////////////////////////////////////////////////////////////
 	// Place Node markers on the map when nodes are created
 	////////////////////////////////////////////////////////////////
-	public static void nodeCreated(Node localNode)
+	public static void nodeCreated(Node localNode, Location localNodeLocation)
 	{
-		node = localNode;
-    	newLocation = localNode.getLocation();
+		
+    	node = localNode;
+    	nodeLocation = node.getLocation();
+		nodes.put(node.getHash(), node); //Should replace existing value with the same hash
     	
-    	
-		try
+    	try
     	{
-			
-    	//Vertical Position
-    	Double deviceLatDifference = newLocation.getLatitude() - starts.getLatitude();
+    		//Vertical Position
+    		Double deviceLatDifference = nodeLocation.getLatitude() - starts.getLatitude();
+    		Double latDifference = starts.getLatitude() - ends.getLatitude();
+    		Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
+    		Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
     	
-    	Double latDifference = starts.getLatitude() - ends.getLatitude();
-
+    		//Horizontal Position
+    		Double deviceLongDifference = nodeLocation.getLongitude() - starts.getLongitude();
+    		Double longDifference = starts.getLongitude() - ends.getLongitude();
+    		Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
+    		Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
     	
-    	Double deviceLatPositionPercentage =  Math.abs(deviceLatDifference) / latDifference;
-
-    	
-    	Double deviceVerticalPosition = mapImage.getHeight() * deviceLatPositionPercentage;
-
-    	//Horizontal Position
-    	Double deviceLongDifference = newLocation.getLongitude() - starts.getLongitude();
-    	Double longDifference = starts.getLongitude() - ends.getLongitude();
-    	Double deviceLongPositionPercentage =  Math.abs(deviceLongDifference) / longDifference;
-    	Double deviceHorizontalPosition = mapImage.getWidth() * deviceLongPositionPercentage;
-    	
-    	
-    	Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
-    
-    	nodes.put(node.getHash(), node); //Should replace existing value with the same hash
-    	nodeLocations.put(node.getHash(), deviceLocation);
-    	
+    		Point deviceLocation = new Point((int) Math.abs(deviceHorizontalPosition), (int)Math.abs(deviceVerticalPosition));
+  
+    		//Update display to reflect change
+    		updated = updateDisplay.updateUserMovement();
+    		
+    		nodeLocations.put(node.getHash(), deviceLocation);
     	}
     	catch(NullPointerException e)
     	{
-    		System.out.println("EXCEPTION");
+    		
     	}
 	}
-
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+	////////////////////////////////////////////////////////////////
     //Toggle Grid on and off
+	////////////////////////////////////////////////////////////////
     public static void toggleGrid(boolean toggle)
     {
     	displayGrid = toggle;
     }
-	
-    
-    
-    
-    
     
 	////////////////////////////////////////////////////////////////
     // paint component
@@ -289,11 +294,6 @@ public class MapImagePanel extends JPanel implements ComponentListener{
         		 g.drawLine(wStep * (i + 1),0, wStep * (i + 1), mapImage.getHeight());
         		 g.drawString(Integer.toString(i+1), wStep / 2 + (wStep * i), 12);
         	 }
-        
-      
-    	//////////////////////////////////////////////////////////////////////////////////////
-
-        
         }
         catch(NullPointerException e)
         {
@@ -301,30 +301,53 @@ public class MapImagePanel extends JPanel implements ComponentListener{
         }
         }
         
+        
+        //////////////////////////////////////////////////////////////////////////////////////
         // Draw devices on the map
+    	//////////////////////////////////////////////////////////////////////////////////////
         for(Map.Entry<String,Device> currentDevice : devices.entrySet()) 
 		{
-        	
-        	
-        	if(currentDevice.getValue().getType().toString().equals("Medical"))
-        	g.drawImage(medicalIcon, (deviceLocations.get(currentDevice.getKey()).x)- medicalIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - medicalIcon.getHeight(), null); 
-        	
-        	else if(currentDevice.getValue().getType().toString().equals("Security"))
-            	g.drawImage(securityIcon, (deviceLocations.get(currentDevice.getKey()).x)- securityIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - securityIcon.getHeight(), null); 
+        	if(currentDevice.getValue().getCurrentUser() != null)
+        	{
+        		if(currentDevice.getValue().getCurrentUser().getType().toString().equals("Medical"))
+        		{
+        			g.drawImage(medicalIcon, (deviceLocations.get(currentDevice.getKey()).x)- medicalIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - medicalIcon.getHeight(), null); 
+        		}
+        		else if(currentDevice.getValue().getCurrentUser().getType().toString().equals("Security"))
+        		{
+        			g.drawImage(securityIcon, (deviceLocations.get(currentDevice.getKey()).x)- securityIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - securityIcon.getHeight(), null); 
+        		}
 		
-        	else
+        		else if(currentDevice.getValue().getCurrentUser().getType().toString().equals("WiFindUs"))
+        		{
+        			g.drawImage(wfuIcon, (deviceLocations.get(currentDevice.getKey()).x)- wfuIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - wfuIcon.getHeight(), null); 
+        		}
+        	}
+        		else
         	{
             	g.drawImage(unassignedDeviceIcon, (deviceLocations.get(currentDevice.getKey()).x)- unassignedDeviceIcon.getWidth() / 2, (deviceLocations.get(currentDevice.getKey()).y) - unassignedDeviceIcon.getHeight(), null); 
-        	
-        	
         	}
+		
 		}
         
+        //////////////////////////////////////////////////////////////////////////////////////
         // Draw nodes on the map
+        //////////////////////////////////////////////////////////////////////////////////////
         for(Map.Entry<String,Node> currentNode : nodes.entrySet()) 
     		{
-            	g.drawImage(activeNodeIcon, (nodeLocations.get(currentNode.getKey()).x)- activeNodeIcon.getWidth() / 2, (nodeLocations.get(currentNode.getKey()).y) - activeNodeIcon.getHeight(), null); 
+				g.drawImage(activeNodeIcon, (nodeLocations.get(currentNode.getKey()).x)- activeNodeIcon.getWidth() / 2, (nodeLocations.get(currentNode.getKey()).y) - activeNodeIcon.getHeight(), null); 
     		}
+        
+
+        //////////////////////////////////////////////////////////////////////////////////////
+        // Draw incidents on the map
+        //////////////////////////////////////////////////////////////////////////////////////
+        for(Map.Entry<Integer,Incident> currentIncident : incidents.entrySet()) 
+    		{
+				g.drawImage(medicalIncidentIcon, (incidentLocations.get(currentIncident.getKey()).x)- medicalIncidentIcon.getWidth() / 2, (incidentLocations.get(currentIncident.getKey()).y) - medicalIncidentIcon.getHeight(), null); 
+    		}
+        
+        
     }
 
 	////////////////////////////////////////////////////////////////
@@ -332,7 +355,8 @@ public class MapImagePanel extends JPanel implements ComponentListener{
     ////////////////////////////////////////////////////////////////
 	public class resizedImage
 	{
-		public BufferedImage scaleImage(int width, int height, String filename) {
+		public BufferedImage scaleImage(int width, int height, String filename) 
+		{
 			scaledImage = null;
 		    try 
 		    {
@@ -349,6 +373,20 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 		        return scaledImage;
 		    }
 		    return scaledImage;
+		}
+	}
+	
+	
+	////////////////////////////////////////////////////////////////
+    // Repaint the panel
+    ////////////////////////////////////////////////////////////////
+	public class updatePanel
+	{
+		public boolean updateUserMovement()
+		{
+			repaint();
+			revalidate();
+			return true;
 		}
 	}
 
@@ -381,7 +419,7 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 		
 		//Nodes and Incident markers
 		Dimension incidentNodeMarkerImgSize = new Dimension(77 * 2, 99 * 2);
-		Dimension incidentNodeMarkerScaled = getScaledDimension(personMarkerImgSize, markerBoundary);
+		Dimension incidentNodeMarkerScaled = getScaledDimension(incidentNodeMarkerImgSize, markerBoundary);
 
 		medicalIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, medicalIconPath);
 		securityIcon = resize.scaleImage(personMarkerScaled.width, personMarkerScaled.height, securityIconPath);
@@ -394,11 +432,10 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 		activeNodeIcon = resize.scaleImage(incidentNodeMarkerScaled.width, incidentNodeMarkerScaled.height, activeNodeIconPath);
 		inactiveNodeIcon = resize.scaleImage(incidentNodeMarkerScaled.width, incidentNodeMarkerScaled.height, inactiveNodeIconPath);
 
-		
-		
-		
-		//Resize for the other images
-		
+        //////////////////////////////////////////////////////////////////////////////////////
+		//Resize images to match map
+        //////////////////////////////////////////////////////////////////////////////////////
+
 		for(Map.Entry<String,Device> currentDevice : devices.entrySet()) 
 		{
 			deviceLocationChanged(devices.get(currentDevice.getKey()),devices.get(currentDevice.getKey()).getLocation(),devices.get(currentDevice.getKey()).getLocation());
@@ -407,9 +444,14 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 		
 		for(Map.Entry<String,Node> currentNode : nodes.entrySet()) 
 		{
-			nodeCreated(nodes.get(currentNode.getKey()));
+			nodeCreated(nodes.get(currentNode.getKey()), nodes.get(currentNode.getKey()).getLocation());
 		}
 		
+		
+		for(Map.Entry<Integer,Incident> currentIncident: incidents.entrySet()) 
+		{
+			incidentCreated(incidents.get(currentIncident.getKey()), incidents.get(currentIncident.getKey()).getRespondingDevices().get(0));
+		}
 		
 	
 	}
@@ -423,9 +465,8 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 	////////////////////////////////////////////////////////////////
 	// Scale the image to the new panel size
 	////////////////////////////////////////////////////////////////
-
-	public static Dimension getScaledDimension(Dimension imgSize, Dimension boundary) {
-
+	public static Dimension getScaledDimension(Dimension imgSize, Dimension boundary) 
+	{
 	    int startWidth = imgSize.width;
 	    int startHeight = imgSize.height;
 	    
@@ -436,7 +477,8 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 	    int newHeight = startHeight;
 
 	    // scale width
-	    if (startWidth > boundaryWidth) {
+	    if (startWidth > boundaryWidth) 
+	    {
 	    	newWidth = boundaryWidth;
 	    	newHeight = (newWidth * startHeight) / startWidth;
 	    }
@@ -447,12 +489,8 @@ public class MapImagePanel extends JPanel implements ComponentListener{
 	    	newHeight = boundaryHeight;
 	        newWidth = (newHeight * startWidth) / startHeight;
 	    }
-
 	    return new Dimension(newWidth, newHeight);
 	}
-
-
-	
 }
 	
 	

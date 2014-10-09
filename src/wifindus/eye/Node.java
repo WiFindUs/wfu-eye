@@ -2,6 +2,7 @@ package wifindus.eye;
 
 import java.net.InetAddress;
 import java.sql.Timestamp;
+
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -110,6 +111,19 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		if (!((String)resultRow.get("hash")).equals(getHash()))
 			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
 		
+
+		//update location data
+		Location loc = new Location(
+				(Double)resultRow.get("latitude"),
+				(Double)resultRow.get("longitude"),
+				(Double)resultRow.get("accuracy"),
+				(Double)resultRow.get("altitude"));
+		if (!loc.equals(location))
+		{
+			Location old = location;
+			location = loc;
+			fireEvent("location", old, location);
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -122,13 +136,13 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		switch(event)
 		{
 			case "created":
-				listener.nodeCreated(this);
+				listener.nodeCreated(this, location);
 				break;
 			case "timedout":
 				listener.nodeTimedOut(this);
 				break;
 			case "location":
-				listener.nodeLocationChanged(this);
+				listener.nodeLocationChanged(this, location);
 				break;
 			case "voltage":
 				listener.nodeVoltageChanged(this);

@@ -228,7 +228,7 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	@Override
-	public void nodeCreated(Node node)
+	public void nodeCreated(Node node, Location nodeLocation)
 	{
 		Debugger.v(node + " created");
 	}
@@ -439,7 +439,7 @@ public abstract class EyeApplication extends JFrame
 	
 	//NodeEventListener
 	@Override public void nodeTimedOut(Node node) { }
-	@Override public void nodeLocationChanged(Node node) { }
+	@Override public void nodeLocationChanged(Node node, Location nodeLocation) { }
 	@Override public void nodeVoltageChanged(Node node) { }
 	@Override public void nodeUpdated(Node node) { }
 	@Override public void nodeAddressChanged(Node node) { }

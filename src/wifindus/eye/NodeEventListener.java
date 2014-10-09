@@ -11,7 +11,7 @@ public interface NodeEventListener
 	 * Corresponds to the event key "created".
 	 * @param node The new node object.
 	 */
-	public void nodeCreated(Node node);
+	public void nodeCreated(Node node, Location nodeLocation);
 	
 	/**
 	 * Event fired when a Node 'times out' (i.e. when it is deemed inactive
@@ -26,7 +26,7 @@ public interface NodeEventListener
 	 * Corresponds to the event key "location".
 	 * @param node The node object.
 	 */
-	public void nodeLocationChanged(Node node);
+	public void nodeLocationChanged(Node node, Location nodeLocation);
 	
 	/**
 	 * Event fired when a Node's power source voltage reading changes.
