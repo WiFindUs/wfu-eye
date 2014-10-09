@@ -17,9 +17,8 @@ import wifindus.Debugger;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
-import wifindus.eye.Node;
-
 import wifindus.eye.Location;
+import wifindus.eye.Node;
 
 
 public class MapImagePanel extends JPanel implements ComponentListener

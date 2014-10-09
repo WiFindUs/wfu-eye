@@ -1,18 +1,5 @@
 package wifindus.eye.dispatcher;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
-import wifindus.eye.Device;
-import wifindus.Debugger;
-import wifindus.eye.EyeApplication;
-import wifindus.eye.Incident;
-import wifindus.eye.Location;
-import wifindus.eye.Node;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,10 +10,26 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import wifindus.Debugger;
+import wifindus.eye.Device;
+import wifindus.eye.EyeApplication;
+import wifindus.eye.Incident;
+import wifindus.eye.Location;
+import wifindus.eye.Node;
 
 
 public class Dispatcher extends EyeApplication

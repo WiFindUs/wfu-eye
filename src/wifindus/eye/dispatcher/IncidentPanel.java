@@ -1,10 +1,20 @@
 package wifindus.eye.dispatcher;
 
-import java.awt.*;
-
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.LayoutStyle;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
-
 import wifindus.eye.Device;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
