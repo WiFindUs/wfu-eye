@@ -307,6 +307,7 @@ public class Dispatcher extends EyeApplication
 	public void nodeCreated(Node node)
 	{
 		super.nodeCreated(node);
+		//TODO: refactor MapImagePanel to use EyeApplicationListener instead of doing this
 		MapImagePanel.nodeCreated(node);
 	}
 	
@@ -316,6 +317,7 @@ public class Dispatcher extends EyeApplication
 	public void incidentAssignedDevice(Incident incident, Device device) 
 	{ 
 		super.incidentAssignedDevice(incident, device);
+		//TODO: refactor MapImagePanel to use EyeApplicationListener instead of doing this
 		MapImagePanel.incidentCreated(incident, device); 
 	}
 	
@@ -325,8 +327,6 @@ public class Dispatcher extends EyeApplication
 	public void incidentCreated(Incident incident)
 	{
 		super.incidentCreated(incident);
-		
-		//MapImagePanel.incidentCreated(incident, incident.getRespondingDevices().get(0));
 		incidentPanel.add(new IncidentPanel(incident));
 		incidentPanel.revalidate();
 	}
@@ -335,6 +335,7 @@ public class Dispatcher extends EyeApplication
 	/////////////////////////////////////////////////////////////////////
 	// Search
 	/////////////////////////////////////////////////////////////////////
+	//TODO: re-write search method to filter based on visiblity, rather than destroying and recreating
 	public void searchName(String searchText)
 	{
 		devicePanel.removeAll();
@@ -361,7 +362,7 @@ public class Dispatcher extends EyeApplication
 	
 	
 	
-	
+	//TODO: re-write sort method to filter based on visiblity, rather than destroying and recreating
 	public Deque<Device> sortFromMenu(String sortType, Deque<Device> stack)
 	{
 		devicePanel.removeAll();

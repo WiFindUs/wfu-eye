@@ -20,7 +20,7 @@ import wifindus.eye.Incident;
 import wifindus.eye.Location;
 import wifindus.eye.Node;
 
-
+//TODO: implement the EyeApplicationListener
 public class MapImagePanel extends JPanel implements ComponentListener
 {
 	private transient static MapImagePanel singleton;
@@ -42,6 +42,9 @@ public class MapImagePanel extends JPanel implements ComponentListener
 	securityIncidentIconPath,
 	activeNodeIconPath,
 	inactiveNodeIconPath;
+    
+    //TODO: non-static-ify this class
+    //TODO: provide mutators that mirror the controls in MapFrame
     
     //Used for updating the panel when a user is moved (There is without doubt a better way of doing this)
 	static updatePanel updateDisplay;
@@ -85,6 +88,7 @@ public class MapImagePanel extends JPanel implements ComponentListener
     	resize = new resizedImage();
     	
     	// Set image paths
+    	//TODO: use ResourcePool for this
     	medicalIconPath = "images/medical_marker.png";
     	securityIconPath = "images/security_marker.png";
     	wfuIconPath = "images/wfu_marker.png";
@@ -199,7 +203,7 @@ public class MapImagePanel extends JPanel implements ComponentListener
 	////////////////////////////////////////////////////////////////
 	// Place Node markers on the map when nodes are created
 	////////////////////////////////////////////////////////////////
-	public static void nodeCreated(Node localNode, Location localNodeLocation)
+	public static void nodeCreated(Node localNode)
 	{
 		
     	node = localNode;
@@ -420,7 +424,7 @@ public class MapImagePanel extends JPanel implements ComponentListener
 		
 		for(Map.Entry<String,Node> currentNode : nodes.entrySet()) 
 		{
-			nodeCreated(nodes.get(currentNode.getKey()), nodes.get(currentNode.getKey()).getLocation());
+			//nodeCreated(nodes.get(currentNode.getKey()), nodes.get(currentNode.getKey()).getLocation());
 		}
 		
 		
