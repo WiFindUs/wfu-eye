@@ -10,32 +10,23 @@ import javax.swing.SwingUtilities;
 import wifindus.eye.Device;
 import wifindus.Debugger;
 import wifindus.eye.EyeApplication;
-import wifindus.eye.EyeMySQLConnection;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
 import wifindus.eye.Node;
-import wifindus.eye.Incident.Type;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 
 public class Dispatcher extends EyeApplication

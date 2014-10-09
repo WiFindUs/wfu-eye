@@ -74,8 +74,6 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 		}
 		catch (BadLocationException e)
 		{
-			//// TODO Auto-generated catch block
-			//e.printStackTrace();
 		}		
 	}
 }

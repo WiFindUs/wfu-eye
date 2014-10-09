@@ -15,7 +15,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
     private transient Incident incident = null;
     private transient JLabel incidentTime, idLabel, onTaskLabel;
     private transient JButton locateOnMap, addRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
-    private transient JList onTaskList;
+	private transient JList onTaskList;
      
     public IncidentPanel(Incident incident)
     {

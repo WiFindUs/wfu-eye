@@ -1,29 +1,16 @@
 package wifindus.eye.dispatcher;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
-
-import wifindus.eye.EyeApplication;
 
 
 public class MapFrame extends JFrame implements ComponentListener, ActionListener
@@ -97,68 +84,41 @@ public class MapFrame extends JFrame implements ComponentListener, ActionListene
 	}
 
 	@Override
-	public void componentHidden(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void componentMoved(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-	
-
-	}
-
-	@Override
-	public void componentResized(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
+	public void componentResized(ComponentEvent arg0)
+	{
 		double minSplitSize = getWidth() * 0.75;
 		Dimension minimumSize = new Dimension((int)minSplitSize, 50);
 		splitPane.setDividerLocation((int)minSplitSize);
 		mp.setMinimumSize(minimumSize);
 		
 	}
-
+	
+	@Override public void componentHidden(ComponentEvent arg0) { }
+	@Override public void componentMoved(ComponentEvent arg0) { }
+	@Override public void componentShown(ComponentEvent arg0) { }
+	
+	
+	
+	
+	
+	
 	@Override
-	public void componentShown(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
+	public void actionPerformed(ActionEvent e)
+	{
+		if(e.getSource() == grid)
+		{
+			if(grid.isSelected())
+			{
+				MapImagePanel.toggleGrid(true);
+			}
 
-	}
-	
-	
-	
-	
-	
-	
-@Override
-	   public void actionPerformed(ActionEvent e) {
-	        if(e.getSource() == grid)
-	        {
-	        	if(grid.isSelected())
-	        	{
-	        		//System.out.println(MapFrame.getFrames()[0]);
-	        	
-	        		/*.toggleGrid(true)*/
-	        		MapImagePanel.toggleGrid(true);
-	        		//MapFrame.g
-	        	
-	        	}
-	        	
-	        	else
-	        	{
-	        		MapImagePanel.toggleGrid(false);
-	        	}
-
-	        	repaint();
-	        	revalidate();
-	        }
-	    } 
-	
-	
-	
-	
-	
-	
-
-	
+			else
+			{
+				MapImagePanel.toggleGrid(false);
+			}
+		
+			repaint();
+			revalidate();
+		}
+	} 
 }

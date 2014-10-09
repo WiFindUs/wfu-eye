@@ -6,35 +6,18 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.imageio.ImageIO;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-
 import wifindus.Debugger;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Node;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import wifindus.eye.Location;
 
@@ -396,14 +379,8 @@ public class MapImagePanel extends JPanel implements ComponentListener
 	////////////////////////////////////////////////////////////////
 	// Component Listeners
 	////////////////////////////////////////////////////////////////
-	@Override
-	public void componentHidden(ComponentEvent e) {
-		// TODO Auto-generated method stub
-			}
-	@Override
-	public void componentMoved(ComponentEvent e) {
-		// TODO Auto-generated method stub
-	}
+	@Override public void componentHidden(ComponentEvent e) { }
+	@Override public void componentMoved(ComponentEvent e) { }
 	@Override
 	public void componentResized(ComponentEvent e) 
 	{
@@ -455,10 +432,8 @@ public class MapImagePanel extends JPanel implements ComponentListener
 		
 	
 	}
-	@Override
-	public void componentShown(ComponentEvent e) {
-		// TODO Auto-generated method stub
-	}
+	
+	@Override public void componentShown(ComponentEvent e) { }
 
 	
 	
