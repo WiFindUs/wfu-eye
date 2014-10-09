@@ -534,7 +534,7 @@ public class ConfigFile implements Serializable
 		}
 	}
 	
-	private String checkKey(String key)
+	private static String checkKey(String key)
 	{
 		if (key == null)
 			throw new NullPointerException("Parameter 'key' cannot be null.");
