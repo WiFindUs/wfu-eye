@@ -7,10 +7,7 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.net.InetAddress;
-
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -18,22 +15,21 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
-
 import wifindus.Debugger;
 import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
+import wifindus.eye.Incident.Type;
 import wifindus.eye.Location;
 import wifindus.eye.User;
-import wifindus.eye.Incident.Type;
 
-public class DevicePanel extends JPanel implements ActionListener, ItemListener, DeviceEventListener
+public class DevicePanel extends JPanel implements ActionListener, DeviceEventListener
 {
 	private static final long serialVersionUID = -953467312117311967L;
     private transient volatile Device device = null;
-    private transient JButton newMedicalButton, newSecurityButton, newWifibutton, newIncidentButton, locateOnMapButton;
+    private transient JButton newIncidentButton, locateOnMapButton;
     private transient JLabel logo, name, location, status;
 
     /**
@@ -63,14 +59,11 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         
         //user number&name OR device ID
         name = new JLabel();
-        //nameFont = name.getFont().deriveFont(15.0f);
-        //font = name.getFont().deriveFont(13.0f);
         name.setFont(nameFont);
         name.setOpaque(true);
         name.setBackground(Color.white);
         
         //logo
-        //ImageIcon typeIcon = Incident.getIcon(Type.None, true);
         logo = new JLabel(Incident.getIcon(Type.None, true));
         logo.setBackground(Color.white);
                
@@ -120,72 +113,53 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
         Border paddingBorder = BorderFactory.createEmptyBorder(0,15,0,15);
         status.setBorder(paddingBorder);
         
-        
+        //add controls
         add(name);
         add(logo);
         add(newIncidentButton);
         add(locateOnMapButton);
         add(status);
         
+        //set control bounds
         name.setBounds(20, 3, 300, 20);
         logo.setBounds(20,30,60,60);
         newIncidentButton.setBounds(90,37,120,20);
         locateOnMapButton.setBounds(90,60,120,20);
         status.setBounds(250,45,100,25);
         
-     
-        deviceNotInUse(device,null);
+        //fire usage event to set the initial state
+        if (device.getCurrentUser() == null)
+        	deviceNotInUse(device,null);
+        else
+        	deviceInUse(device,device.getCurrentUser());
+        
+        //attach event listener
         device.addEventListener(this);
     } 
     
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void itemStateChanged(ItemEvent e) 
-    {
-   // 	setBackground(selectedCheckBox.isSelected() ? new Color(0xCCFFFF) : Color.WHITE);
-    }
     
     // Listener for New Incident button 
     @Override
     public void actionPerformed(ActionEvent e) 
     {
+    	if (!device.getLocation().hasLatLong())
+    		return;
+    	
     	//Listener for new incident
-    	if (e.getSource() == newIncidentButton)
+    	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
     		EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
     		Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
     	}
-    	
     	else if (e.getSource() == locateOnMapButton)
     	{
-    		Debugger.i("Locate "+ device.getCurrentUser().getNameFull() +" on map.");
+    		User user  = device.getCurrentUser();
+    		Debugger.i("Locate "+ (user == null ? device.toString() : user.getNameFull()) +" on map.");
     	}
-    	
-        if (device.getCurrentUser() == null
-        	|| device.getCurrentIncident() != null
-        	|| !device.getLocation().hasLatLong())
-        	return;
-    	
-    	if (e.getSource() == newMedicalButton)
-        	EyeApplication.get().db_createIncident(Type.Medical, device.getLocation());
-    	else if (e.getSource() == newSecurityButton)
-        	EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
-    	else if (e.getSource() == newWifibutton)
-        	EyeApplication.get().db_createIncident(Type.WiFindUs, device.getLocation());
-    	
-    
-    	
-    	
     }
-
-    // Return if a person is selected
-    /*public final boolean isSelected()
-    {
-        return selectedCheckBox.isSelected();
-    }*/
 
     @Override
     public void deviceInUse(Device device, User user)
@@ -195,7 +169,7 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
     }
 
 	@Override
-	public void deviceNotInUse(Device device, User user)
+	public void deviceNotInUse(Device device, User oldUser)
 	{
 		updateLabelState();
 		updateButtonState();
@@ -204,7 +178,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 	@Override
 	public void deviceTimedOut(Device device)
 	{
-
+		updateLabelState();
+		updateButtonState();
 	}
 
 	@Override
@@ -243,6 +218,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 	
 	private void updateLabelState()
 	{
+		//TODO: some sort of visual change when the device times out
+		
 		if (device.getCurrentUser() != null)
 		{
 			logo.setIcon(Incident.getIcon(device.getCurrentUser().getType(),true));
@@ -275,13 +252,8 @@ public class DevicePanel extends JPanel implements ActionListener, ItemListener,
 		//set the button to visible/enabled only when it has a user assigned,
 		//it's not currently responding to an event,
 		//and it has lat/long components
-		boolean enabled = 
-			device.getCurrentUser() != null
-			&& device.getCurrentIncident() == null
-			&& device.getLocation().hasLatLong();
-		
-		/*newMedicalButton.setEnabled(enabled);
-		newSecurityButton.setEnabled(enabled);
-		newWifibutton.setEnabled(enabled);*/
+		boolean latlong = device.getLocation().hasLatLong();
+		newIncidentButton.setEnabled(device.getCurrentUser() != null && latlong);
+		locateOnMapButton.setEnabled(latlong);
 	}
 }
