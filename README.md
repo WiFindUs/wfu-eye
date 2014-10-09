@@ -2,7 +2,7 @@
 Documentation for WiFindUs's Eye Platform.
 
 ## Authors
-[Mark 'marzer' Gillard (gill0235)](kttp://www.marzersoft.com/)  
+[Mark 'marzer' Gillard \(gill0235\)](kttp://www.marzersoft.com/)  
 Hussein Al Hammad  
 Mitchell Templeton
 
@@ -17,7 +17,7 @@ Of course there are instances where this isn't practical (long function names ca
 
 ### Provide ongoing commentary with single-line comments
 Even though, in a perfect world, names would be self-documenting and code flow is easy to follow and understand, sometimes a bit of extra help is nice. Just a few single-line comments here and there, particularly during loops, will help keep the code maintainable, e.g.:
-```
+```java  
 //parse command line arguments for config parameters
 Debugger.i("Parsing command line arguments for config files...");
 List<File> configFiles = new ArrayList<>();
@@ -45,7 +45,7 @@ Apart from allowing for actual HTML javadoc generation, this is a good habit to 
 
 ### Group related statements, separate with whitespace
 Sometimes a function is just a massive series of simple statements, one after the other, with no control structures, loops, etc. Constructors of UI components are a good example of this. It can be very hard to follow logic and isolate issues when you wall of text; try wherever possible to separate statements with related purposes into groups using whitespace (and comments where necessary). For example:
-```
+```java  
 // buttons for creating incidents & locating users
 newIncidentButton = new JButton("New Incident");
 newIncidentButton.setIcon(newIncidentLogo);
@@ -60,7 +60,7 @@ locateOnMapButton.setBackground(Color.white);
 
 ### Inline for fun and profit
 Wherever possible, and where you can do so without significantly sacrificing readability, reduce a series of operations into one inline statement, e.g.:
-```
+```java  
 //this:
 Double accuracy = entry.getValue().get("accuracy") == null ? null : (Double)entry.getValue().get("accuracy");
 
@@ -77,7 +77,7 @@ If you plan to return to or improve something later, use a `//TODO:` comment; th
 
 ### Be conservative with Interface expansion  
 When implementing an interface, Ecplise will provide you with the option to automatically generate methods for all the signatures it declares. While this is very handy, it does mean your code can become bloated, e.g.:  
-``` 
+```java  
 @Override
 public void incidentArchived(Incident incident)
 {
@@ -91,7 +91,7 @@ public void incidentAssignedDevice(Incident incident, Device device)
 }
 ```
 Often times you'll only need one or two methods from an listener interface that may declare a great many of them (e.g. Swing's `WindowListener`). In this case, you should collapse the methods you do not intend to use down to single lines, and remove the `//TODO:` statements, like this:
-```
+```java  
 //WindowListener
 @Override public void windowOpened(WindowEvent e) { }
 @Override public void windowClosed(WindowEvent e) { }
