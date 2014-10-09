@@ -145,6 +145,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     @Override
     public void actionPerformed(ActionEvent e) 
     {
+    	//everything this button does requires the device to have a valid location
     	if (!device.getLocation().hasLatLong())
     		return;
     	

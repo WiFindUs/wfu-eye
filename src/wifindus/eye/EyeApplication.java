@@ -106,8 +106,11 @@ public abstract class EyeApplication extends JFrame
 		List<File> configFiles = new ArrayList<>();
 		for (int i = 0; i < args.length-1; i++)
 		{
+			//skip arguments that do not begin with a dash
 			if (!args[i].substring(0, 1).equals("-"))
 				continue;
+			
+			//find config file arguments
 			if (args[i].equalsIgnoreCase("-conf"))
 			{
 				configFiles.add(new File(args[++i]));

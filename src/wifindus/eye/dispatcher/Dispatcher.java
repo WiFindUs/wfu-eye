@@ -31,7 +31,12 @@ import wifindus.eye.Incident;
 import wifindus.eye.Location;
 import wifindus.eye.Node;
 
-
+/**
+ * A specialized form of {@link EyeApplication} that provides controls for
+ * a dispatch control center to monitor personnel state, create and respond
+ * to incidents, etc. 
+ * @author Mark 'marzer' Gillard, Hussein Al Hammad, Mitchell Templeton
+ */
 public class Dispatcher extends EyeApplication
 {
 	private static final long serialVersionUID = 12094147960785467L;
@@ -42,9 +47,7 @@ public class Dispatcher extends EyeApplication
 	private String sortType = "ID";
 	private ButtonGroup filterButtonGroup;
 	private JToggleButton allFilterButton, medicalFilterButton, securityFilterButton, techFilterButton;
-	
 
-	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
@@ -124,8 +127,6 @@ public class Dispatcher extends EyeApplication
 				
 			}
 		});
-		
-		
 		
 		// sort
 		String[] choices = { "ID", "First Name", "Last Name", "Availible First", "Currently Responding First", "Unused Devices First"};
@@ -211,8 +212,6 @@ public class Dispatcher extends EyeApplication
 	    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		int scrollbarWidth = devicePanelScroll.getWidth();
         
-        
-		
         /////////////////////////////////////////////////////////////////////
         // device control Panel: contains query and device panels
         /////////////////////////////////////////////////////////////////////
@@ -241,11 +240,9 @@ public class Dispatcher extends EyeApplication
         
         layout.setHorizontalGroup(horizontal);
         layout.setVerticalGroup(vertical);
-		
-		
+
 		incidentPanel = new JPanel();
         incidentPanel.setLayout(new BoxLayout(incidentPanel, BoxLayout.Y_AXIS));
-        
         
         JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -301,12 +298,9 @@ public class Dispatcher extends EyeApplication
 	// Node Created 
 	/////////////////////////////////////////////////////////////////////
 	@Override
-	public void nodeCreated(Node node, Location nodeLocation)
+	public void nodeCreated(Node node)
 	{
-		super.nodeCreated(node, nodeLocation);
-		
-		
-		
+		super.nodeCreated(node);
 		MapImagePanel.nodeCreated(node, nodeLocation);
 	}
 	
@@ -642,8 +636,6 @@ public class Dispatcher extends EyeApplication
 		    }
 		});
 	}
-	
-
 }
 
 

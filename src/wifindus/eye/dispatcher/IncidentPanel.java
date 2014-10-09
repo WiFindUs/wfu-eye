@@ -57,7 +57,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         layout.setAutoCreateContainerGaps(true);
         
         idLabel = new JLabel("Incident #" + incident.getID());
-        //JLabel incidentIcon = new JLabel(Incident.getIcon(incident.getType(), false));
         incidentIconButton = new JButton(Incident.getIcon(incident.getType(), false));
         incidentIconButton.setBorder(emptyBorder);
         incidentIconButton.setBackground(lightBlue);
@@ -144,7 +143,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         statusButton.setBorder(emptyBorder);
         statusButton.setMinimumSize(new Dimension(186,30));
         
-        
         /*
           The panel is divided into 4 columns and 2 main rows.
           
@@ -194,7 +192,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         columnRight.addGroup(timeRowSequential);
         columnRight.addComponent(codeButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         columnRight.addComponent(statusButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-        
         
         horizontal.addGroup(columnLeft);
         horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 30, 40);

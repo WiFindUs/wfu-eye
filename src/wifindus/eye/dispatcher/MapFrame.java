@@ -15,10 +15,9 @@ import javax.swing.JSplitPane;
 
 public class MapFrame extends JFrame implements ComponentListener, ActionListener
 {
-	MapImagePanel mp;
-	JSplitPane splitPane;
-	
-	JRadioButton grid;
+	private MapImagePanel mp;
+	private JSplitPane splitPane;
+	private JRadioButton grid;
 	
 	public MapFrame()
 	{
