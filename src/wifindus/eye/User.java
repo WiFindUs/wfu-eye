@@ -156,7 +156,7 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 	}
 	
 	@Override
-	public void update(MySQLResultRow resultRow)
+	public void updateFromMySQL(MySQLResultRow resultRow)
 	{
 		if (resultRow == null)
 			throw new NullPointerException("Parameter 'resultRow' cannot be null.");

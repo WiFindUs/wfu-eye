@@ -184,7 +184,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	}
 	
 	@Override
-	public void update(MySQLResultRow resultRow)
+	public void updateFromMySQL(MySQLResultRow resultRow)
 	{
 		if (resultRow == null)
 			throw new NullPointerException("Parameter 'resultRow' cannot be null.");

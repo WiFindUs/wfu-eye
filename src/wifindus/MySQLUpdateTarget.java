@@ -11,5 +11,5 @@ public interface MySQLUpdateTarget
 	 * Updates this object from database data.
 	 * @param resultRow A MySQLResultRow object containing up-to-date information about this object. 
 	 */
-	public void update(MySQLResultRow resultRow);
+	public void updateFromMySQL(MySQLResultRow resultRow);
 }

@@ -195,7 +195,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	}
 	
 	@Override
-	public final void update(MySQLResultRow resultRow)
+	public final void updateFromMySQL(MySQLResultRow resultRow)
 	{
 		if (resultRow == null)
 			throw new NullPointerException("Parameter 'resultRow' cannot be null.");

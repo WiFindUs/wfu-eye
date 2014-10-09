@@ -105,7 +105,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	}
 	
 	@Override
-	public void update(MySQLResultRow resultRow)
+	public void updateFromMySQL(MySQLResultRow resultRow)
 	{
 		if (resultRow == null)
 			throw new NullPointerException("Parameter 'resultRow' cannot be null.");

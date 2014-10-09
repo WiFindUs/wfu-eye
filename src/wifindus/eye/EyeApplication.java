@@ -615,7 +615,7 @@ public abstract class EyeApplication extends JFrame
 				user = new User(entry.getValue(), this);
 				users.put(id, user);
 			}
-			user.update(entry.getValue());
+			user.updateFromMySQL(entry.getValue());
 		}
 	}
 	
@@ -638,7 +638,7 @@ public abstract class EyeApplication extends JFrame
 				devices.put(hash, device);
 				incidentlessDevices.add(device);
 			}
-			device.update(entry.getValue());	
+			device.updateFromMySQL(entry.getValue());	
 			
 			//linked incident
 			Integer incidentKey = (Integer)(entry.getValue().get("respondingIncidentID"));
@@ -692,7 +692,7 @@ public abstract class EyeApplication extends JFrame
 				node = new Node(hash, this);
 				nodes.put(hash, node);
 			}
-			node.update(entry.getValue());	
+			node.updateFromMySQL(entry.getValue());	
 		}
 	}
 	
@@ -719,7 +719,7 @@ public abstract class EyeApplication extends JFrame
 					this);
 				incidents.put(id, incident);
 			}
-			incident.update(entry.getValue());
+			incident.updateFromMySQL(entry.getValue());
 		}
 	}
 }
