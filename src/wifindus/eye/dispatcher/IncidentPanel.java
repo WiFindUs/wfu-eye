@@ -45,7 +45,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 			throw new NullPointerException("Parameter 'incident' cannot be null.");
 		this.incident = incident;
     	
-		
 		//cosmetic properties
 		Color lightBlue = new Color(0xf6f9fc);
 		Color red = new Color(0xfd0b15);

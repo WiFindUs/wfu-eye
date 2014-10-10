@@ -23,6 +23,7 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
+import wifindus.DebuggerFrame;
 import wifindus.DebuggerPanel;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
@@ -38,12 +39,12 @@ public abstract class EyeApplication extends JFrame
 	//properties
 	private static final long serialVersionUID = -3410394016911856177L;
 	private transient static final Pattern PATTERN_VERBOSITY = Pattern.compile( "^-([0-4])$" );
+	private transient static final Pattern PATTERN_CONSOLE = Pattern.compile( "^-console?$", Pattern.CASE_INSENSITIVE);
 	private volatile ConfigFile config = null;
 	private transient volatile boolean abortThreads = false;
 	private transient volatile MySQLUpdateWorker mysqlWorker = null;
 	private transient EyeMySQLConnection mysql = new EyeMySQLConnection();
 	private transient static EyeApplication singleton;
-	private transient JPanel clientPanel = null;
 	private transient volatile CopyOnWriteArrayList<EyeApplicationListener> listeners = new CopyOnWriteArrayList<>();
 	//database structures
 	private transient volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
@@ -67,6 +68,7 @@ public abstract class EyeApplication extends JFrame
 	 * <li><code>-0 <em>to</em> -4</code>: specifies the minimum verbosity of {@link wifindus.Debugger} output,
 	 * from <code>Verbose (0)</code>, to <code>Exception (4)</code>.
 	 * If this parameter is omitted, -1 is assumed.</li>
+	 * <li><code>-console</code>: causes a debug console window to be spawned at launch.</li>
 	 * </ul>
 	 * @throws NullPointerException if <code>args</code> is null
 	 * @throws IllegalStateException if an existing EyeApplication instance exists.
@@ -89,20 +91,31 @@ public abstract class EyeApplication extends JFrame
 		
 		//check for debugger verbosity flags & start debugger
 		Debugger.Verbosity verbosity = Debugger.Verbosity.Information;
+		boolean spawnConsole = false;
 		for (int i = 0; i < args.length; i++)
 		{
 			Matcher match = PATTERN_VERBOSITY.matcher(args[i]);
-			if (!match.matches())
+			if (match.matches())
+			{
+				verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
 				continue;
-			verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
+			}
+			
+			match = PATTERN_CONSOLE.matcher(args[i]);
+			if (match.matches())
+			{
+				spawnConsole = true;
+				continue;
+			}
+			
 		}
-        JSplitPane sp = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-            	clientPanel = new JPanel(),
-            	new DebuggerPanel());
-        getContentPane().add(sp);
-        sp.setResizeWeight(0.85);
+		if (spawnConsole)
+		{
+			DebuggerFrame debuggerFrame = new DebuggerFrame();
+			debuggerFrame.setBounds(20, 20, 800, 300);
+			debuggerFrame.setVisible(true);
+		}
 		Debugger.open(verbosity);
-		clientPanel.setLayout(new GridLayout(1,1));
 		
 		//parse command line arguments for config parameters
 		Debugger.i("Parsing command line arguments for config files...");
@@ -533,15 +546,6 @@ public abstract class EyeApplication extends JFrame
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
-	
-	/**
-	 * Gets the client area panel made available for use in child applications. 
-	 * @return A JFrame object
-	 */
-	protected final JPanel getClientPanel()
-	{
-		return clientPanel;
-	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS

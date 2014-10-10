@@ -2,6 +2,7 @@ package wifindus.eye.dispatcher;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -61,10 +62,15 @@ public class Dispatcher extends EyeApplication
 	
 	public Dispatcher(String[] args)
 	{
+		//call parent ctor
 		super(args);
+		
+		//get parent content pane
+		Container contentPane = getContentPane();
+		contentPane.setLayout(new BorderLayout());
+		
 		deviceStack = new ArrayDeque<Device>();
-		getClientPanel().setLayout(new BoxLayout(getClientPanel(), BoxLayout.Y_AXIS));
-		getClientPanel().setBackground(Color.white);
+		contentPane.setBackground(Color.white);
 		menuPanel = new JPanel();
 		menuPanel.setBackground(Color.white);
 		menuPanel.setPreferredSize(new Dimension(800, 70));
@@ -254,10 +260,10 @@ public class Dispatcher extends EyeApplication
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         incidentPanel.setBackground(Color.WHITE);
         
-        getClientPanel().setLayout(new BorderLayout());
-        getClientPanel().add(menuPanel, BorderLayout.NORTH);
-        getClientPanel().add(deviceControlPanel, BorderLayout.WEST);
-        getClientPanel().add(incidentPanelScroll, BorderLayout.CENTER);
+        
+        contentPane.add(menuPanel, BorderLayout.NORTH);
+        contentPane.add(deviceControlPanel, BorderLayout.WEST);
+        contentPane.add(incidentPanelScroll, BorderLayout.CENTER);
 	}
 	
 	/////////////////////////////////////////////////////////////////////
