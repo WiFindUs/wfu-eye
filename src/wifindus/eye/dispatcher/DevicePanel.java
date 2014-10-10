@@ -7,6 +7,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
+import java.util.Comparator;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -42,6 +43,10 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     	ResourcePool.loadImage("wfu", "images/wfu.png");
     }
 
+	/////////////////////////////////////////////////////////////////////
+	// CONSTRUCTORS
+	/////////////////////////////////////////////////////////////////////
+    
     /**
      * Creates a new DevicePanel, binding it to a particular device and responding to its events.
      * @param device The Device to bind to.
@@ -137,6 +142,15 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
     
+    /**
+     * Gets the Device associated with this DevicePanel. 
+     * @return A reference to a Device object.
+     */
+    public final Device getDevice()
+    {
+    	return device;
+    }
+    
     // Listener for New Incident button 
     @Override
     public void actionPerformed(ActionEvent e) 
@@ -206,10 +220,109 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,
 			InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
+
+	public static final Comparator<DevicePanel> COMPARATOR_USER_ID = new Comparator<DevicePanel>()
+	{
+		@Override
+		public int compare(DevicePanel o1, DevicePanel o2)
+		{
+			int comparison = userComparatorCheck(o1,o2);
+			if (comparison >= -1)
+				return comparison;
+			return Integer.compare(o1.getDevice().getCurrentUser().getID(),o2.getDevice().getCurrentUser().getID());
+		}
+	};
 	
+	public static final Comparator<DevicePanel> COMPARATOR_USER_NAME_FIRST = new Comparator<DevicePanel>()
+	{
+		@Override
+		public int compare(DevicePanel o1, DevicePanel o2)
+		{
+			int comparison = userComparatorCheck(o1,o2);
+			if (comparison >= -1)
+				return comparison;
+			return o1.getDevice().getCurrentUser().getNameFirst().compareTo(o2.getDevice().getCurrentUser().getNameFirst());
+		}
+	};
+	
+	public static final Comparator<DevicePanel> COMPARATOR_USER_NAME_LAST = new Comparator<DevicePanel>()
+	{
+		@Override
+		public int compare(DevicePanel o1, DevicePanel o2)
+		{
+			int comparison = userComparatorCheck(o1,o2);
+			if (comparison >= -1)
+				return comparison;
+			return o1.getDevice().getCurrentUser().getNameLast().compareTo(o2.getDevice().getCurrentUser().getNameLast());
+		}
+	};
+	
+	public static final Comparator<DevicePanel> COMPARATOR_ASSIGNED_FIRST = new Comparator<DevicePanel>()
+	{
+		@Override
+		public int compare(DevicePanel o1, DevicePanel o2)
+		{
+			int comparison = userComparatorCheck(o1,o2);
+			if (comparison >= -1)
+				return comparison;
+
+			Incident i1 = o1.getDevice().getCurrentIncident();
+			Incident i2 = o2.getDevice().getCurrentIncident();
+			if (i1 == i2)
+				return 0;
+			if (i1 == null)
+				return 1;
+			if (i2 == null)
+				return -1;	
+			return Integer.compare(i1.getID(), i2.getID());
+		}
+	};
+	
+	public static final Comparator<DevicePanel> COMPARATOR_UNASSIGNED_FIRST = new Comparator<DevicePanel>()
+	{
+		@Override
+		public int compare(DevicePanel o1, DevicePanel o2)
+		{
+			int comparison = userComparatorCheck(o1,o2);
+			if (comparison >= -1)
+				return comparison;
+
+			Incident i1 = o1.getDevice().getCurrentIncident();
+			Incident i2 = o2.getDevice().getCurrentIncident();
+			if (i1 == i2)
+				return 0;
+			if (i1 == null)
+				return -1;
+			if (i2 == null)
+				return 1;	
+			return Integer.compare(i1.getID(), i2.getID());
+		}
+	};
+
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	private static final int userComparatorCheck(DevicePanel o1, DevicePanel o2)
+	{
+		if (o1 == o2)
+			return 0;
+		if (o1 == null)
+			return 1;
+		if (o2 == null)
+			return -1;	
+		
+		User u1 = o1.getDevice().getCurrentUser();
+		User u2 = o2.getDevice().getCurrentUser();
+		if (u1 == u2)
+			return 0;
+		if (u1 == null)
+			return 1;
+		if (u2 == null)
+			return -1;
+		
+		return -1000;		
+	}
 	
 	private void updateLabelState()
 	{
