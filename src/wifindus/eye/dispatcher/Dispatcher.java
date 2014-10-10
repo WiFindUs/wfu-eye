@@ -8,6 +8,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.Map;
 import java.util.TreeMap;
@@ -41,13 +43,18 @@ import wifindus.eye.Node;
 public class Dispatcher extends EyeApplication
 {
 	private static final long serialVersionUID = 12094147960785467L;
-	private JPanel menuPanel, queryPanel, incidentPanel, devicePanel;
-	//ArrayList<Device> deviceList;
-	private Deque<Device> deviceStack;
-	private final JComboBox<String> sortComboBox;
-	private String sortType = "ID";
-	private ButtonGroup filterButtonGroup;
-	private JToggleButton allFilterButton, medicalFilterButton, securityFilterButton, techFilterButton;
+	private static final String[] sortModes = {
+		"ID",
+		"First Name",
+		"Last Name",
+		"Available First",
+		"Currently Responding First",
+		"Unused Devices First"
+	};
+	private transient JPanel menuPanel, queryPanel, incidentPanel, devicePanel;
+	private transient JComboBox<String> sortComboBox;
+	private transient ButtonGroup filterButtonGroup;
+	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
 	
     static
     {
@@ -69,13 +76,12 @@ public class Dispatcher extends EyeApplication
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
 		
-		deviceStack = new ArrayDeque<Device>();
 		contentPane.setBackground(Color.white);
 		menuPanel = new JPanel();
 		menuPanel.setBackground(Color.white);
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
-		ItemListener listener = new itemListener(); 
+		//ItemListener listener = new itemListener(); 
 		MapFrame map = new MapFrame();
 		map.setVisible(true);
 		
@@ -94,20 +100,28 @@ public class Dispatcher extends EyeApplication
         queryPanelLayout.setAutoCreateContainerGaps(true);
 		
         filterButtonGroup = new ButtonGroup();
-        allFilterButton = new JToggleButton("All");
-        medicalFilterButton = new JToggleButton(ResourcePool.getIcon("medical_small"));
-        securityFilterButton = new JToggleButton(ResourcePool.getIcon("security_small"));
-        techFilterButton = new JToggleButton(ResourcePool.getIcon("wfu_small"));
+        JToggleButton allFilterButton = new JToggleButton("All");
+        JToggleButton medicalFilterButton = new JToggleButton(ResourcePool.getIcon("medical_small"));
+        JToggleButton securityFilterButton = new JToggleButton(ResourcePool.getIcon("security_small"));
+        JToggleButton techFilterButton = new JToggleButton(ResourcePool.getIcon("wfu_small"));
         
         allFilterButton.setActionCommand("All");
         medicalFilterButton.setActionCommand("Medical");
         securityFilterButton.setActionCommand("Security");
         techFilterButton.setActionCommand("WiFindUs");
         
-        allFilterButton.addItemListener(listener);
-        medicalFilterButton.addItemListener(listener);
-        securityFilterButton.addItemListener(listener);
-        techFilterButton.addItemListener(listener);
+        ItemListener filterButtonListener = new ItemListener()
+		{
+			@Override
+			public void itemStateChanged(ItemEvent e)
+			{
+				updateDeviceFilter();
+			}
+		};
+        allFilterButton.addItemListener(filterButtonListener);
+        medicalFilterButton.addItemListener(filterButtonListener);
+        securityFilterButton.addItemListener(filterButtonListener);
+        techFilterButton.addItemListener(filterButtonListener);
         
         filterButtonGroup.add(allFilterButton);
         filterButtonGroup.add(medicalFilterButton);
@@ -116,49 +130,43 @@ public class Dispatcher extends EyeApplication
         filterButtonGroup.getSelection();
         allFilterButton.setSelected(true);
         
-        JLabel sortLabel = new JLabel("Sort by:");
-        JLabel searchLabel = new JLabel("Search:");
-        
-        
-		
 		// search
+        JLabel searchLabel = new JLabel("Search:");
 		final JTextField search = new JTextField();		 
 		search.getDocument().addDocumentListener(new DocumentListener() 
 		{
 			@Override
 			public void changedUpdate(DocumentEvent arg0) {
-				searchName(search.getText());
+				//searchName(search.getText());
+				updateDeviceFilter();
+				devicePanel.revalidate();
 			}
 			@Override
 			public void insertUpdate(DocumentEvent arg0) {
-				searchName(search.getText());
+				//searchName(search.getText());
 			}
 			@Override
 			public void removeUpdate(DocumentEvent arg0) {
-				searchName(search.getText());
+				//searchName(search.getText());
 				
 			}
 		});
 		
 		// sort
-		String[] choices = { "ID", "First Name", "Last Name", "Availible First", "Currently Responding First", "Unused Devices First"};
-		sortComboBox = new JComboBox<String>(choices);
+		JLabel sortLabel = new JLabel("Sort by:");
+		sortComboBox = new JComboBox<String>(sortModes);
 		sortComboBox.setVisible(true);
 		sortComboBox.setSelectedIndex(0);
-		sortComboBox.addItemListener(listener);
-		
-		/*sortComboBox.addActionListener (new ActionListener () 
+		sortComboBox.addItemListener(new ItemListener()
 		{
-		    public void actionPerformed(ActionEvent e) 
-		    {
-		    	sortType = sortComboBox.getSelectedItem().toString();
-		    	if(!deviceStack.isEmpty())
-		    	{
-		    		updateDevicePanel(sortFromMenu(sortType, deviceStack));
-		    	}
-		    }
-		});*/
-				
+			@Override
+			public void itemStateChanged(ItemEvent e)
+			{
+				updateDeviceSort();
+				devicePanel.revalidate();
+			}
+		});
+		
 		sortComboBox.setMaximumSize(new Dimension(295,25));
 		sortComboBox.setMinimumSize(new Dimension(295,25));
         search.setMaximumSize(new Dimension(295,25));
@@ -209,11 +217,8 @@ public class Dispatcher extends EyeApplication
         queryPanelLayoutVertical.addGroup(rowSortParallel);
         queryPanelLayoutVertical.addGroup(rowSearchParallel);
         
-        
         queryPanelLayout.setHorizontalGroup(queryPanelLayoutHorizontal);
         queryPanelLayout.setVerticalGroup(queryPanelLayoutVertical);
-        
-        
         
         /////////////////////////////////////////////////////////////////////
         // device Panel
@@ -239,27 +244,22 @@ public class Dispatcher extends EyeApplication
 		
 		//deviceControlPanel horizontal
         GroupLayout.ParallelGroup column = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
-		
         column.addComponent(queryPanel);
         column.addComponent(devicePanelScroll);
-        
         horizontal.addGroup(column);
+        layout.setHorizontalGroup(horizontal);
         
         //deviceControlPanel vertical
         vertical.addComponent(queryPanel);
         vertical.addComponent(devicePanelScroll);
-        
-        
-        layout.setHorizontalGroup(horizontal);
         layout.setVerticalGroup(vertical);
-
+        
 		incidentPanel = new JPanel();
         incidentPanel.setLayout(new BoxLayout(incidentPanel, BoxLayout.Y_AXIS));
         
         JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         incidentPanel.setBackground(Color.WHITE);
-        
         
         contentPane.add(menuPanel, BorderLayout.NORTH);
         contentPane.add(deviceControlPanel, BorderLayout.WEST);
@@ -270,45 +270,25 @@ public class Dispatcher extends EyeApplication
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	/////////////////////////////////////////////////////////////////////
-	// Create a new device 
-	/////////////////////////////////////////////////////////////////////
 	@Override
 	public void deviceCreated(Device device)
 	{
 		super.deviceCreated(device);
-		devicePanel.add(new DevicePanel(device));
-		deviceStack.push(device);
+		devicePanels.add(new DevicePanel(device));
+		updateDeviceSort();
+		updateDeviceFilter();
 		devicePanel.revalidate();
-		sort(deviceStack);
 	}
 	
 	@Override
 	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
 	{
-		super.deviceCreated(device);
+		super.deviceLocationChanged(device, oldLocation, newLocation);
 		//Update Location on the map
 		MapImagePanel.deviceLocationChanged( device,  oldLocation,  newLocation);
 		
 	}
-	/*
-	@Override
-	public void nodeLocationChanged(Node node, Location nodeLocation)
-	{
-		super.nodeCreated(node, nodeLocation);
-		//Update Location on the map
-		MapImagePanel.nodeCreated(node);
-		
-	}
-	
-*/
-	
-	/////////////////////////////////////////////////////////////////////
-	// Node Created 
-	/////////////////////////////////////////////////////////////////////
+
 	@Override
 	public void nodeCreated(Node node)
 	{
@@ -316,8 +296,6 @@ public class Dispatcher extends EyeApplication
 		//TODO: refactor MapImagePanel to use EyeApplicationListener instead of doing this
 		MapImagePanel.nodeCreated(node);
 	}
-	
-	
 	
 	@Override 
 	public void incidentAssignedDevice(Incident incident, Device device) 
@@ -327,8 +305,6 @@ public class Dispatcher extends EyeApplication
 		MapImagePanel.incidentCreated(incident, device); 
 	}
 	
-	
-	
 	@Override
 	public void incidentCreated(Incident incident)
 	{
@@ -337,11 +313,8 @@ public class Dispatcher extends EyeApplication
 		incidentPanel.revalidate();
 	}
 	
-	
-	/////////////////////////////////////////////////////////////////////
-	// Search
-	/////////////////////////////////////////////////////////////////////
-	//TODO: re-write search method to filter based on visiblity, rather than destroying and recreating
+		//TODO: re-write search method to filter based on visiblity, rather than destroying and recreating
+	/*
 	public void searchName(String searchText)
 	{
 		devicePanel.removeAll();
@@ -366,275 +339,44 @@ public class Dispatcher extends EyeApplication
 		Debugger.i("Users searched by text.");
 	}
 	
-	
-	
-	//TODO: re-write sort method to filter based on visiblity, rather than destroying and recreating
-	public Deque<Device> sortFromMenu(String sortType, Deque<Device> stack)
-	{
-		devicePanel.removeAll();
-		Deque<Device> sortedDeviceStack  = new ArrayDeque<Device>();
-		
-		
-		if(sortType == "ID")
-		{
-				Map<Integer, Device> sortedID = new TreeMap<Integer, Device>();
-				
-				//add records without names
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() == null)
-						sortedDeviceStack.push(obj);
-				}
-				
-				//add records with names
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() != null)
-					{
-						sortedID.put(obj.getCurrentUser().getID() , obj);
-					}
-				}
-			
-				//put sorted tree map into an array list
-				ArrayList<Device> reversedDeviceList = new ArrayList<Device>();
-				for(Map.Entry<Integer,Device> entry : sortedID.entrySet()) 
-				{
-					  Device device = entry.getValue();
-					  reversedDeviceList.add(device);
-				}
-				
-				for (int i = reversedDeviceList.size()-1; i >= 0; i--)
-				{
-					sortedDeviceStack.push(reversedDeviceList.get(i));
-				}
-					
-				Debugger.i("Users sorted by ID.");
-			}
-			
-		
-		
-			if(sortType == "Availible First")
-			{
-		
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() == null)
-						sortedDeviceStack.push(obj);
-				}
-		
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
-						sortedDeviceStack.push(obj);
-				}
-		
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
-						sortedDeviceStack.push(obj);
-				}
-		
-				
-				Debugger.i("Users sorted by Available First.");
-			}
-			
-			
-			
-
-			if(sortType == "Currently Responding First")
-			{
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() == null)
-						sortedDeviceStack.push(obj);
-				}
-				
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
-						sortedDeviceStack.push(obj);
-				}
-		
-		
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
-						sortedDeviceStack.push(obj);
-				}
-						
-				
-				Debugger.i("Users sorted by Currently Responding First.");
-			}
-			
-			
-			if(sortType == "Unused Devices First")
-			{
-				
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentIncident() != null && obj.getCurrentUser() != null)
-						sortedDeviceStack.push(obj);
-				}
-				
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentIncident() == null && obj.getCurrentUser() != null)
-						sortedDeviceStack.push(obj);
-				}
-				
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() == null)
-						sortedDeviceStack.push(obj);
-				}
-			
-				
-				Debugger.i("Users sorted by Unused Devices First.");
-			}
-			
-			// sort by first name
-			if(sortType == "First Name" || sortType == "Last Name")
-			{
-				Map<String, Device> sortedNames = new TreeMap<String, Device>();
-				
-				//add records without names
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() == null)
-						sortedDeviceStack.push(obj);
-				}
-				
-				//add records with names
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser() != null)
-					{
-						sortedNames.put(obj.getCurrentUser().getNameFull() , obj);
-					}
-				}
-			
-				//put sorted tree map into an array list
-				ArrayList<Device> reversedDeviceList = new ArrayList<Device>();
-				for(Map.Entry<String,Device> entry : sortedNames.entrySet()) 
-				{
-					  Device device = entry.getValue();
-					  reversedDeviceList.add(device);
-				}
-					// sort by first name
-					if(sortType == "First Name")
-					{
-						for (int i = reversedDeviceList.size()-1; i >= 0; i--)
-						{
-							sortedDeviceStack.push(reversedDeviceList.get(i));
-						}
-						Debugger.i("Users sorted by First Name.");
-					}
-					// sort by last name
-					else
-					{
-						for (int i = 0; i < reversedDeviceList.size(); i++)
-						{
-							sortedDeviceStack.push(reversedDeviceList.get(i));
-						}
-						Debugger.i("Users sorted by Last Name.");
-					}
-			}
-			
-			return sortedDeviceStack;
-		}
-	
-	
-	
-		public Deque<Device> sortByUserType(String type, Deque<Device> stack)
-		{
-			devicePanel.removeAll();
-			Deque<Device> sortedDeviceStack  = new ArrayDeque<Device>();
-			
-			if(type == "Medical")
-			{
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser()!=null && obj.getCurrentUser().getType().toString().equals("Medical"))
-					{
-						sortedDeviceStack.push(obj);
-						Debugger.i("Type: "+obj.getCurrentUser().getType().toString());
-					}
-				}
-				Debugger.i("Users sorted by Medical type.");
-			}
-			
-			if(type == "Security")
-			{
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser()!=null && obj.getCurrentUser().getType().toString().equals("Security"))
-					{
-						sortedDeviceStack.push(obj);
-						Debugger.i("Type: "+obj.getCurrentUser().getType().toString());
-					}
-				}
-				Debugger.i("Users sorted by Security type.");
-			}
-			
-			if(type == "WiFindUs")
-			{
-				for(Device obj : stack)
-				{
-					if(obj.getCurrentUser()!=null && obj.getCurrentUser().getType().toString().equals("WiFindUs"))
-					{
-						sortedDeviceStack.push(obj);
-						Debugger.i("Type: "+obj.getCurrentUser().getType().toString());
-					}
-				}
-				Debugger.i("Users sorted by Wifindus/Tech type.");
-			}
-			
-			if(type == "All")
-			{
-				sortedDeviceStack = stack;
-				Debugger.i("Users sorted by no type (all).");
-			}
-			
-			return sortedDeviceStack;
-		}
-		
-		
-		public void sort(Deque<Device> stack){
-			String userType = filterButtonGroup.getSelection().getActionCommand();
-			String sortCriteria = sortComboBox.getSelectedItem().toString();
-			Deque<Device> sortedStack  = new ArrayDeque<Device>();
-			sortedStack = sortByUserType(userType, stack);
-			sortedStack = sortFromMenu(sortCriteria, sortedStack);
-			updateDevicePanel(sortedStack);
-		}
-		
-		public void updateDevicePanel(Deque<Device> stack){
-			devicePanel.removeAll();
-			for(Device obj : stack)
-			{
-				devicePanel.add(new DevicePanel(obj));
-			}
-			devicePanel.revalidate();
-		}
-	
-		
-	class itemListener implements ItemListener{
-	      public void itemStateChanged(ItemEvent e) {
-	    	  if(!deviceStack.isEmpty())
-	    	  {
-	    		  sort(deviceStack);
-	    	  }
-	      }
-	   }	
-		
-		
-	
+	*/
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
+
+	private void updateDeviceSort()
+	{
+		int selectionIndex = sortComboBox.getSelectedIndex();
+		if (selectionIndex == -1)
+			return;
+
+		Comparator<DevicePanel> comparator = null;
+		boolean reverse = false;
+		switch (selectionIndex)
+		{
+			case 0: comparator = DevicePanel.COMPARATOR_USER_ID; break;
+			case 1: comparator = DevicePanel.COMPARATOR_USER_NAME_FIRST; break;
+			case 2: comparator = DevicePanel.COMPARATOR_USER_NAME_LAST; break;
+			case 3: comparator = DevicePanel.COMPARATOR_UNASSIGNED_FIRST; break;
+			case 4: comparator = DevicePanel.COMPARATOR_ASSIGNED_FIRST; break;
+			case 5: comparator = DevicePanel.COMPARATOR_USER_ID; reverse = true; break;
+		}
+		Collections.sort(devicePanels, comparator);
+		devicePanel.removeAll();
+		int i = reverse ? devicePanels.size()-1 : 0;
+		while (reverse ? i >= 0 : i < devicePanels.size())
+		{
+			devicePanel.add(devicePanels.get(i));			
+			i = reverse ? i-1 : i+1;
+		}
+		
+	}
 	
-	
+	private void updateDeviceFilter()
+	{
+
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// MAIN - DO NOT MODIFY
