@@ -6,13 +6,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -26,13 +22,13 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import wifindus.Debugger;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
 import wifindus.eye.Node;
+import wifindus.eye.User;
 
 /**
  * A specialized form of {@link EyeApplication} that provides controls for
@@ -55,6 +51,7 @@ public class Dispatcher extends EyeApplication
 	private transient JComboBox<String> sortComboBox;
 	private transient ButtonGroup filterButtonGroup;
 	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
+	private transient JTextField searchTextField;
 	
     static
     {
@@ -132,25 +129,27 @@ public class Dispatcher extends EyeApplication
         
 		// search
         JLabel searchLabel = new JLabel("Search:");
-		final JTextField search = new JTextField();		 
-		search.getDocument().addDocumentListener(new DocumentListener() 
-		{
-			@Override
-			public void changedUpdate(DocumentEvent arg0) {
-				//searchName(search.getText());
-				updateDeviceFilter();
-				devicePanel.revalidate();
-			}
-			@Override
-			public void insertUpdate(DocumentEvent arg0) {
-				//searchName(search.getText());
-			}
-			@Override
-			public void removeUpdate(DocumentEvent arg0) {
-				//searchName(search.getText());
-				
-			}
-		});
+        (searchTextField = new JTextField()).getDocument()
+        	.addDocumentListener(new DocumentListener() 
+			{
+				@Override
+				public void changedUpdate(DocumentEvent arg0)
+				{
+
+				}
+				@Override
+				public void insertUpdate(DocumentEvent arg0)
+				{
+					updateDeviceFilter();
+					devicePanel.revalidate();
+				}
+				@Override
+				public void removeUpdate(DocumentEvent arg0)
+				{
+					updateDeviceFilter();
+					devicePanel.revalidate();
+				}
+			});
 		
 		// sort
 		JLabel sortLabel = new JLabel("Sort by:");
@@ -169,8 +168,8 @@ public class Dispatcher extends EyeApplication
 		
 		sortComboBox.setMaximumSize(new Dimension(295,25));
 		sortComboBox.setMinimumSize(new Dimension(295,25));
-        search.setMaximumSize(new Dimension(295,25));
-        search.setMinimumSize(new Dimension(295,25));
+		searchTextField.setMaximumSize(new Dimension(295,25));
+		searchTextField.setMinimumSize(new Dimension(295,25));
 		
 		//queryPanelLayoutHorizontal
         GroupLayout.ParallelGroup queryColumn = queryPanelLayout.createParallelGroup(GroupLayout.Alignment.CENTER);
@@ -187,7 +186,7 @@ public class Dispatcher extends EyeApplication
         columnLabels.addComponent(sortLabel);
         columnLabels.addComponent(searchLabel);
         columnSortSearch.addComponent(sortComboBox);
-        columnSortSearch.addComponent(search);
+        columnSortSearch.addComponent(searchTextField);
         
         rowBottom.addGroup(columnLabels);
         rowBottom.addGroup(columnSortSearch);
@@ -211,7 +210,7 @@ public class Dispatcher extends EyeApplication
         rowSortParallel.addComponent(sortComboBox);
         
         rowSearchParallel.addComponent(searchLabel);
-        rowSearchParallel.addComponent(search);
+        rowSearchParallel.addComponent(searchTextField);
         
         queryPanelLayoutVertical.addGroup(rowButtonsParallel);
         queryPanelLayoutVertical.addGroup(rowSortParallel);
@@ -312,35 +311,7 @@ public class Dispatcher extends EyeApplication
 		incidentPanel.add(new IncidentPanel(incident));
 		incidentPanel.revalidate();
 	}
-	
-		//TODO: re-write search method to filter based on visiblity, rather than destroying and recreating
-	/*
-	public void searchName(String searchText)
-	{
-		devicePanel.removeAll();
 
-		Deque<Device> searchedDeviceStack  = new ArrayDeque<Device>();
-
-		for(Device obj : deviceStack)
-		{
-			if(obj.getCurrentUser() != null)
-			{
-				if(obj.getCurrentUser().getNameFull().toLowerCase().contains(searchText.toLowerCase()))
-					searchedDeviceStack.push(obj);
-			}
-		}
-			
-		for(Device obj : searchedDeviceStack)
-		{
-			devicePanel.add(new DevicePanel(obj));
-		}
-		devicePanel.revalidate();
-		
-		Debugger.i("Users searched by text.");
-	}
-	
-	*/
-	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -375,7 +346,26 @@ public class Dispatcher extends EyeApplication
 	
 	private void updateDeviceFilter()
 	{
-
+		String search;
+		try
+		{
+			search = searchTextField.getText().trim().toLowerCase();
+		}
+		catch (Exception e)
+		{
+			search = "";
+		}
+		String groupFilter = filterButtonGroup.getSelection().getActionCommand();
+		for (int i = 0; i < devicePanels.size(); i++)
+		{
+			DevicePanel panel = devicePanels.get(i);
+			Device device = panel.getDevice();
+			User user = device.getCurrentUser();
+			boolean visible = (groupFilter.equalsIgnoreCase("All") || (user != null && user.getType().toString().equalsIgnoreCase(groupFilter)))
+				&& (search.isEmpty() || (user != null && user.getNameFull().toLowerCase().contains(search)));
+			if (panel.isVisible() != visible)
+				panel.setVisible(visible);
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////
