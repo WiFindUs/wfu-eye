@@ -260,7 +260,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	@Override
 	public String toString()
 	{
-		return "Device[\""+getHash()+"\"]";
+		return currentUser == null ? "Device[\""+getHash()+"\"]" : currentUser.getNameFull();
 	}
 	
 	/**
