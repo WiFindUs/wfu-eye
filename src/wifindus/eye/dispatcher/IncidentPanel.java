@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -13,6 +14,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
+import javax.swing.ListModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import wifindus.ResourcePool;
@@ -26,7 +28,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
     private transient Incident incident = null;
     private transient JLabel incidentTime, idLabel, onTaskLabel;
     private transient JButton locateOnMap, addRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
-	private transient JList onTaskList;
+	private transient JList<Device> onTaskList;
+	private transient DefaultListModel<Device> onTaskListModel;
 	
     static
     {
@@ -96,18 +99,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         
         onTaskLabel = new JLabel ("On Task:");
         onTaskLabel.setFont(font);
-        String	testList[] =
-    		{
-    			"Mark Gillard",
-    			"Mitchell Templeton",
-    			"Peter Griffin",
-    			"Chandler Muriel Bing",
-    			"Adam West",
-    			"Random Name",
-    			"Joseph Francis Tribbiani ",
-    			"Hussein Al Hammad"
-    		};
-        onTaskList = new JList(testList);
+        onTaskList = new JList<Device>(onTaskListModel = new DefaultListModel<Device>());
         JScrollPane onTaskListScroll = new JScrollPane(onTaskList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         onTaskListScroll.setPreferredSize(new Dimension(200,70));
@@ -235,19 +227,21 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 	@Override
 	public void incidentArchived(Incident incident)
 	{
-		
+		onTaskListModel.clear();
 	}
 	
 	@Override
 	public void incidentAssignedDevice(Incident incident, Device device)
 	{
-		
+		if (device != null && !onTaskListModel.contains(device))
+			onTaskListModel.addElement(device);
 	}
 	
 	@Override
 	public void incidentUnassignedDevice(Incident incident, Device device)
 	{
-		
+		if (device != null && onTaskListModel.contains(device))
+			onTaskListModel.removeElement(device);
 	}
 	
 	/////////////////////////////////////////////////////////////////////
