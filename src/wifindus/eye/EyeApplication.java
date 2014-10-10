@@ -1,7 +1,6 @@
 package wifindus.eye;
 
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -18,13 +17,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.DebuggerFrame;
-import wifindus.DebuggerPanel;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
 
