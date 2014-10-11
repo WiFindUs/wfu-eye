@@ -159,6 +159,8 @@ public abstract class EyeApplication extends JFrame
 		config.defaultDouble("map.longitude_start", 138.576943);
 		config.defaultDouble("map.latitude_end", -34.919506);
 		config.defaultDouble("map.longitude_end", 138.593057);
+		config.defaultInt("map.grid_rows", 10);
+		config.defaultInt("map.grid_columns", 10);
 		//output config
 		Debugger.v("Parsed configuration: " + config);
 		
@@ -208,6 +210,50 @@ public abstract class EyeApplication extends JFrame
 	public final ConfigFile getConfig()
 	{
 		return config;		
+	}
+	
+	/**
+	 * Gets a list of all Devices.
+	 * @return An ArrayList containing all Devices.
+	 * Since the backing collection is a mutable structure, the returned list is a clone,
+	 * and thus calling any mutators will have no effect on the backing collection data.
+	 */
+	public final ArrayList<Device> getDevices()
+	{
+		return new ArrayList<Device>(devices.values());
+	}
+	
+	/**
+	 * Gets a list of all Incidents.
+	 * @return An ArrayList containing all Incidents.
+	 * Since the backing collection is a mutable structure, the returned list is a clone,
+	 * and thus calling any mutators will have no effect on the backing collection data.
+	 */
+	public final ArrayList<Incident> getIncidents()
+	{
+		return new ArrayList<Incident>(incidents.values());
+	}
+	
+	/**
+	 * Gets a list of all Nodes.
+	 * @return An ArrayList containing all Nodes.
+	 * Since the backing collection is a mutable structure, the returned list is a clone,
+	 * and thus calling any mutators will have no effect on the backing collection data.
+	 */
+	public final ArrayList<Node> getNodes()
+	{
+		return new ArrayList<Node>(nodes.values());
+	}
+	
+	/**
+	 * Gets a list of all Users.
+	 * @return An ArrayList containing all Users.
+	 * Since the backing collection is a mutable structure, the returned list is a clone,
+	 * and thus calling any mutators will have no effect on the backing collection data.
+	 */
+	public final ArrayList<User> getUsers()
+	{
+		return new ArrayList<User>(users.values());
 	}
 	
 	//WindowListener
