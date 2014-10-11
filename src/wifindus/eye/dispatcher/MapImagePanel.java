@@ -358,10 +358,10 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     		paintGrid(g, targetArea);
     	if (drawNodes)
     		paintNodes(g, targetArea, markerScale);
-    	if (drawIncidents)
-    		paintIncidents(g, targetArea, markerScale);
     	if (drawDevices)
     		paintDevices(g, targetArea, markerScale);
+    	if (drawIncidents)
+    		paintIncidents(g, targetArea, markerScale);
     }
     
     protected void paintMapImage(Graphics g, Rectangle targetArea)
@@ -487,21 +487,21 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     //quick check to see if it's worth firing a repaint()
     private final void repaintNodes()
     {
-		if (drawNodes && nodes.size() > 0)
+		if (/*drawNodes &&*/ nodes.size() > 0)
 			repaint();
     }
 
     //quick check to see if it's worth firing a repaint()
     private final void repaintIncidents()
     {
-		if (drawIncidents && incidents.size() > 0)
+		if (/*drawIncidents &&*/ incidents.size() > 0)
 			repaint();
     }
     
     //quick check to see if it's worth firing a repaint()
     private final void repaintDevices()
     {
-		if (drawDevices && devices.size() > 0
+    	if (/*drawDevices &&*/ devices.size() > 0
 			&& (drawAssignedDevices || drawUnassignedDevices))
 			repaint();
     }
