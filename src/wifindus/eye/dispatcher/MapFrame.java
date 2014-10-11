@@ -3,121 +3,66 @@ package wifindus.eye.dispatcher;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
 
-
-public class MapFrame extends JFrame implements ComponentListener, ActionListener
+public class MapFrame extends JFrame implements ActionListener
 {
-	private MapImagePanel mp;
 	private JSplitPane splitPane;
-	private JRadioButton grid;
-	
+	private JCheckBox drawGrid, drawIncidents, drawNodes, drawDevices;
+	private MapImagePanel mapImagePanel;
+
 	public MapFrame()
 	{
-		
-		JPanel mapControls = new JPanel();
-		mapControls.setLayout(new BoxLayout(mapControls, BoxLayout.Y_AXIS));
-		
-		 grid = new JRadioButton("Grid");
-		JRadioButton incidents = new JRadioButton("Incidents");
-		JRadioButton allPeople = new JRadioButton("All People");
-		JCheckBox onlyAvailible = new JCheckBox("Only Availible");
-		JCheckBox onlyUnavailible = new JCheckBox("Only Unavailible");
-		JCheckBox medical = new JCheckBox("Medical");
-		JCheckBox security = new JCheckBox("Security");
-		JCheckBox wfuPersonnel = new JCheckBox("WFU Personnel");
-		JRadioButton nodes = new JRadioButton("Nodes");
-		
-		grid.addActionListener(this);
-		
-		mapControls.add(grid);
-		mapControls.add(incidents);
-		mapControls.add(allPeople);
-		mapControls.add(onlyAvailible);
-		mapControls.add(onlyUnavailible);
-		mapControls.add(medical);
-		mapControls.add(security);
-		mapControls.add(wfuPersonnel);
-		mapControls.add(nodes);
-		
-		addComponentListener(this);
-		
-		JPanel mapPanel = new JPanel();
-		mapPanel.setLayout(new BoxLayout(mapPanel, BoxLayout.X_AXIS));
-		
+		//frame properties
 		setMinimumSize(new Dimension(400,400));
 		
-		 mp = new MapImagePanel();
-	 
-		mapPanel.add(mp);
-		mapPanel.add(mapControls);
-	
+		//left panel - map		
+		JPanel mapPanel = new JPanel();
+		mapPanel.setLayout(new BoxLayout(mapPanel, BoxLayout.X_AXIS));
+		mapPanel.add(mapImagePanel = new MapImagePanel());
 		
-		 splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,mp, mapControls);
-		
-		
+		//right panel - map controls
+		(drawGrid = new JCheckBox("Grid")).addActionListener(this);
+		drawGrid.setSelected(true);
+		(drawIncidents = new JCheckBox("Incidents")).addActionListener(this);
+		drawIncidents.setSelected(true);
+		(drawNodes = new JCheckBox("Nodes")).addActionListener(this);
+		drawNodes.setSelected(true);
+		(drawDevices = new JCheckBox("Devices/Users")).addActionListener(this);
+		drawDevices.setSelected(true);
+		JPanel mapControls = new JPanel();
+		mapControls.setLayout(new BoxLayout(mapControls, BoxLayout.Y_AXIS));
+		mapControls.add(drawGrid);
+		mapControls.add(drawIncidents);
+		mapControls.add(drawNodes);
+		mapControls.add(drawDevices);
+
+		//outer splitter
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, mapControls);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(300);
 
-		//Provide minimum sizes for the two components in the split pane
-		double minSplitSize = getWidth() * 0.80;
-		
-		Dimension minimumSize = new Dimension((int)minSplitSize, 50);
-		mp.setMinimumSize(minimumSize);
-		
-		
-		
 		add(splitPane);
 	}
-	
-	public MapImagePanel getMapPanel()
-	{
-		return mp;
-	}
-
-	@Override
-	public void componentResized(ComponentEvent arg0)
-	{
-		double minSplitSize = getWidth() * 0.75;
-		Dimension minimumSize = new Dimension((int)minSplitSize, 50);
-		splitPane.setDividerLocation((int)minSplitSize);
-		mp.setMinimumSize(minimumSize);
-		
-	}
-	
-	@Override public void componentHidden(ComponentEvent arg0) { }
-	@Override public void componentMoved(ComponentEvent arg0) { }
-	@Override public void componentShown(ComponentEvent arg0) { }
-	
-	
-	
-	
-	
 	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getSource() == grid)
-		{
-			if(grid.isSelected())
-			{
-				MapImagePanel.toggleGrid(true);
-			}
-
-			else
-			{
-				MapImagePanel.toggleGrid(false);
-			}
+		Object source = e.getSource();
+		if (source == null)
+			return;
 		
-			repaint();
-			revalidate();
-		}
+		if (source == drawGrid)
+			mapImagePanel.setDrawGrid(drawGrid.isSelected());
+		else if (source == drawIncidents)
+			mapImagePanel.setDrawIncidents(drawIncidents.isSelected());
+		else if (source == drawNodes)
+			mapImagePanel.setDrawNodes(drawNodes.isSelected());
+		else if (source == drawDevices)
+			mapImagePanel.setDrawDevices(drawDevices.isSelected());
 	} 
 }
