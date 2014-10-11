@@ -26,8 +26,6 @@ import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
-import wifindus.eye.Location;
-import wifindus.eye.Node;
 import wifindus.eye.User;
 
 /**
@@ -277,31 +275,6 @@ public class Dispatcher extends EyeApplication
 		updateDeviceSort();
 		updateDeviceFilter();
 		devicePanel.revalidate();
-	}
-	
-	@Override
-	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
-	{
-		super.deviceLocationChanged(device, oldLocation, newLocation);
-		//Update Location on the map
-		MapImagePanel.deviceLocationChanged( device,  oldLocation,  newLocation);
-		
-	}
-
-	@Override
-	public void nodeCreated(Node node)
-	{
-		super.nodeCreated(node);
-		//TODO: refactor MapImagePanel to use EyeApplicationListener instead of doing this
-		MapImagePanel.nodeCreated(node);
-	}
-	
-	@Override 
-	public void incidentAssignedDevice(Incident incident, Device device) 
-	{ 
-		super.incidentAssignedDevice(incident, device);
-		//TODO: refactor MapImagePanel to use EyeApplicationListener instead of doing this
-		MapImagePanel.incidentCreated(incident, device); 
 	}
 	
 	@Override
