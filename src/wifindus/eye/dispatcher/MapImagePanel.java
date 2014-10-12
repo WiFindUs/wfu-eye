@@ -487,22 +487,21 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     //quick check to see if it's worth firing a repaint()
     private final void repaintNodes()
     {
-		if (/*drawNodes &&*/ nodes.size() > 0)
+		if (nodes.size() > 0)
 			repaint();
     }
 
     //quick check to see if it's worth firing a repaint()
     private final void repaintIncidents()
     {
-		if (/*drawIncidents &&*/ incidents.size() > 0)
+		if (incidents.size() > 0)
 			repaint();
     }
     
     //quick check to see if it's worth firing a repaint()
     private final void repaintDevices()
     {
-    	if (/*drawDevices &&*/ devices.size() > 0
-			&& (drawAssignedDevices || drawUnassignedDevices))
+    	if (devices.size() > 0)
 			repaint();
     }
 }
