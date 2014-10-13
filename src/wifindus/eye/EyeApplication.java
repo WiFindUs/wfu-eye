@@ -345,6 +345,12 @@ public abstract class EyeApplication extends JFrame
 		Debugger.v(device + " unassigned from " + incident);		
 	}
 	
+	@Override	
+	public void deviceSelectionChanged(Device device)
+	{
+		Debugger.v(device + " selection state changed");		
+	}
+	
 	@Override
 	public void nodeLocationChanged(Node node, Location oldLocation, Location newLocation)
 	{

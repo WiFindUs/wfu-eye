@@ -221,6 +221,13 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 			InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
 
+	
+	@Override
+	public void deviceSelectionChanged(Device device) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	public static final Comparator<DevicePanel> COMPARATOR_USER_ID = new Comparator<DevicePanel>()
 	{
 		@Override
@@ -373,4 +380,6 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 		newIncidentButton.setEnabled(device.getCurrentUser() != null && latlong);
 		locateOnMapButton.setEnabled(latlong);
 	}
+
+	
 }

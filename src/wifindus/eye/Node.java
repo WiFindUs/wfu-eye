@@ -3,6 +3,7 @@ package wifindus.eye;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+
 import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
@@ -20,6 +21,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	private Location location = Location.EMPTY;
 	private Double voltage = null;
 	private Timestamp lastUpdate = new Timestamp(0);
+	private Boolean selected = false;
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -47,6 +49,16 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	
+	public Boolean getSelected() {
+		return selected;
+	}
+
+	public void setSelected(Boolean selected) {
+		this.selected = selected;
+	}
+	
 	
 	/**
 	 * Gets this Node's Hash.

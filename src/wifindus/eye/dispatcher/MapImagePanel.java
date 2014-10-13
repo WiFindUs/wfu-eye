@@ -7,11 +7,15 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.swing.JPanel;
+
 import wifindus.ConfigFile;
 import wifindus.ResourcePool;
 import wifindus.eye.Atmosphere;
@@ -47,9 +51,23 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	private int gridRows = 10;
 	private int gridColumns = 10;
 	private transient Map<Incident.Type, Image> deviceMarkers = new HashMap<>();
+	private transient Map<Incident.Type, Image> deviceMarkersSelected = new HashMap<>();
 	private transient Map<Incident.Type, Image> deviceMarkersUnavailable = new HashMap<>();
 	private transient Map<Incident.Type, Image> incidentMarkers = new HashMap<>();
 	private transient Image nodeMarker;
+
+	Rectangle targetArea;
+	
+	//int scaledImageWidth;
+	//int scaledImageHeight;
+	
+	int nodeIncidentScaledImageWidth;
+	int nodeIncidentScaledImageHeight;
+	int deviceScaledImageWidth;
+	int deviceScaledImageHeight;
+	
+	int currentPaint;
+
 	
 	static
 	{
@@ -65,6 +83,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		ResourcePool.loadImage("incident_marker_wfu", "images/incident_marker_wfu.png" );
 		ResourcePool.loadImage("node_marker_inactive", "images/node_marker_inactive.png" );
 		ResourcePool.loadImage("node_marker_active", "images/node_marker_active.png" );
+		
+		ResourcePool.loadImage("device_marker_medical_selected", "images/device_marker_medical_selected.png" );
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -97,6 +117,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		incidentMarkers.put(Incident.Type.WiFindUs, ResourcePool.getImage("incident_marker_wfu"));
 		nodeMarker = ResourcePool.getImage("node_marker_active");
 		
+		deviceMarkersSelected.put(Incident.Type.Medical, ResourcePool.getImage("device_marker_medical_selected"));
+		
 		//create GPS rectangle
 		gpsArea = new GPSRectangle(
 			config.getDouble("map.latitude_start"),
@@ -112,6 +134,38 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		//attach ourselves as an EyeApplicationListener so we get notified of new
 		//devices, incidents and nodes as they are created
 		EyeApplication.get().addEventListener(this);
+		
+		
+	
+		
+				
+		 this.addMouseListener(new MouseListener() 
+         {
+
+             @Override
+             public void mouseClicked(MouseEvent e) 
+             {
+            	selectMapElement(e.getPoint());
+             }
+
+             @Override
+             public void mousePressed(MouseEvent e) {
+             }
+
+             @Override
+             public void mouseReleased(MouseEvent e) {
+             }
+
+             @Override
+             public void mouseEntered(MouseEvent e) {
+       
+             }
+
+             @Override
+             public void mouseExited(MouseEvent e) {
+                 setBackground(Color.red);
+             }
+         });
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -317,7 +371,13 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-    @Override
+	@Override
+	public void deviceSelectionChanged(Device device) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
     protected final void paintComponent(Graphics g) 
     {
     	//paint background etc
@@ -328,7 +388,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	int height = getHeight();
     	double imageRatio = (double)mapImage.getWidth(null) / (double)mapImage.getHeight(null);
     	double panelRatio = (double)width / (double)height;
-    	Rectangle targetArea;
+    	/*Rectangle targetArea;*/
         if (imageRatio < panelRatio) //"narrower" than the panel
         {
         	double delta = 1.0 - (imageRatio / panelRatio);
@@ -383,7 +443,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     {
     	if (!drawGrid || g == null || targetArea == null)
     		return;
-    	
+    	    	    	
         int wStep = (int)((double)targetArea.width / 10.0);
         int hStep = (int)((double)targetArea.height / 10.0);
         g.setColor(Color.WHITE);
@@ -412,6 +472,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	if (!drawNodes || g == null || targetArea == null)
     		return;
     	
+    	currentPaint = 1;
+    	
     	for (Node node : nodes)
     	{
     		if (!gpsArea.contains(node.getLocation()))
@@ -424,6 +486,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     {
     	if (!drawIncidents || g == null || targetArea == null)
     		return;
+    	
+    	currentPaint = 1;
     	
     	for (Incident incident : incidents)
     	{
@@ -439,6 +503,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     			|| (!drawAssignedDevices && !drawUnassignedDevices) || g == null || targetArea == null)
     		return;
     	
+    	currentPaint = 2;
+    	
     	for (Device device : devices)
     	{
     		if (!gpsArea.contains(device.getLocation()))
@@ -449,10 +515,13 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     			marker = deviceMarkersUnavailable.get(Incident.Type.None);
     		else if (device.getCurrentIncident() != null)
     			marker = deviceMarkersUnavailable.get(device.getCurrentUser().getType());
+    		else if(device.getSelected() == true)
+    			marker = deviceMarkersSelected.get(device.getCurrentUser().getType());
     		else
     			marker = deviceMarkers.get(device.getCurrentUser().getType());
+    		  
     		
-    		paintMarker(g, marker, gpsArea.translate(targetArea, device.getLocation()), markerScale ); 
+       		paintMarker(g, marker, gpsArea.translate(targetArea, device.getLocation()), markerScale ); 
     	}
     }
     
@@ -460,12 +529,13 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     {
     	if (g == null || image == null || point == null || scale <= 0.0)
     		return;
+    
     	
 		int imageWidth = image.getWidth(null);
 		int imageHeight = image.getHeight(null);
 		int xOffset = -(int)(((double)imageWidth/2.0) * scale);
 		int yOffset = -(int)(((double)imageHeight) * scale);
-
+	
 		
 		g.drawImage( image,
 				//destination coords
@@ -477,7 +547,54 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 				0,0,imageWidth,imageHeight,
 				
 				null);
+		
+	
+		
+		int px = point.x+xOffset+(int)(imageWidth*scale);
+		int py = point.y+yOffset+(int)(imageHeight*scale);
+		
+		//System.out.println(px +"    " +py);
+		
+		switch(currentPaint)
+		{
+		case 1:
+			nodeIncidentScaledImageWidth = (int) (imageWidth*scale);
+			nodeIncidentScaledImageHeight =(int) (imageHeight*scale);
+			break;
+		case 2:
+			deviceScaledImageWidth = (int) (imageWidth*scale);
+			deviceScaledImageHeight =(int) (imageHeight*scale);
+			break;
+		}
+		
+		
+    }
+    
+    protected void selectMapElement(Point p)
+    {
+    //nodes, devices, incidents
+    	Rectangle r;
     	
+    	for (Device device : devices)
+    	{
+    		int px = gpsArea.translate(targetArea, device.getLocation()).x -  (deviceScaledImageWidth / 2);
+    		int py = gpsArea.translate(targetArea, device.getLocation()).y - deviceScaledImageHeight;
+    		r = new Rectangle(px, py, deviceScaledImageWidth, deviceScaledImageHeight);
+    		if((p.x >= px && p.x <= px + deviceScaledImageWidth)
+    				&& (p.y >= py && p.y <= py + deviceScaledImageHeight))
+    		{
+    			   			
+    			   			
+    			if(device.getSelected() == false)
+    				device.setSelected(true);
+    			else
+    				device.setSelected(false);
+    			
+    			repaintDevices();
+    			
+    		}
+    		
+    	}
     }
 	
 	/////////////////////////////////////////////////////////////////////

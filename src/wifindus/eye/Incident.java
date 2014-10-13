@@ -3,6 +3,7 @@ package wifindus.eye;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -46,6 +47,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private Location location = Location.EMPTY;
 	private Timestamp created = new Timestamp(0);
 	private boolean archived = false;
+	private Boolean selected = false;
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
 	
@@ -91,6 +93,16 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	
+	public Boolean getSelected() {
+		return selected;
+	}
+
+	public void setSelected(Boolean selected) {
+		this.selected = selected;
+	}
+	
 	
 	/**
 	 * Gets this Incident's ID.

@@ -59,6 +59,8 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	private Location location = Location.EMPTY;
 	private Atmosphere atmosphere = Atmosphere.EMPTY;
 	private Timestamp lastUpdate = new Timestamp(0);
+	private Boolean selected = false;
+
 	//database relationships
 	private transient User currentUser = null;
 	private transient Incident currentIncident = null;
@@ -94,6 +96,15 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	public Boolean getSelected() {
+		return selected;
+	}
+
+	public void setSelected(Boolean selected) {
+		this.selected = selected;
+		fireEvent("selectionchanged");
+	}
 	
 	/**
 	 * Gets this Device's Hash.
@@ -289,6 +300,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 			currentUser.updateDevice(this);
 			fireEvent("loggedin", currentUser);
 		}
+		
 	}
 	
 	/**
@@ -354,6 +366,9 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 				break;
 			case "unassigned":
 				listener.deviceUnassignedIncident(this, (Incident)data[0]);
+				break;
+			case "selectionchanged":
+				listener.deviceSelectionChanged(this);
 				break;
 			
 		}
