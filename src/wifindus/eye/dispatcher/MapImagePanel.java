@@ -340,6 +340,26 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 			repaintDevices();
 		}
 	}
+	
+	@Override
+	public void deviceSelectionChanged(Device device)
+	{
+		repaintDevices();
+		
+	}
+	
+	@Override
+	public void incidentSelectionChanged(Incident incident)
+	{
+		repaintIncidents();
+		
+	}
+
+	@Override
+	public void nodeSelectionChanged(Node node)
+	{
+		repaintNodes();		
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	// UNIMPLEMENTED INTERFACE METHODS
@@ -370,12 +390,6 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
-	
-	@Override
-	public void deviceSelectionChanged(Device device) {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	@Override
     protected final void paintComponent(Graphics g) 

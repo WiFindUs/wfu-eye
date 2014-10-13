@@ -59,7 +59,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	private Location location = Location.EMPTY;
 	private Atmosphere atmosphere = Atmosphere.EMPTY;
 	private Timestamp lastUpdate = new Timestamp(0);
-	private Boolean selected = false;
+	private boolean selected = false;
 
 	//database relationships
 	private transient User currentUser = null;
@@ -97,13 +97,18 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	public Boolean getSelected() {
+	public boolean getSelected()
+	{
 		return selected;
 	}
 
-	public void setSelected(Boolean selected) {
-		this.selected = selected;
-		fireEvent("selectionchanged");
+	public void setSelected(boolean selected)
+	{
+		if (this.selected != selected)
+		{
+			this.selected = selected;
+			fireEvent("selectionchanged");
+		}
 	}
 	
 	/**

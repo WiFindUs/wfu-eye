@@ -374,6 +374,19 @@ public abstract class EyeApplication extends JFrame
 	{
 		Debugger.v(node + " address changed: " + newAddress);
 	}
+	
+	@Override
+	public void nodeSelectionChanged(Node node)
+	{
+		Debugger.v(node + " selection state changed");
+		
+	}
+
+	@Override
+	public void incidentSelectionChanged(Incident incident)
+	{
+		Debugger.v(incident + " selection state changed");
+	}
 
 	/**
 	 * Creates a new incident in the MySQL database, handling errors and firing events accordingly.

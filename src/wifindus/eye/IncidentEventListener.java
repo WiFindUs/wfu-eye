@@ -28,4 +28,6 @@ public interface IncidentEventListener
 	 * @param device The device object.
 	 */
 	public void incidentUnassignedDevice(Incident incident, Device device);
+	
+	public void incidentSelectionChanged(Incident incident);
 }

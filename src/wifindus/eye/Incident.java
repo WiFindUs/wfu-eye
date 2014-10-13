@@ -47,7 +47,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private Location location = Location.EMPTY;
 	private Timestamp created = new Timestamp(0);
 	private boolean archived = false;
-	private Boolean selected = false;
+	private boolean selected = false;
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
 	
@@ -95,14 +95,19 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	/////////////////////////////////////////////////////////////////////
 	
 	
-	public Boolean getSelected() {
+	public boolean getSelected()
+	{
 		return selected;
 	}
 
-	public void setSelected(Boolean selected) {
-		this.selected = selected;
+	public void setSelected(boolean selected)
+	{
+		if (this.selected != selected)
+		{
+			this.selected = selected;
+			fireEvent("selectionchanged");
+		}
 	}
-	
 	
 	/**
 	 * Gets this Incident's ID.
@@ -264,6 +269,9 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 				break;
 			case "unassigned":
 				listener.incidentUnassignedDevice(this, (Device)data[0]);
+				break;
+			case "selectionchanged":
+				listener.incidentSelectionChanged(this);
 				break;
 		}
 	}

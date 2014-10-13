@@ -243,6 +243,12 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 			onTaskListModel.removeElement(device);
 	}
 	
+	@Override
+	public void incidentSelectionChanged(Incident incident)
+	{
+		//TODO: visually reflect selection state in some way
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////

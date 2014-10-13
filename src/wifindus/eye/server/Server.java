@@ -2,6 +2,8 @@ package wifindus.eye.server;
 
 import javax.swing.SwingUtilities;
 import wifindus.eye.EyeApplication;
+import wifindus.eye.Incident;
+import wifindus.eye.Node;
 
 /**
  * A specialized form of {@link EyeApplication} that processes incoming

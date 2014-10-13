@@ -220,13 +220,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,
 			InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
-
-	
-	@Override
-	public void deviceSelectionChanged(Device device) {
-		// TODO Auto-generated method stub
-		
-	}
+	@Override public void deviceSelectionChanged(Device device) { }
 	
 	public static final Comparator<DevicePanel> COMPARATOR_USER_ID = new Comparator<DevicePanel>()
 	{
