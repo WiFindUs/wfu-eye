@@ -53,8 +53,11 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	private transient Map<Incident.Type, Image> deviceMarkers = new HashMap<>();
 	private transient Map<Incident.Type, Image> deviceMarkersSelected = new HashMap<>();
 	private transient Map<Incident.Type, Image> deviceMarkersUnavailable = new HashMap<>();
+	private transient Map<Incident.Type, Image> deviceMarkersUnavailableSelected = new HashMap<>();
 	private transient Map<Incident.Type, Image> incidentMarkers = new HashMap<>();
+	private transient Map<Incident.Type, Image> incidentMarkersSelected = new HashMap<>();
 	private transient Image nodeMarker;
+	private transient Image nodeMarkerSelected;
 
 	Rectangle targetArea;
 	
@@ -84,7 +87,23 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		ResourcePool.loadImage("node_marker_inactive", "images/node_marker_inactive.png" );
 		ResourcePool.loadImage("node_marker_active", "images/node_marker_active.png" );
 		
+	
+		ResourcePool.loadImage("device_marker_wfu_selected", "images/device_marker_wfu_selected.png" );
+		ResourcePool.loadImage("device_marker_wfu_na_selected", "images/device_marker_wfu_na_selected.png" );
 		ResourcePool.loadImage("device_marker_medical_selected", "images/device_marker_medical_selected.png" );
+		ResourcePool.loadImage("device_marker_medical_na_selected", "images/device_marker_medical_na_selected.png" );
+		
+		ResourcePool.loadImage("device_marker_security_selected", "images/device_marker_security_selected.png" );
+		
+		ResourcePool.loadImage("device_marker_security_na_selected", "images/device_marker_security_na_selected.png" );
+		ResourcePool.loadImage("device_marker_unassigned_selected", "images/device_marker_unassigned_selected.png" );
+		ResourcePool.loadImage("incident_marker_medical_selected", "images/incident_marker_medical_selected.png" );
+		ResourcePool.loadImage("incident_marker_security_selected", "images/incident_marker_security_selected.png" );
+		ResourcePool.loadImage("incident_marker_wfu_selected", "images/incident_marker_wfu_selected.png" );
+		ResourcePool.loadImage("node_marker_inactive_selected", "images/node_marker_inactive_selected.png" );
+		ResourcePool.loadImage("node_marker_active_selected", "images/node_marker_active_selected.png" );
+	
+	
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -117,7 +136,22 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		incidentMarkers.put(Incident.Type.WiFindUs, ResourcePool.getImage("incident_marker_wfu"));
 		nodeMarker = ResourcePool.getImage("node_marker_active");
 		
+		//get selected marker images
 		deviceMarkersSelected.put(Incident.Type.Medical, ResourcePool.getImage("device_marker_medical_selected"));
+		deviceMarkersSelected.put(Incident.Type.Security, ResourcePool.getImage("device_marker_security_selected"));
+		deviceMarkersSelected.put(Incident.Type.WiFindUs, ResourcePool.getImage("device_marker_wfu_selected"));
+		deviceMarkersUnavailableSelected.put(Incident.Type.Medical, ResourcePool.getImage("device_marker_medical_na_selected"));
+		deviceMarkersUnavailableSelected.put(Incident.Type.Security, ResourcePool.getImage("device_marker_security_na_selected"));
+		deviceMarkersUnavailableSelected.put(Incident.Type.WiFindUs, ResourcePool.getImage("device_marker_wfu_na_selected"));
+		deviceMarkersUnavailableSelected.put(Incident.Type.None, ResourcePool.getImage("device_marker_unassigned_selected"));
+		incidentMarkersSelected.put(Incident.Type.Medical, ResourcePool.getImage("incident_marker_medical_selected"));
+		incidentMarkersSelected.put(Incident.Type.Security, ResourcePool.getImage("incident_marker_security_selected"));
+		incidentMarkersSelected.put(Incident.Type.WiFindUs, ResourcePool.getImage("incident_marker_wfu_selected"));
+		nodeMarkerSelected = ResourcePool.getImage("node_marker_active_selected");
+		
+		
+		
+		
 		
 		//create GPS rectangle
 		gpsArea = new GPSRectangle(
@@ -158,13 +192,11 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 
              @Override
              public void mouseEntered(MouseEvent e) {
-       
              }
 
              @Override
              public void mouseExited(MouseEvent e) {
-                 setBackground(Color.red);
-             }
+               }
          });
 	}
 	
@@ -492,7 +524,15 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	{
     		if (!gpsArea.contains(node.getLocation()))
     			continue;
-    		paintMarker(g, nodeMarker, gpsArea.translate(targetArea, node.getLocation()),markerScale );
+    		
+    		Image marker;
+    		if(node.getSelected() == true)
+    			marker = nodeMarkerSelected;
+    		else
+    			marker = nodeMarker;
+    		
+    		
+    		paintMarker(g, marker, gpsArea.translate(targetArea, node.getLocation()),markerScale );
     	}
     }
     
@@ -507,7 +547,13 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	{
     		if (!gpsArea.contains(incident.getLocation()))
     			continue;
-    		paintMarker(g, incidentMarkers.get(incident.getType()), gpsArea.translate(targetArea, incident.getLocation()), markerScale );   		
+    		Image marker;
+    		if(incident.getSelected() == true)
+    			marker = incidentMarkersSelected.get(incident.getType());
+    		else
+    			marker = incidentMarkers.get(incident.getType());
+    		
+    		paintMarker(g, marker, gpsArea.translate(targetArea, incident.getLocation()), markerScale );   		
     	}
     }
     
@@ -526,11 +572,17 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     		
     		Image marker;
     		if (device.getCurrentUser() == null)
-    			marker = deviceMarkersUnavailable.get(Incident.Type.None);
+    			if(device.getSelected() == true)
+    				marker = deviceMarkersUnavailableSelected.get(Incident.Type.None);
+    			else
+    				marker = deviceMarkersUnavailable.get(Incident.Type.None);
+    		
     		else if (device.getCurrentIncident() != null)
     			marker = deviceMarkersUnavailable.get(device.getCurrentUser().getType());
+    		
     		else if(device.getSelected() == true)
     			marker = deviceMarkersSelected.get(device.getCurrentUser().getType());
+    		
     		else
     			marker = deviceMarkers.get(device.getCurrentUser().getType());
     		  
@@ -566,9 +618,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		
 		int px = point.x+xOffset+(int)(imageWidth*scale);
 		int py = point.y+yOffset+(int)(imageHeight*scale);
-		
-		//System.out.println(px +"    " +py);
-		
+	
 		switch(currentPaint)
 		{
 		case 1:
@@ -588,6 +638,47 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     {
     //nodes, devices, incidents
     	Rectangle r;
+    	
+    	for (Node node : nodes)
+    	{
+       		int px = gpsArea.translate(targetArea, node.getLocation()).x -  (nodeIncidentScaledImageWidth / 2);
+    		int py = gpsArea.translate(targetArea, node.getLocation()).y - nodeIncidentScaledImageHeight;
+    		r = new Rectangle(px, py, nodeIncidentScaledImageWidth, nodeIncidentScaledImageHeight);
+    		if((p.x >= px && p.x <= px + nodeIncidentScaledImageWidth)
+    				&& (p.y >= py && p.y <= py + nodeIncidentScaledImageHeight))
+    		{
+    			   			
+    			   			
+    			if(node.getSelected() == false)
+    				node.setSelected(true);
+    			else
+    				node.setSelected(false);
+    			
+    			repaintNodes();
+    			
+    		}
+    	}
+    	
+    	for (Incident incident : incidents)
+    	{
+    		int px = gpsArea.translate(targetArea, incident.getLocation()).x -  (nodeIncidentScaledImageWidth / 2);
+    		int py = gpsArea.translate(targetArea, incident.getLocation()).y - nodeIncidentScaledImageHeight;
+    		r = new Rectangle(px, py, nodeIncidentScaledImageWidth, nodeIncidentScaledImageHeight);
+    		if((p.x >= px && p.x <= px + nodeIncidentScaledImageWidth)
+    				&& (p.y >= py && p.y <= py + nodeIncidentScaledImageHeight))
+    		{
+    			   			
+    			   			
+    			if(incident.getSelected() == false)
+    				incident.setSelected(true);
+    			else
+    				incident.setSelected(false);
+    			
+    			repaintNodes();
+    			
+    		}
+    	
+    	}
     	
     	for (Device device : devices)
     	{
