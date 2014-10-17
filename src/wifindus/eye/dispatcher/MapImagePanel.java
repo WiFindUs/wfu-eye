@@ -1,6 +1,7 @@
 package wifindus.eye.dispatcher;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
@@ -9,6 +10,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +35,7 @@ import wifindus.eye.User;
 
 //TODO: implement the EyeApplicationListener
 public class MapImagePanel extends JPanel implements EyeApplicationListener,
-	NodeEventListener, IncidentEventListener, DeviceEventListener, ComponentListener
+	NodeEventListener, IncidentEventListener, DeviceEventListener, ComponentListener, MouseMotionListener
 {
 	private static final long serialVersionUID = -9123187374720204706L;
 	private transient ArrayList<Device> devices = new ArrayList<>();
@@ -71,6 +73,9 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	
 	int currentPaint;
 
+	private transient Device hoveredDevice;
+	private transient Node hoveredNode;
+	private transient Incident hoveredIncident;
 	
 	static
 	{
@@ -170,7 +175,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		EyeApplication.get().addEventListener(this);
 		
 		
-	
+		addMouseMotionListener(this);
 		
 				
 		 this.addMouseListener(new MouseListener() 
@@ -179,7 +184,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
              @Override
              public void mouseClicked(MouseEvent e) 
              {
-            	selectMapElement(e.getPoint());
+            	selectMapElement(e.getPoint(), 1);
              }
 
              @Override
@@ -198,11 +203,28 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
              public void mouseExited(MouseEvent e) {
                }
          });
+		 
+		 
+	
+
+		 
 	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	
+	 @Override
+		public void mouseDragged(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			selectMapElement(e.getPoint(), 0);
+		}
 	
 	@Override
 	public void deviceCreated(Device device)
@@ -468,6 +490,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     		paintDevices(g, targetArea, markerScale);
     	if (drawIncidents)
     		paintIncidents(g, targetArea, markerScale);
+    	
+    	paintDeviceName(g, targetArea, markerScale);
     }
     
     protected void paintMapImage(Graphics g, Rectangle targetArea)
@@ -554,6 +578,10 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     			marker = incidentMarkers.get(incident.getType());
     		
     		paintMarker(g, marker, gpsArea.translate(targetArea, incident.getLocation()), markerScale );   		
+    	
+    		paintIncidentNumber(g, marker,
+					gpsArea.translate(targetArea, incident.getLocation()),
+					markerScale, incident.getID());
     	}
     }
     
@@ -571,21 +599,29 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     			continue;
     		
     		Image marker;
-    		if (device.getCurrentUser() == null)
-    			if(device.getSelected() == true)
-    				marker = deviceMarkersUnavailableSelected.get(Incident.Type.None);
-    			else
-    				marker = deviceMarkersUnavailable.get(Incident.Type.None);
-    		
-    		else if (device.getCurrentIncident() != null)
-    			marker = deviceMarkersUnavailable.get(device.getCurrentUser().getType());
-    		
-    		else if(device.getSelected() == true)
-    			marker = deviceMarkersSelected.get(device.getCurrentUser().getType());
-    		
-    		else
-    			marker = deviceMarkers.get(device.getCurrentUser().getType());
-    		  
+      		if (device.getCurrentUser() == null)
+    			
+				if (device.getSelected() == true)
+					marker = deviceMarkersUnavailableSelected
+							.get(Incident.Type.None);
+				else
+					marker = deviceMarkersUnavailable.get(Incident.Type.None);
+			
+			else if (device.getCurrentIncident() != null)
+				if(device.getSelected() == true)
+					marker = deviceMarkersUnavailableSelected
+					.get(device.getCurrentUser()
+							.getType());	
+			
+				else
+					marker = deviceMarkersUnavailable.get(device.getCurrentUser()
+					.getType());
+
+			else if (device.getSelected() == true)
+				marker = deviceMarkersSelected.get(device.getCurrentUser()
+						.getType());
+			else
+				marker = deviceMarkers.get(device.getCurrentUser().getType());
     		
        		paintMarker(g, marker, gpsArea.translate(targetArea, device.getLocation()), markerScale ); 
     	}
@@ -634,73 +670,154 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		
     }
     
-    protected void selectMapElement(Point p)
-    {
-    //nodes, devices, incidents
-    	Rectangle r;
-    	
-    	for (Node node : nodes)
-    	{
-       		int px = gpsArea.translate(targetArea, node.getLocation()).x -  (nodeIncidentScaledImageWidth / 2);
-    		int py = gpsArea.translate(targetArea, node.getLocation()).y - nodeIncidentScaledImageHeight;
-    		r = new Rectangle(px, py, nodeIncidentScaledImageWidth, nodeIncidentScaledImageHeight);
-    		if((p.x >= px && p.x <= px + nodeIncidentScaledImageWidth)
-    				&& (p.y >= py && p.y <= py + nodeIncidentScaledImageHeight))
-    		{
-    			   			
-    			   			
-    			if(node.getSelected() == false)
-    				node.setSelected(true);
-    			else
-    				node.setSelected(false);
-    			
-    			repaintNodes();
-    			
-    		}
-    	}
-    	
-    	for (Incident incident : incidents)
-    	{
-    		int px = gpsArea.translate(targetArea, incident.getLocation()).x -  (nodeIncidentScaledImageWidth / 2);
-    		int py = gpsArea.translate(targetArea, incident.getLocation()).y - nodeIncidentScaledImageHeight;
-    		r = new Rectangle(px, py, nodeIncidentScaledImageWidth, nodeIncidentScaledImageHeight);
-    		if((p.x >= px && p.x <= px + nodeIncidentScaledImageWidth)
-    				&& (p.y >= py && p.y <= py + nodeIncidentScaledImageHeight))
-    		{
-    			   			
-    			   			
-    			if(incident.getSelected() == false)
-    				incident.setSelected(true);
-    			else
-    				incident.setSelected(false);
-    			
-    			repaintNodes();
-    			
-    		}
-    	
-    	}
-    	
-    	for (Device device : devices)
-    	{
-    		int px = gpsArea.translate(targetArea, device.getLocation()).x -  (deviceScaledImageWidth / 2);
-    		int py = gpsArea.translate(targetArea, device.getLocation()).y - deviceScaledImageHeight;
-    		r = new Rectangle(px, py, deviceScaledImageWidth, deviceScaledImageHeight);
-    		if((p.x >= px && p.x <= px + deviceScaledImageWidth)
-    				&& (p.y >= py && p.y <= py + deviceScaledImageHeight))
-    		{
-    			   			
-    			   			
-    			if(device.getSelected() == false)
-    				device.setSelected(true);
-    			else
-    				device.setSelected(false);
-    			
-    			repaintDevices();
-    			
-    		}
-    		
-    	}
-    }
+	protected void paintIncidentNumber(Graphics g, Image image, Point point,
+			double scale, int incidentNo) {
+		if (g == null || image == null || point == null || scale <= 0.0)
+			return;
+
+		int imageWidth = image.getWidth(null);
+		int imageHeight = image.getHeight(null);
+		int xOffset = -(int) (((double) imageWidth / 2.0) * scale);
+		int yOffset = -(int) (((double) imageHeight) * scale);
+
+		g.drawImage(image,
+		// destination coords
+				point.x + xOffset, point.y + yOffset, point.x + xOffset
+						+ (int) (imageWidth * scale), point.y + yOffset
+						+ (int) (imageHeight * scale),
+
+				// source coords
+				0, 0, imageWidth, imageHeight,
+
+				null);
+
+		int px = point.x + xOffset + (int) (imageWidth * scale);
+		int py = point.y + yOffset + (int) (imageHeight * scale);
+
+		if (incidentNo < 10) {
+			g.setFont(new Font("TimesRoman", Font.PLAIN, (int) (70 * scale)));
+			g.drawString(Integer.toString(incidentNo), point.x + xOffset
+					+ (int) (imageWidth * (scale / 4)), point.y + yOffset
+					+ (int) (imageHeight * (scale / 1.5)));
+		} else {
+			g.setFont(new Font("TimesRoman", Font.PLAIN, (int) (60 * scale)));
+			g.drawString(Integer.toString(incidentNo), point.x + xOffset
+					+ (int) (imageWidth * (scale / 8)), point.y + yOffset
+					+ (int) (imageHeight * (scale / 1.5)));
+		}
+	}
+    
+    
+	
+	protected void selectMapElement(Point p, int type) {
+		// Type 0 = hover, 1 = click
+		// nodes, devices, incidents	
+		Rectangle r;	
+		if(drawNodes)
+		for (Node node : nodes) {
+								
+			int px = gpsArea.translate(targetArea, node.getLocation()).x
+					- (nodeIncidentScaledImageWidth / 2);
+			int py = gpsArea.translate(targetArea, node.getLocation()).y
+					- nodeIncidentScaledImageHeight;
+			r = new Rectangle(px, py, nodeIncidentScaledImageWidth,
+					nodeIncidentScaledImageHeight);
+			if ((p.x >= px && p.x <= px + nodeIncidentScaledImageWidth)
+					&& (p.y >= py && p.y <= py + nodeIncidentScaledImageHeight)) {
+				if (type == 1) {
+					if (node.getSelected() == false)
+						node.setSelected(true);
+					else
+						node.setSelected(false);
+				} else
+					hoveredNode = node;
+
+				repaintNodes();
+
+			}
+			
+		}
+		
+		if(drawIncidents)
+		for (Incident incident : incidents) {
+			int px = gpsArea.translate(targetArea, incident.getLocation()).x
+					- (nodeIncidentScaledImageWidth / 2);
+			int py = gpsArea.translate(targetArea, incident.getLocation()).y
+					- nodeIncidentScaledImageHeight;
+			r = new Rectangle(px, py, nodeIncidentScaledImageWidth,
+					nodeIncidentScaledImageHeight);
+			if ((p.x >= px && p.x <= px + nodeIncidentScaledImageWidth)
+					&& (p.y >= py && p.y <= py + nodeIncidentScaledImageHeight)) {
+				if (type == 1) {
+					if (incident.getSelected() == false)
+						incident.setSelected(true);
+					else
+						incident.setSelected(false);
+				} else
+					hoveredIncident = incident;
+
+				repaintNodes();
+
+			}
+
+		}
+		
+		if(drawDevices)
+		for (Device device : devices) {
+			
+			int px = gpsArea.translate(targetArea, device.getLocation()).x
+					- (deviceScaledImageWidth / 2);
+			int py = gpsArea.translate(targetArea, device.getLocation()).y
+					- deviceScaledImageHeight;
+			r = new Rectangle(px, py, deviceScaledImageWidth,
+					deviceScaledImageHeight);
+			if ((p.x >= px && p.x <= px + deviceScaledImageWidth)
+					&& (p.y >= py && p.y <= py + deviceScaledImageHeight)) 
+			{
+				if (type == 1) 
+					if (device.getSelected() == false)
+						device.setSelected(true);
+					else
+						device.setSelected(false);
+				else 
+				{
+					hoveredDevice = device;
+					break;
+				}
+				
+			}
+			else
+					hoveredDevice = null;
+			repaintDevices();
+			
+		}
+	}
+	
+	
+	protected void paintDeviceName(Graphics g, Rectangle targetArea,double scale) 
+	{
+		if (g == null || targetArea == null)
+			return;
+
+		g.setColor(Color.WHITE);		
+		g.setFont(new Font("TimesRoman", Font.PLAIN, (int) (70 * scale)));	
+		
+		String name = "";
+		if(hoveredDevice != null)
+			try
+			{
+				name = hoveredDevice.getCurrentUser().getNameFull();
+			}
+			catch (NullPointerException p)
+			{
+				name = "No User Assigned";
+			}	
+			g.drawString(name, 
+				targetArea.x + (int)(targetArea.getWidth() - (800 * scale)), 
+				targetArea.y + (int)(targetArea.getHeight() - (100 * scale)));
+		repaintDeviceName();
+	}
+	
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
@@ -724,6 +841,11 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     private final void repaintDevices()
     {
     	if (devices.size() > 0)
+			repaint();
+    }
+    private final void repaintDeviceName()
+    {
+    	if (hoveredDevice != null)
 			repaint();
     }
 }
