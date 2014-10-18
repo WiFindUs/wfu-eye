@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -406,7 +407,8 @@ public class ConfigFile implements Serializable
 		if (kvps.size() > 0)
 		{
 			sb.append("\n");
-			for (Map.Entry<String, String> kvp : kvps.entrySet())
+			TreeMap<String, String> tmap = new TreeMap(kvps); //using a treemap automatically sorts output
+			for (Map.Entry<String, String> kvp : tmap.entrySet())
 				sb.append("    " + kvp.getKey() + ": " + kvp.getValue() + "\n");
 		}
 		else
