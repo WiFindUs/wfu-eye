@@ -167,7 +167,7 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("map.grid_rows", 10);
 		config.defaultInt("map.grid_columns", 10);
 		//output config
-		Debugger.v("Parsed configuration: " + config);
+		Debugger.i("Parsed configuration: " + config);
 		
 		//connect to mysql
 		Debugger.i("Connecting to MySQL database '" + config.getString("mysql.database") + "@"
