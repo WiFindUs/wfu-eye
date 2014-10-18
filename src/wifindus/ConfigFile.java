@@ -407,7 +407,7 @@ public class ConfigFile implements Serializable
 		if (kvps.size() > 0)
 		{
 			sb.append("\n");
-			TreeMap<String, String> tmap = new TreeMap(kvps); //using a treemap automatically sorts output
+			TreeMap<String, String> tmap = new TreeMap<String, String>(kvps); //using a treemap automatically sorts output
 			for (Map.Entry<String, String> kvp : tmap.entrySet())
 				sb.append("    " + kvp.getKey() + ": " + kvp.getValue() + "\n");
 		}
