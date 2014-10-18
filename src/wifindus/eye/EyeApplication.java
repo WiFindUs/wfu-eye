@@ -401,7 +401,7 @@ public abstract class EyeApplication extends JFrame
 	{
 		Debugger.v(incident + " selection state changed");
 	}
-
+	
 	/**
 	 * Creates a new incident in the MySQL database, handling errors and firing events accordingly.
 	 * @param type The incident's type

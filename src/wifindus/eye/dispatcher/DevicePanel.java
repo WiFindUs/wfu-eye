@@ -169,6 +169,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     	{
     		User user  = device.getCurrentUser();
     		Debugger.i("Locate "+ (user == null ? device.toString() : user.getNameFull()) +" on map.");
+    		MapImagePanel.locateOnMap(device);
     	}
     }
 
