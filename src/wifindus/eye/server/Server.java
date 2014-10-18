@@ -10,8 +10,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import wifindus.Debugger;
 import wifindus.DebuggerPanel;
+import wifindus.ParsedUDPPacket;
 import wifindus.eye.EyeApplication;
-import wifindus.eye.HashedUDPPacket;
+import wifindus.eye.Hash;
 
 /**
  * A specialized form of {@link EyeApplication} that processes incoming
@@ -89,6 +90,7 @@ public class Server extends EyeApplication
 			
 			while (!abortThreads)
 			{
+				//wait for incoming data
 				DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 				try
 				{
@@ -103,19 +105,53 @@ public class Server extends EyeApplication
 				catch (IOException e)
 				{
 					Debugger.ex(e);
+					continue;
 				}
 				
-				HashedUDPPacket hashedPacket = new HashedUDPPacket(receivePacket);
-				switch (hashedPacket.getType().toUpperCase())
+				//parse data out into packets
+				ParsedUDPPacket parsedPacket = new ParsedUDPPacket(receivePacket);
+				String messageType = parsedPacket.getData().get("type");
+				if (messageType == null)
+					continue;
+				messageType = messageType.toLowerCase();
+				
+				//handle packet types
+				switch (messageType)
 				{
-					case "NODE": break;
-					case "DEVICE": break;
+					case "NODE": processNodePacket(parsedPacket); break;
+					case "DEVICE": processDevicePacket(parsedPacket); break;
 				}
-				
 			}
-			
 		}
 		
+		private void processNodePacket(ParsedUDPPacket packet)
+		{
+			//sanity checks
+			if (packet == null)
+				return;
+			String hash = getPacketHash(packet);
+			if (hash == null)
+				return;
+		}
+		
+		private void processDevicePacket(ParsedUDPPacket packet)
+		{
+			if (packet == null)
+				return;
+			String hash = getPacketHash(packet);
+			if (hash == null)
+				return;
+		}
+		
+		private String getPacketHash(ParsedUDPPacket packet)
+		{
+			if (packet == null)
+				return null;
+			String hash = packet.getData().get("hash");
+			if (hash == null || !Hash.isValid(hash))
+				return null;
+			return hash;
+		}
 	};
 	
 	/////////////////////////////////////////////////////////////////////
