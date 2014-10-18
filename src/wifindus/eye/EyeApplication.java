@@ -66,10 +66,12 @@ public abstract class EyeApplication extends JFrame
 	 * If this parameter is omitted, -1 is assumed.</li>
 	 * <li><code>-console</code>: causes a debug console window to be spawned at launch.</li>
 	 * </ul>
+	 * @param forceNoConsole Setting this to FALSE prevents the console window from being created, regardless of the
+	 * verbosity level passed at the command-line.
 	 * @throws NullPointerException if <code>args</code> is null
 	 * @throws IllegalStateException if an existing EyeApplication instance exists.
 	 */
-	public EyeApplication(String[] args)
+	public EyeApplication(String[] args, boolean forceNoConsole)
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
@@ -97,13 +99,15 @@ public abstract class EyeApplication extends JFrame
 				continue;
 			}
 			
-			match = PATTERN_CONSOLE.matcher(args[i]);
-			if (match.matches())
+			if (!forceNoConsole)
 			{
-				spawnConsole = true;
-				continue;
+				match = PATTERN_CONSOLE.matcher(args[i]);
+				if (match.matches())
+				{
+					spawnConsole = true;
+					continue;
+				}
 			}
-			
 		}
 		if (spawnConsole)
 		{
@@ -111,6 +115,7 @@ public abstract class EyeApplication extends JFrame
 			debuggerFrame.setBounds(20, 20, 800, 300);
 			debuggerFrame.setVisible(true);
 		}
+		preDebugHooks();
 		Debugger.open(verbosity);
 		
 		//parse command line arguments for config parameters
@@ -188,6 +193,15 @@ public abstract class EyeApplication extends JFrame
 		//create and launch mysql worker task
 		mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
 		mysqlWorker.execute();
+	}
+	
+	/**
+	 * Creates a new EyeApplication.
+	 * @see {@link #EyeApplication(String[], boolean)}
+	 */
+	public EyeApplication(String[] args)
+	{
+		this(args,false);
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -607,6 +621,16 @@ public abstract class EyeApplication extends JFrame
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Called during initialization, before the initial call to Debugger.open().
+	 * Use this to initialize any debugger-based controls so that they'll receive all
+	 * Debugger events fired during launch. 
+	 */
+	protected void preDebugHooks()
+	{
+		;
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
