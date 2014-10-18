@@ -22,13 +22,13 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import wifindus.ConfigFile;
+import wifindus.GPSRectangle;
 import wifindus.ResourcePool;
 import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.EyeApplicationListener;
-import wifindus.eye.GPSRectangle;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
