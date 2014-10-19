@@ -864,7 +864,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		
 		if(drawDevices)
 		for (Device device : devices) {
-			
+			if (!device.getLocation().hasLatLong())
+				continue;
 			int px = gpsArea.translate(targetArea, device.getLocation()).x
 					- (deviceScaledImageWidth / 2);
 			int py = gpsArea.translate(targetArea, device.getLocation()).y

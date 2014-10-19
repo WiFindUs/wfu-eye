@@ -98,11 +98,10 @@ public class Server extends EyeApplication
 		@Override
 		public void run()
 		{
-			byte[] buffer = new byte[1024];
-			
 			while (!abortThreads)
 			{
 				//wait for incoming data
+				byte[] buffer = new byte[1024];
 				DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 				try
 				{
@@ -127,6 +126,7 @@ public class Server extends EyeApplication
 				}
 				
 				//parse data out into packets
+				Debugger.v("UDP message received: " + new String(buffer).trim());
 				ParsedUDPPacket parsedPacket = new ParsedUDPPacket(receivePacket);
 				String messageType = parsedPacket.getData().get("type");
 				if (messageType == null)
@@ -136,8 +136,8 @@ public class Server extends EyeApplication
 				//handle packet types
 				switch (messageType)
 				{
-					case "NODE": processNodePacket(parsedPacket); break;
-					case "DEVICE": processDevicePacket(parsedPacket); break;
+					case "node": processNodePacket(parsedPacket); break;
+					case "device": processDevicePacket(parsedPacket); break;
 				}
 			}
 		}
@@ -166,8 +166,6 @@ public class Server extends EyeApplication
 			tempMap.put("hash", "'" + hash + "'");
 			if (packet.getData().containsKey("devicetype"))
 				tempMap.put("deviceType", "'" + packet.getData().get("devicetype").toUpperCase() + "'");
-			if (packet.getData().containsKey("address"))
-				tempMap.put("address", nullable(packet.getData().get("address")));
 			if (packet.getData().containsKey("latitude"))
 				tempMap.put("latitude", packet.getData().get("latitude"));
 			if (packet.getData().containsKey("longitude"))
@@ -184,6 +182,7 @@ public class Server extends EyeApplication
 				tempMap.put("temperature", packet.getData().get("temperature"));
 			if (packet.getData().containsKey("lightlevel"))
 				tempMap.put("lightLevel", packet.getData().get("lightLevel"));
+			tempMap.put("address", "'" + packet.getSourceAddress().getHostAddress() + "'");
 			tempMap.put("lastUpdate", "NOW()");
 			
 			//check if record exists, execute appropriate query
@@ -192,7 +191,7 @@ public class Server extends EyeApplication
 			{
 				MySQLResultRow deviceRow = mysql.fetchSingleDevice(hash);
 				String query;
-				boolean first = false;
+				boolean first = true;
 				boolean update = false;
 
 				//if not, use an INSERT query
