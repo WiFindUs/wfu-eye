@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import wifindus.MySQLConnection;
+import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
 
 /**
@@ -13,6 +14,10 @@ import wifindus.MySQLResultSet;
  */
 public class EyeMySQLConnection extends MySQLConnection
 {
+	/////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	/////////////////////////////////////////////////////////////////////
+	
 	public MySQLResultSet fetchUsers() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM Users");
@@ -80,9 +85,8 @@ public class EyeMySQLConnection extends MySQLConnection
 		}
 		release(resultSet);
 		release(statement);
-		return results;	
+		return results;
 	}
-	
 
 	public MySQLResultSet fetchDevices() throws SQLException
 	{
@@ -90,27 +94,29 @@ public class EyeMySQLConnection extends MySQLConnection
 		ResultSet resultSet = statement.executeQuery();
 		MySQLResultSet results = new MySQLResultSet();
 		while (resultSet.next())
-		{
-			String hash = resultSet.getString("hash");
-			results.put(hash,
-				"hash", hash,		
-				"deviceType", Device.getTypeFromDatabaseKey(resultSet.getString("deviceType")),
-				"address", resultSet.getString("address"),
-				"latitude", getNullableDouble(resultSet, "latitude"),
-				"longitude", getNullableDouble(resultSet, "longitude"),
-				"altitude", getNullableDouble(resultSet, "altitude"),
-				"accuracy", getNullableDouble(resultSet, "accuracy"),
-				"humidity", getNullableDouble(resultSet, "humidity"),
-				"airPressure", getNullableDouble(resultSet, "airPressure"),
-				"temperature", getNullableDouble(resultSet, "temperature"),
-				"lightLevel", getNullableDouble(resultSet, "lightLevel"),
-				"lastUpdate", resultSet.getTimestamp("lastUpdate"),
-				"respondingIncidentID", getNullableInt(resultSet, "respondingIncidentID")
-				);
-		}
+			parseDeviceRow(resultSet, results);
 		release(resultSet);
 		release(statement);
 		return results;	
+	}
+	
+	public MySQLResultRow fetchSingleDevice(String hash) throws SQLException
+	{
+		if (hash == null)
+			throw new NullPointerException("Parameter 'hash' cannot be null.");
+		if (!Hash.isValid(hash))
+			throw new IllegalArgumentException("Parameter 'hash' is not a valid WFU device hash ("+hash+").");
+		
+		PreparedStatement statement = prepareStatement("SELECT * FROM Devices WHERE hash='"+hash+"' LIMIT 1");
+		ResultSet resultSet = statement.executeQuery();
+		MySQLResultSet results = new MySQLResultSet();
+		while (resultSet.next())
+			parseDeviceRow(resultSet, results);
+		release(resultSet);
+		release(statement);
+		if (results.size() == 0)
+			return null;
+		return results.get(hash);
 	}
 
 	public MySQLResultSet fetchDeviceUsers() throws SQLException
@@ -129,5 +135,29 @@ public class EyeMySQLConnection extends MySQLConnection
 		release(resultSet);
 		release(statement);
 		return results;	
+	}
+	
+	/////////////////////////////////////////////////////////////////////
+	// PRIVATE METHODS
+	/////////////////////////////////////////////////////////////////////
+	
+	public void parseDeviceRow(final ResultSet resultSet, final MySQLResultSet results) throws SQLException
+	{
+		String hash = resultSet.getString("hash");
+		results.put(hash,
+			"hash", hash,		
+			"deviceType", Device.getTypeFromDatabaseKey(resultSet.getString("deviceType")),
+			"address", resultSet.getString("address"),
+			"latitude", getNullableDouble(resultSet, "latitude"),
+			"longitude", getNullableDouble(resultSet, "longitude"),
+			"altitude", getNullableDouble(resultSet, "altitude"),
+			"accuracy", getNullableDouble(resultSet, "accuracy"),
+			"humidity", getNullableDouble(resultSet, "humidity"),
+			"airPressure", getNullableDouble(resultSet, "airPressure"),
+			"temperature", getNullableDouble(resultSet, "temperature"),
+			"lightLevel", getNullableDouble(resultSet, "lightLevel"),
+			"lastUpdate", resultSet.getTimestamp("lastUpdate"),
+			"respondingIncidentID", getNullableInt(resultSet, "respondingIncidentID")
+			);
 	}
 }
