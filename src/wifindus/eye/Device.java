@@ -196,7 +196,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	{
 		if (key == null)
 			throw new NullPointerException("Parameter 'key' cannot be null.");
-		switch (key)
+		switch (key.toUpperCase())
 		{
 			case "PHO": return Device.Type.Phone;
 			case "TAB": return Device.Type.Tablet;

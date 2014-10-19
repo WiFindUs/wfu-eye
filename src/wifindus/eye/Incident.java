@@ -178,7 +178,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	{
 		if (key == null)
 			throw new NullPointerException("Parameter 'key' cannot be null.");
-		switch (key)
+		switch (key.toUpperCase())
 		{
 			case "MED": return Incident.Type.Medical;
 			case "SEC": return Incident.Type.Security;
