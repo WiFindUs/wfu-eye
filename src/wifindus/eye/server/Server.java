@@ -6,12 +6,19 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import wifindus.Debugger;
 import wifindus.DebuggerPanel;
+import wifindus.MySQLResultRow;
 import wifindus.ParsedUDPPacket;
+import wifindus.eye.Device;
+import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
+import wifindus.eye.EyeMySQLConnection;
 import wifindus.eye.Hash;
 
 /**
@@ -38,6 +45,7 @@ public class Server extends EyeApplication
 	{
 		super(args, true);
 		
+		//open udp socket
 		int udpListenPort = getConfig().getInt("server.udp_port");
 		Debugger.i("Opening listener UDP socket on port " + udpListenPort + "...");
 		try
@@ -51,6 +59,10 @@ public class Server extends EyeApplication
 			Debugger.ex(e);
 			dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		}
+		
+		//launch udp listener thread
+		Thread udpListenThread = new Thread(new UDPListenWorker());
+		udpListenThread.start();
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -102,6 +114,12 @@ public class Server extends EyeApplication
 						return;
 					continue;
 				}
+				catch (SocketException e)
+				{
+					if (!abortThreads)
+						Debugger.ex(e);
+					return;
+				}
 				catch (IOException e)
 				{
 					Debugger.ex(e);
@@ -136,11 +154,93 @@ public class Server extends EyeApplication
 		
 		private void processDevicePacket(ParsedUDPPacket packet)
 		{
+			//sanity checks
 			if (packet == null)
 				return;
 			String hash = getPacketHash(packet);
 			if (hash == null)
 				return;
+			
+			//build temporary dataset
+			Map <String, String> tempMap = new HashMap<>(); 
+			tempMap.put("hash", "'" + hash + "'");
+			if (packet.getData().containsKey("devicetype"))
+				tempMap.put("deviceType", "'" + packet.getData().get("devicetype").toUpperCase() + "'");
+			if (packet.getData().containsKey("address"))
+				tempMap.put("address", nullable(packet.getData().get("address")));
+			if (packet.getData().containsKey("latitude"))
+				tempMap.put("latitude", packet.getData().get("latitude"));
+			if (packet.getData().containsKey("longitude"))
+				tempMap.put("longitude", packet.getData().get("longitude"));
+			if (packet.getData().containsKey("altitude"))
+				tempMap.put("altitude", packet.getData().get("altitude"));
+			if (packet.getData().containsKey("accuracy"))
+				tempMap.put("accuracy", packet.getData().get("accuracy"));
+			if (packet.getData().containsKey("humidity"))
+				tempMap.put("humidity", packet.getData().get("humidity"));
+			if (packet.getData().containsKey("airpressure"))
+				tempMap.put("airPressure", packet.getData().get("airpressure"));
+			if (packet.getData().containsKey("temperature"))
+				tempMap.put("temperature", packet.getData().get("temperature"));
+			if (packet.getData().containsKey("lightlevel"))
+				tempMap.put("lightLevel", packet.getData().get("lightLevel"));
+			tempMap.put("lastUpdate", "NOW()");
+			
+			//check if record exists, execute appropriate query
+			EyeMySQLConnection mysql = getMySQL();
+			try
+			{
+				MySQLResultRow deviceRow = mysql.fetchSingleDevice(hash);
+				String query;
+				boolean first = false;
+				boolean update = false;
+
+				//if not, use an INSERT query
+				if (deviceRow == null)
+				{
+					//build query string
+					query = "INSERT INTO Devices (";
+					String values = "VALUES (";
+
+					for (Map.Entry< String, String > entry : tempMap.entrySet())
+					{
+						query += (!first ? ", " : "") + entry.getKey();
+						values += (!first ? ", " : "") + entry.getValue();
+						first = false;
+					}
+					query += ") " + values + ")"; 
+				}
+				else //UPDATE query
+				{
+					query = "UPDATE Devices SET ";
+					
+					for (Map.Entry< String, String > entry : tempMap.entrySet())
+					{
+						if (!first)
+							query += ", ";
+						query += entry.getKey() + "=" + entry.getValue();							
+						first = false;
+					}
+					query += " WHERE hash='" + hash + "'";
+					
+					update = true;
+				}
+				
+				//execute sql
+				PreparedStatement statement = mysql.prepareStatement(query);
+				if (update)
+					statement.executeUpdate();
+				else
+					statement.execute();
+				
+				//release statement
+				mysql.release(statement);
+				
+			}
+			catch (SQLException e)
+			{
+				Debugger.ex(e);
+			}
 		}
 		
 		private String getPacketHash(ParsedUDPPacket packet)
@@ -151,6 +251,13 @@ public class Server extends EyeApplication
 			if (hash == null || !Hash.isValid(hash))
 				return null;
 			return hash;
+		}
+		
+		private String nullable(String value)
+		{
+			if (!value.toUpperCase().equals("NULL"))
+				value = "'" + value + "'";
+			return value;
 		}
 	};
 	
