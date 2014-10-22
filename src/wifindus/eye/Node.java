@@ -3,7 +3,6 @@ package wifindus.eye;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
-
 import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;

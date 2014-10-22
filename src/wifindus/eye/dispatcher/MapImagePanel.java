@@ -18,9 +18,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.swing.JPanel;
-
 import wifindus.ConfigFile;
 import wifindus.GPSRectangle;
 import wifindus.ResourcePool;

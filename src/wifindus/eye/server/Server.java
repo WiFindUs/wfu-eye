@@ -15,8 +15,6 @@ import wifindus.Debugger;
 import wifindus.DebuggerPanel;
 import wifindus.MySQLResultRow;
 import wifindus.ParsedUDPPacket;
-import wifindus.eye.Device;
-import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.EyeMySQLConnection;
 import wifindus.eye.Hash;
