@@ -218,17 +218,14 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	
 	 @Override
-		public void mouseDragged(MouseEvent e) {
-			// TODO Auto-generated method stub
+	 public void mouseDragged(MouseEvent e) { }
 
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent e) {
-			selectMapElement(e.getPoint(), 0);
-		}
+	 @Override
+	 public void mouseMoved(MouseEvent e)
+	 {
+		 selectMapElement(e.getPoint(), 0);
+	 }
 	
 	@Override
 	public void deviceCreated(Device device)
@@ -315,7 +312,6 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	}
 	
 	/**
-	 * 
 	 * @param drawImage
 	 */
 	public final void setDrawImage(boolean drawImage)
