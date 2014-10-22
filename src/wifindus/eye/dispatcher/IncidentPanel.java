@@ -7,11 +7,7 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.Map.Entry;
-
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
@@ -22,30 +18,23 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import wifindus.Debugger;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
-import wifindus.eye.User;
 
 public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
     private transient Incident incident = null;
     private transient JLabel incidentTime, idLabel, onTaskLabel;
-    private transient JButton locateOnMap, addRespondent, removeRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
+    private transient JButton locateOnMap, addRespondent, removeRespondent,
+    	removeIncident, codeButton, statusButton, incidentIconButton;
 	private transient JList<Device> onTaskList;
 	private transient DefaultListModel<Device> onTaskListModel;
-	private transient ArrayList<Device> selectedDevices;
 	
     static
     {
@@ -129,27 +118,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         JScrollPane onTaskListScroll = new JScrollPane(onTaskList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         onTaskListScroll.setPreferredSize(new Dimension(200,70));
-        
-         
-       ListSelectionListener listSelectionListener = new ListSelectionListener() 
-        {
-          public void valueChanged(ListSelectionEvent l) 
-          {
-            boolean selectionChanged = l.getValueIsAdjusting();
-            if (selectionChanged == false) 
-            {  
-            	selectedDevices= new ArrayList<Device>();
-            	JList list = (JList) l.getSource();
-            	int selections[] = list.getSelectedIndices();
-            	            
-            	for (int i = 0; i < selections.length; i++) 
-            	{
-            		selectedDevices.add(onTaskListModel.get(selections[i]));
-            	}
-            }
-          }
-        };   
-        onTaskList.addListSelectionListener(listSelectionListener);
         
         //time
         ImageIcon timeIcon = new ImageIcon("images/time.png");
@@ -275,10 +243,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         incident.addEventListener(this);
     }
     
-    
-
-    
-
 	@Override
 	public void incidentArchived(Incident incident)
 	{
@@ -305,64 +269,68 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		//TODO: visually reflect selection state in some way
 	}
 	
-	  @Override
-	    public void actionPerformed(ActionEvent e) 
-	    {
-		  if(e.getSource() == addRespondent)
-		  {
-			  //start out with no choice, set initial smallest distance to something massive
-			  double minDist = Double.MAX_VALUE;
-			  Device closestAvailableDevice = null;
-			  
-			  for (Device device : EyeApplication.get().getDevices())
-			  {
-				  //skip invalid options
-				  if (device.getCurrentIncident() != null
-					  || !device.getLocation().hasLatLong()
-					  || device.getCurrentUser() == null
-					  || device.getCurrentUser().getType() != incident.getType())
-					  continue;
-				  
-				  //if this is the first, assign it immediately as 'closest'
-				  if (closestAvailableDevice == null)
-				  {
-					  closestAvailableDevice = device;
-					  minDist = closestAvailableDevice.getLocation().distanceTo(incident.getLocation());
-				  }
-				  else //check against previous closest
-				  {
-					  //get test distance
-					  double currDist = device.getLocation().distanceTo(incident.getLocation());
-					  
-					  //if it's smaller, this one is closer
-					  if (currDist < minDist)
-					  {
-						  minDist = currDist;
-						  closestAvailableDevice = device;
-					  }
-				  }
-			  }
-			  
-			  //if we found a valid, available device, assign it, yo
-			  if (closestAvailableDevice != null)
-				  EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, incident);
+	@Override
+	public void actionPerformed(ActionEvent e) 
+	{
+		if(e.getSource() == addRespondent)
+		{
+			//start out with no choice, set initial smallest distance to something massive
+			double minDist = Double.MAX_VALUE;
+			Device closestAvailableDevice = null;
+
+			for (Device device : EyeApplication.get().getDevices())
+			{
+				//skip invalid options
+				if (device.getCurrentIncident() != null
+						|| !device.getLocation().hasLatLong()
+						|| device.getCurrentUser() == null
+						|| device.getCurrentUser().getType() != incident.getType())
+					continue;
+
+				//if this is the first, assign it immediately as 'closest'
+				if (closestAvailableDevice == null)
+				{
+					closestAvailableDevice = device;
+					minDist = closestAvailableDevice.getLocation().distanceTo(incident.getLocation());
+				}
+				else //check against previous closest
+				{
+					//get test distance
+					double currDist = device.getLocation().distanceTo(incident.getLocation());
+
+					//if it's smaller, this one is closer
+					if (currDist < minDist)
+					{
+						minDist = currDist;
+						closestAvailableDevice = device;
+					}
+				}
 			}
-		  
-		  if(e.getSource() == removeRespondent)
-		  {
-			  for(Device d : selectedDevices)
-			  {
-				 incident.unassignDevice(d);
-				 incidentUnassignedDevice(incident, d);
-			  }
-		  }
-		  
-	    }
+
+			//if we found a valid, available device, assign it, yo
+			if (closestAvailableDevice != null)
+				EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, incident);
+		}
+		else if(e.getSource() == removeRespondent)
+		{
+			for (Device device : getSelectedDevices())
+				EyeApplication.get().db_setDeviceIncident(device, null); //null incident for 'unassigning'
+		}
+	}
+	
+	/**
+	 * Gets all assigned devices currently selected in the incident's device/user list. 
+	 * @return A List<Device> containing all selected devices. The returned value is a copy of the original list, so altering it will have no effect on the panel's list. 
+	 */
+	public List<Device> getSelectedDevices()
+	{
+		return new ArrayList<Device>(onTaskList.getSelectedValuesList());
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
-	
+      
 	private void updateButtonState()
 	{
 		ImageIcon icon = null;
