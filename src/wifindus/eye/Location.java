@@ -15,6 +15,11 @@ public class Location implements Serializable
 	 */
 	public static final Location EMPTY = new Location();
 	
+	/**
+	 * The mean radius of the earth, in kilometers
+	 */
+	public static final double EARTH_RADIUS_MEAN = 6378.1370;
+	
 	private Double latitude = null;
 	private Double longitude = null;
 	private Double altitude = null;
@@ -203,5 +208,28 @@ public class Location implements Serializable
 			((latitude == null ? "" : Math.abs(latitude) + "°" + (latitude >= 0 ? "N" : "S"))
 			+(longitude == null ? "" : " " + Math.abs(longitude) + "°" + (longitude >= 0 ? "E" : "W"))
 			).trim();
+	}
+	
+	/**
+	 * Returns the horizontal (spherical) distance between two GPS coordinates, according to the haversine formula.
+	 * @param other The point to measure to, starting from the current one.
+	 * @return Distance 'as the crow flies' between the two points, in <strong>meters</strong>.
+	 * @throws NullPointerException if other is null
+	 * @throws IllegalArgumentException if this or the other coordinate are missing horizontal positioning data
+	 */
+	public final double distanceTo(Location other) 
+	{
+		if (other == null)
+			throw new NullPointerException("Parameter 'other' cannot be null.");
+		if (!hasLatLong() || !other.hasLatLong())
+			throw new IllegalArgumentException("Both location points must have horizontal positioning data");
+		
+		double latitudeDistance = Math.toRadians(latitude - other.getLatitude());
+	    double longitudeDistance = Math.toRadians(longitude - other.getLongitude());
+	    double d = Math.sin(latitudeDistance/2.0) * Math.sin(latitudeDistance/2.0) +
+	               Math.cos(Math.toRadians(other.getLatitude())) * Math.cos(Math.toRadians(latitude)) *
+	               Math.sin(longitudeDistance/2.0) * Math.sin(longitudeDistance/2.0);
+	    
+	    return (2.0 * Math.atan2(Math.sqrt(d), Math.sqrt(1.0-d))) * EARTH_RADIUS_MEAN * 1000.0;
 	}
 }
