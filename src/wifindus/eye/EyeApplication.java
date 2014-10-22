@@ -5,7 +5,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.net.InetAddress;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -414,10 +417,39 @@ public abstract class EyeApplication extends JFrame
 		//sanity checks
 		if (location == null)
 			throw new NullPointerException("Parameter 'location' cannot be null.");
+		if (!location.hasLatLong())
+			throw new IllegalArgumentException("Parameter 'location' is missing horizontal positioning data.");
 		
 		//manipulate database
-		//TODO: execute database INSERT query, store auto-generated id
-		int generatedID = incidents.size()+1;
+		int generatedID = -1;
+		Statement statement = null;
+		ResultSet resultSet = null;
+		try
+		{
+			statement = mysql.createStatement();
+			statement.executeUpdate("INSERT INTO Incidents "
+					+ "(incidentType, latitude, longitude, created) "
+					+ "VALUES ("
+						+"'"+Incident.getDatabaseKeyFromType(type)+"', "
+						+location.getLatitude()+", "
+						+location.getLongitude()+", "
+						+"NOW())"
+					, Statement.RETURN_GENERATED_KEYS);
+			
+			resultSet = statement.getGeneratedKeys();
+			if (resultSet.next())
+				generatedID = resultSet.getInt(1);
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+			return null;
+		}
+		finally
+		{
+			mysql.release(resultSet);
+			mysql.release(statement);
+		}
 		
 		//manipulate data structures
 		Incident incident = new Incident(generatedID,
@@ -439,6 +471,7 @@ public abstract class EyeApplication extends JFrame
 	 * @param nameLast The user's last (family) name.
 	 * @return the new User object, or null if an error occurred.
 	 * @throws NullPointerException if any of the name parameters are null.
+	 * @throws IllegalArgumentException if responderType is Type.None
 	 */
 	public final User db_createUser(Incident.Type responderType, String nameFirst, String nameMiddle, String nameLast)
 	{
@@ -449,11 +482,40 @@ public abstract class EyeApplication extends JFrame
 			throw new NullPointerException("Parameter 'nameMiddle' cannot be null.");
 		if (nameLast == null)
 			throw new NullPointerException("Parameter 'nameLast' cannot be null.");
+		if (responderType == Incident.Type.None)
+			throw new IllegalArgumentException("Parameter 'responderType' cannot be None.");
 		
 		//manipulate database
-		//TODO: execute database INSERT query, store auto-generated id
-		int generatedID = users.size()+1;
-		
+		int generatedID = -1;
+		Statement statement = null;
+		ResultSet resultSet = null;
+		try
+		{
+			statement = mysql.createStatement();
+			statement.executeUpdate("INSERT INTO Users "
+					+ "(nameFirst, nameMiddle, nameLast, personnelType) "
+					+ "VALUES ("
+						+"'"+nameFirst+"', "
+						+"'"+nameMiddle+"', "
+						+"'"+nameLast+"', "
+						+"'"+Incident.getDatabaseKeyFromType(responderType)+"')"
+					, Statement.RETURN_GENERATED_KEYS);
+			
+			resultSet = statement.getGeneratedKeys();
+			if (resultSet.next())
+				generatedID = resultSet.getInt(1);
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+			return null;
+		}
+		finally
+		{
+			mysql.release(resultSet);
+			mysql.release(statement);
+		}
+	
 		//manipulate data structures
 		User user = new User(generatedID,
 			responderType,
@@ -465,35 +527,6 @@ public abstract class EyeApplication extends JFrame
 		
 		//return user
 		return user;
-	}
-	
-	/**
-	 * Assigns a user to a device in the MySQL database, handling errors and firing events accordingly.
-	 * @param device The device to which the user will be assigned.
-	 * @param user The user to assign (pass null to 'unassign').
-	 * @return false if an error occurred, true otherwise.
-	 * @throws NullPointerException if the device was null.
-	 */
-	public final boolean db_setDeviceUser(Device device, User user)
-	{
-		//sanity checks
-		if (device == null)
-			throw new NullPointerException("Parameter 'device' cannot be null.");
-		if (user == device.getCurrentUser())
-			return true;
-		
-		//manipulate database
-		//TODO: SQL query for deletion of existing user/device link
-		if (user != null)
-		{
-			//TODO: SQL query for insert of new user/device link
-		}
-		
-		//manipulate data structures
-		device.updateUser(user);
-		
-		//return result
-		return true;
 	}
 	
 	/**
@@ -520,7 +553,23 @@ public abstract class EyeApplication extends JFrame
 		}
 		
 		//manipulate database
-		//TODO: SQL update query to set respondingIncidentID
+		Statement statement = null;
+		try
+		{
+			statement = mysql.createStatement();
+			statement.executeUpdate("UPDATE Devices SET "
+					+ "respondingIncidentID="+(incident==null ? "NULL" : incident.getID())+" "
+					+ "WHERE hash='"+device.getHash()+"'");
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+			return false;
+		}
+		finally
+		{
+			mysql.release(statement);
+		}
 		
 		//manipulate data structures
 		device.updateIncident(incident);
@@ -544,8 +593,26 @@ public abstract class EyeApplication extends JFrame
 			return true;
 		
 		//manipulate database
-		//TODO: SQL query to un-assign all devices from this incident
-		//TODO: SQL query to set incident archived flag to TRUE
+		Statement statement = null;
+		try
+		{
+			statement = mysql.createStatement();
+			statement.executeUpdate("UPDATE Devices SET "
+					+ "respondingIncidentID=NULL "
+					+ "WHERE respondingIncidentID="+incident.getID());
+			statement.executeUpdate("UPDATE Incidents SET "
+					+ "archived=1 "
+					+ "WHERE id="+incident.getID());
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+			return false;
+		}
+		finally
+		{
+			mysql.release(statement);
+		}
 		
 		//manipulate data structures
 		for (Device device : incident.getRespondingDevices())
