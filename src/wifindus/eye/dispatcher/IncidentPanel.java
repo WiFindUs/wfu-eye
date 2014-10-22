@@ -22,8 +22,12 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+import javax.swing.event.ListDataListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import wifindus.Debugger;
 import wifindus.ResourcePool;
@@ -38,9 +42,10 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	private static final long serialVersionUID = -7397843910420550797L;
     private transient Incident incident = null;
     private transient JLabel incidentTime, idLabel, onTaskLabel;
-    private transient JButton locateOnMap, addRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
+    private transient JButton locateOnMap, addRespondent, removeRespondent, removeIncident, codeButton, statusButton, incidentIconButton;
 	private transient JList<Device> onTaskList;
 	private transient DefaultListModel<Device> onTaskListModel;
+	private transient ArrayList<Device> selectedDevices;
 	
     static
     {
@@ -102,6 +107,14 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         addRespondent.setHorizontalAlignment(SwingConstants.LEFT);
         addRespondent.addActionListener(this);
         
+        removeRespondent = new JButton("Remove Respondent");
+        removeRespondent.setBackground(lightBlue);
+        removeRespondent.setIcon(ResourcePool.getIcon("plus_small"));
+        removeRespondent.setBorder(emptyBorder);
+        removeRespondent.setFont(font);
+        removeRespondent.setHorizontalAlignment(SwingConstants.LEFT);
+        removeRespondent.addActionListener(this);
+        
         removeIncident = new JButton("Remove Incident");
         removeIncident.setBackground(lightBlue);
         removeIncident.setIcon(ResourcePool.getIcon("minus_small"));
@@ -116,6 +129,27 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         JScrollPane onTaskListScroll = new JScrollPane(onTaskList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         onTaskListScroll.setPreferredSize(new Dimension(200,70));
+        
+         
+       ListSelectionListener listSelectionListener = new ListSelectionListener() 
+        {
+          public void valueChanged(ListSelectionEvent l) 
+          {
+            boolean selectionChanged = l.getValueIsAdjusting();
+            if (selectionChanged == false) 
+            {  
+            	selectedDevices= new ArrayList<Device>();
+            	JList list = (JList) l.getSource();
+            	int selections[] = list.getSelectedIndices();
+            	            
+            	for (int i = 0; i < selections.length; i++) 
+            	{
+            		selectedDevices.add(onTaskListModel.get(selections[i]));
+            	}
+            }
+          }
+        };   
+        onTaskList.addListSelectionListener(listSelectionListener);
         
         //time
         ImageIcon timeIcon = new ImageIcon("images/time.png");
@@ -181,6 +215,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         columnButtons.addComponent(addRespondent, 0, GroupLayout.DEFAULT_SIZE, 150);
         columnButtons.addComponent(removeIncident, 0, GroupLayout.DEFAULT_SIZE, 150);
         
+        columnButtons.addComponent(removeRespondent, 0, GroupLayout.DEFAULT_SIZE, 150);
+        
         columnList.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         
@@ -211,6 +247,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
         buttonGroup.addComponent(addRespondent);
         buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
+        buttonGroup.addComponent(removeRespondent);
+        buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
         buttonGroup.addComponent(removeIncident);
         
         onTaskGroup.addComponent(onTaskLabel);
@@ -236,6 +274,10 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
    
         incident.addEventListener(this);
     }
+    
+    
+
+    
 
 	@Override
 	public void incidentArchived(Incident incident)
@@ -305,6 +347,16 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			  if (closestAvailableDevice != null)
 				  EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, incident);
 			}
+		  
+		  if(e.getSource() == removeRespondent)
+		  {
+			  for(Device d : selectedDevices)
+			  {
+				 incident.unassignDevice(d);
+				 incidentUnassignedDevice(incident, d);
+			  }
+		  }
+		  
 	    }
 	
 	/////////////////////////////////////////////////////////////////////
@@ -323,6 +375,9 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		}
 		incidentIconButton.setIcon(icon);
 	}
+
+
+
 }
 
 
