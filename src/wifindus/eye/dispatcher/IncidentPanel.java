@@ -107,6 +107,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         removeIncident.setBorder(emptyBorder);
         removeIncident.setFont(font);
         removeIncident.setHorizontalAlignment(SwingConstants.LEFT);
+        removeIncident.addActionListener(this);
         
         onTaskLabel = new JLabel ("On Task:");
         onTaskLabel.setFont(font);
@@ -288,22 +289,26 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			  
 			  for(int i = 0; i < devices.size(); i++)
 			  {
-				  if(devices.get(i).getCurrentIncident() == null)
+				  if(devices.get(i).getCurrentUser() != null && devices.get(i).getCurrentIncident() == null)
 				  {
-					  double deviceLat = devices.get(i).getLocation().getLatitude();
-					  double deviceLong = devices.get(i).getLocation().getLongitude();
-					  deviceLocations.put((int)calculateDistanceToIncident(incidentLat,incidentLong, deviceLat, deviceLong), devices.get(i));
+					  if(devices.get(i).getCurrentUser().getType() == incident.getType())
+					  {
+						  double deviceLat = devices.get(i).getLocation().getLatitude();
+						  double deviceLong = devices.get(i).getLocation().getLongitude();
+						  deviceLocations.put((int)calculateDistanceToIncident(incidentLat,incidentLong, deviceLat, deviceLong), devices.get(i));
+					  }
 				  }
 			  }
 			  
 			  for(Map.Entry<Integer, Device> device : deviceLocations.entrySet()) 
 			  {
 				  Device deviceToAssign = device.getValue();
-				  System.out.println(deviceToAssign.getCurrentIncident());
+				  EyeApplication.get().db_setDeviceIncident(deviceToAssign, incident);
 				  incident.assignDevice(deviceToAssign);
-				  System.out.println(deviceToAssign.getCurrentIncident());
 				  break;
 			  }
+			  
+			
 			}
 	    }
 	
