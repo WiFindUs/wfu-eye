@@ -304,7 +304,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			  {
 				  Device deviceToAssign = device.getValue();
 				  EyeApplication.get().db_setDeviceIncident(deviceToAssign, incident);
-				  incident.assignDevice(deviceToAssign);
 				  break;
 			  }
 			  
