@@ -188,6 +188,25 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		throw new IllegalArgumentException("Parameter 'key' does not match an Incident.Type database key.");
 	}
 	
+	/**
+	 * Gets a database key from a Type.
+	 * @param type The type to convert to it's corresponding key.
+	 * @return A string containing the database key for the type.
+	 * @throws IllegalArgumentException If you pass an invalid type (e.g. None).
+	 */
+	public static final String getDatabaseKeyFromType(Type type)
+	{
+		switch (type)
+		{
+			case Medical: return "MED";
+			case Security: return "SEC";
+			case WiFindUs: return "WFU";
+			default:
+				throw new IllegalArgumentException("Parameter 'type' was a value that is not currently supported in the database.");
+		}
+	}
+	
+	
 	@Override
 	public String toString()
 	{
