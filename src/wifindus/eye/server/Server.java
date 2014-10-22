@@ -251,13 +251,6 @@ public class Server extends EyeApplication
 				return null;
 			return hash;
 		}
-		
-		private String nullable(String value)
-		{
-			if (!value.toUpperCase().equals("NULL"))
-				value = "'" + value + "'";
-			return value;
-		}
 	};
 	
 	/////////////////////////////////////////////////////////////////////
