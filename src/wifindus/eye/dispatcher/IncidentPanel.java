@@ -268,6 +268,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	    {
 		  if(e.getSource() == addRespondent)
 		  {
+			  //start out with no choice, set initial smallest distance to something massive
 			  double minDist = Double.MAX_VALUE;
 			  Device closestAvailableDevice = null;
 			  
