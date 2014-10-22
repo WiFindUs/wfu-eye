@@ -31,6 +31,7 @@ import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
+import wifindus.eye.User;
 
 public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener
 {
@@ -262,52 +263,46 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		//TODO: visually reflect selection state in some way
 	}
 	
-	public static double calculateDistanceToIncident(double incidentLat, double incidentLong, double deviceLat, double deviceLong) 
-	{
-	    double worldRadius = 6371; 
-	    double latitudeDistance = Math.toRadians(deviceLat - incidentLat);
-	    double longitudeDistance = Math.toRadians(deviceLong - incidentLong);
-	    double d = Math.sin(latitudeDistance/2) * Math.sin(latitudeDistance/2) +
-	               Math.cos(Math.toRadians(incidentLat)) * Math.cos(Math.toRadians(deviceLat)) *
-	               Math.sin(longitudeDistance/2) * Math.sin(longitudeDistance/2);
-	    double d2 = 2 * Math.atan2(Math.sqrt(d), Math.sqrt(1-d));
-	    double kmDistance = (double) (worldRadius * d2);
-	    return kmDistance * 1000;
-	    }
-	
-
-	
 	  @Override
 	    public void actionPerformed(ActionEvent e) 
 	    {
 		  if(e.getSource() == addRespondent)
 		  {
-			  ArrayList<Device> devices = EyeApplication.get().getDevices();
-			  Map<Integer, Device> deviceLocations = new TreeMap<>();
-			  double incidentLat = incident.getLocation().getLatitude();
-			  double incidentLong= incident.getLocation().getLongitude();
+			  double minDist = Double.MAX_VALUE;
+			  Device closestAvailableDevice = null;
 			  
-			  for(int i = 0; i < devices.size(); i++)
+			  for (Device device : EyeApplication.get().getDevices())
 			  {
-				  if(devices.get(i).getCurrentUser() != null && devices.get(i).getCurrentIncident() == null)
+				  //skip invalid options
+				  if (device.getCurrentIncident() != null
+					  || !device.getLocation().hasLatLong()
+					  || device.getCurrentUser() == null
+					  || device.getCurrentUser().getType() != incident.getType())
+					  continue;
+				  
+				  //if this is the first, assign it immediately as 'closest'
+				  if (closestAvailableDevice == null)
 				  {
-					  if(devices.get(i).getCurrentUser().getType() == incident.getType())
+					  closestAvailableDevice = device;
+					  minDist = closestAvailableDevice.getLocation().distanceTo(incident.getLocation());
+				  }
+				  else //check against previous closest
+				  {
+					  //get test distance
+					  double currDist = device.getLocation().distanceTo(incident.getLocation());
+					  
+					  //if it's smaller, this one is closer
+					  if (currDist < minDist)
 					  {
-						  double deviceLat = devices.get(i).getLocation().getLatitude();
-						  double deviceLong = devices.get(i).getLocation().getLongitude();
-						  deviceLocations.put((int)calculateDistanceToIncident(incidentLat,incidentLong, deviceLat, deviceLong), devices.get(i));
+						  minDist = currDist;
+						  closestAvailableDevice = device;
 					  }
 				  }
 			  }
 			  
-			  for(Map.Entry<Integer, Device> device : deviceLocations.entrySet()) 
-			  {
-				  Device deviceToAssign = device.getValue();
-				  EyeApplication.get().db_setDeviceIncident(deviceToAssign, incident);
-				  break;
-			  }
-			  
-			
+			  //if we found a valid, available device, assign it, yo
+			  if (closestAvailableDevice != null)
+				  EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, incident);
 			}
 	    }
 	
