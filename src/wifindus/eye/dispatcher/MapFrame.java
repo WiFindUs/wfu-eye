@@ -28,6 +28,7 @@ public class MapFrame extends JFrame implements ActionListener
 	private transient JLabel gridLabel, incidentsLabel, nodesLabel, devicesLabel, legend;
 	private ImageIcon expandLegendIcon, retractLegendIcon;
 	private JPanel legendPanel;
+	private Color red = new Color(0xfd0b15);
 	
 	static
 	{
@@ -215,7 +216,7 @@ public class MapFrame extends JFrame implements ActionListener
 			if(gridButton.getText() == "On")
 			{
 				mapImagePanel.setDrawGrid(false);
-				gridButton.setBackground(Color.red);
+				gridButton.setBackground(red);
 				gridButton.setText("Off");
 			}
 			else

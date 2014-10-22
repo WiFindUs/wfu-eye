@@ -4,6 +4,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Map.Entry;
+
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
@@ -16,12 +24,15 @@ import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+
+import wifindus.Debugger;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
+import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 
-public class IncidentPanel extends JPanel implements IncidentEventListener
+public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
     private transient Incident incident = null;
@@ -88,6 +99,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
         addRespondent.setBorder(emptyBorder);
         addRespondent.setFont(font);
         addRespondent.setHorizontalAlignment(SwingConstants.LEFT);
+        addRespondent.addActionListener(this);
         
         removeIncident = new JButton("Remove Incident");
         removeIncident.setBackground(lightBlue);
@@ -249,6 +261,52 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 		//TODO: visually reflect selection state in some way
 	}
 	
+	public static double calculateDistanceToIncident(double incidentLat, double incidentLong, double deviceLat, double deviceLong) 
+	{
+	    double worldRadius = 6371; 
+	    double latitudeDistance = Math.toRadians(deviceLat - incidentLat);
+	    double longitudeDistance = Math.toRadians(deviceLong - incidentLong);
+	    double d = Math.sin(latitudeDistance/2) * Math.sin(latitudeDistance/2) +
+	               Math.cos(Math.toRadians(incidentLat)) * Math.cos(Math.toRadians(deviceLat)) *
+	               Math.sin(longitudeDistance/2) * Math.sin(longitudeDistance/2);
+	    double d2 = 2 * Math.atan2(Math.sqrt(d), Math.sqrt(1-d));
+	    double kmDistance = (double) (worldRadius * d2);
+	    return kmDistance * 1000;
+	    }
+	
+
+	
+	  @Override
+	    public void actionPerformed(ActionEvent e) 
+	    {
+		  if(e.getSource() == addRespondent)
+		  {
+			  ArrayList<Device> devices = EyeApplication.get().getDevices();
+			  Map<Integer, Device> deviceLocations = new TreeMap<>();
+			  double incidentLat = incident.getLocation().getLatitude();
+			  double incidentLong= incident.getLocation().getLongitude();
+			  
+			  for(int i = 0; i < devices.size(); i++)
+			  {
+				  if(devices.get(i).getCurrentIncident() == null)
+				  {
+					  double deviceLat = devices.get(i).getLocation().getLatitude();
+					  double deviceLong = devices.get(i).getLocation().getLongitude();
+					  deviceLocations.put((int)calculateDistanceToIncident(incidentLat,incidentLong, deviceLat, deviceLong), devices.get(i));
+				  }
+			  }
+			  
+			  for(Map.Entry<Integer, Device> device : deviceLocations.entrySet()) 
+			  {
+				  Device deviceToAssign = device.getValue();
+				  System.out.println(deviceToAssign.getCurrentIncident());
+				  incident.assignDevice(deviceToAssign);
+				  System.out.println(deviceToAssign.getCurrentIncident());
+				  break;
+			  }
+			}
+	    }
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -266,4 +324,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener
 		incidentIconButton.setIcon(icon);
 	}
 }
+
+
+
+    
 
