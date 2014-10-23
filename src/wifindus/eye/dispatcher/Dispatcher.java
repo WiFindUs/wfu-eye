@@ -13,8 +13,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
@@ -61,8 +59,6 @@ public class Dispatcher extends EyeApplication
 	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
 	private transient  Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
-    static int counter = 0;
-    private transient static boolean loadedExisingEventTimes = false;
 	
     static
     {
@@ -288,39 +284,14 @@ public class Dispatcher extends EyeApplication
        // contentPane.add(incidentPanelScroll, BorderLayout.CENTER);
         contentPane.add(incidentTabs, BorderLayout.CENTER);
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(timerTask, 0, 1000);
-
 		incidentPanel.revalidate();
 		incidentPanel.repaint();
-
-		 
-	
 	}
-	
-  
-    TimerTask timerTask = new TimerTask() 
-    {
-
-        @Override
-        public void run() 
-        {
-            for(Map.Entry<Integer,IncidentPanel> entry : incidentPanels.entrySet()) 
-            {
-                entry.getValue().incrementTimer();
-            }
-        }
-    };
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-	
-	public static void setLoadedExisingEventTimes(boolean b) {
-		// TODO Auto-generated method stub
-		loadedExisingEventTimes = b;
-	}
-    
+   
 	@Override
 	public void deviceCreated(Device device)
 	{
@@ -338,23 +309,6 @@ public class Dispatcher extends EyeApplication
 		IncidentPanel i = new IncidentPanel(incident); 
 		incidentPanels.put(incident.getID(), i);
 		incidentPanel.add(incidentPanels.get(incident.getID()));
-		
-		
-		if(loadedExisingEventTimes == false)
-		{
-			java.util.Date date= new java.util.Date();
-					 
-			Date incidentTime = incident.getCreated();
-			Date currentTime = new Timestamp(date.getTime());
-			long timeDifference = currentTime.getTime() - incidentTime.getTime();
-					 
-			long seconds = timeDifference / 1000;
-			long minutes = seconds / 60;
-			long hours = minutes / 60;
-			incidentPanels.get(incident.getID()).setTime((int)hours % 24, (int)minutes % 60, (int)seconds % 60);
-		}
-        
-		
 		archivedIncidentPanel.revalidate();
 		incidentPanel.revalidate();
 	}
