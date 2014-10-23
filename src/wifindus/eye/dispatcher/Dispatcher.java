@@ -57,7 +57,7 @@ public class Dispatcher extends EyeApplication
 	private transient JComboBox<String> sortComboBox;
 	private transient ButtonGroup filterButtonGroup;
 	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
-	private transient  Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
+	private transient Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
 	
     static
@@ -79,21 +79,16 @@ public class Dispatcher extends EyeApplication
 		//get parent content pane
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
-		
 		contentPane.setBackground(Color.white);
-		menuPanel = new JPanel();
-		menuPanel.setBackground(Color.white);
+		
+		(menuPanel = new JPanel()).setBackground(Color.white);
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
-		//ItemListener listener = new itemListener(); 
-		MapFrame map = new MapFrame();
-		map.setVisible(true);
+
+		(new MapFrame()).setVisible(true);
 		
-		/////////////////////////////////////////////////////////////////////
 		// query Panel
-		/////////////////////////////////////////////////////////////////////
-		queryPanel = new JPanel();
-		queryPanel.setBackground(new Color(0xedf4fb));
+		(queryPanel = new JPanel()).setBackground(new Color(0xedf4fb));
 		queryPanel.setMinimumSize(new Dimension(397, 125));
 		queryPanel.setMaximumSize(new Dimension(397, 125));
 		GroupLayout queryPanelLayout = new GroupLayout(queryPanel);
@@ -226,18 +221,13 @@ public class Dispatcher extends EyeApplication
         queryPanelLayout.setHorizontalGroup(queryPanelLayoutHorizontal);
         queryPanelLayout.setVerticalGroup(queryPanelLayoutVertical);
         
-        /////////////////////////////////////////////////////////////////////
         // device Panel
-        /////////////////////////////////////////////////////////////////////
         devicePanel = new JPanel();
 		devicePanel.setLayout(new BoxLayout(devicePanel, BoxLayout.Y_AXIS));
 		JScrollPane devicePanelScroll = new JScrollPane(devicePanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		int scrollbarWidth = devicePanelScroll.getWidth();
         
-        /////////////////////////////////////////////////////////////////////
         // device control Panel: contains query and device panels
-        /////////////////////////////////////////////////////////////////////
         JPanel deviceControlPanel = new JPanel();
 		
 		//Layout
@@ -245,8 +235,6 @@ public class Dispatcher extends EyeApplication
         deviceControlPanel.setLayout(layout);
         GroupLayout.SequentialGroup horizontal = layout.createSequentialGroup();
         GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
-        //layout.setAutoCreateGaps(true);
-        //layout.setAutoCreateContainerGaps(true);
 		
 		//deviceControlPanel horizontal
         GroupLayout.ParallelGroup column = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
@@ -262,26 +250,22 @@ public class Dispatcher extends EyeApplication
         
 		incidentPanel = new JPanel();
         incidentPanel.setLayout(new BoxLayout(incidentPanel, BoxLayout.Y_AXIS));
-        
-        JTabbedPane incidentTabs = new JTabbedPane();
-        
+        incidentPanel.setBackground(Color.WHITE);
         JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        incidentPanel.setBackground(Color.WHITE);
         
         archivedIncidentPanel = new JPanel();
         archivedIncidentPanel.setLayout(new BoxLayout(archivedIncidentPanel, BoxLayout.Y_AXIS));
-        
+        archivedIncidentPanel.setBackground(Color.WHITE);
         JScrollPane archivedIncidentPanelScroll = new JScrollPane(archivedIncidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        archivedIncidentPanel.setBackground(Color.WHITE);
         
+        JTabbedPane incidentTabs = new JTabbedPane();
         incidentTabs.add("Active Incidents", incidentPanelScroll);
         incidentTabs.add("Archived Incidents", archivedIncidentPanelScroll);
         
         contentPane.add(menuPanel, BorderLayout.NORTH);
         contentPane.add(deviceControlPanel, BorderLayout.WEST);
-       // contentPane.add(incidentPanelScroll, BorderLayout.CENTER);
         contentPane.add(incidentTabs, BorderLayout.CENTER);
 
 		incidentPanel.revalidate();
@@ -306,24 +290,26 @@ public class Dispatcher extends EyeApplication
 	public void incidentCreated(Incident incident)
 	{
 		super.incidentCreated(incident);
-		IncidentPanel i = new IncidentPanel(incident); 
-		incidentPanels.put(incident.getID(), i);
-		incidentPanel.add(incidentPanels.get(incident.getID()));
-		archivedIncidentPanel.revalidate();
+		
+		IncidentPanel newPanel = new IncidentPanel(incident); 
+		incidentPanels.put(Integer.valueOf(incident.getID()), newPanel);
+		incidentPanel.add(newPanel);
 		incidentPanel.revalidate();
+		incidentPanel.repaint();
 	}
 	
 	@Override
 	public void incidentArchived(Incident incident)
 	{
 		super.incidentArchived(incident);
-		incidentPanel.remove(incidentPanels.get(incident.getID()));
-		archivedIncidentPanel.add(incidentPanels.get(incident.getID()));
-		for (Device device : incident.getRespondingDevices())
-			EyeApplication.get().db_setDeviceIncident(device, null);
 		
+		IncidentPanel oldPanel = incidentPanels.get(Integer.valueOf(incident.getID()));
+		incidentPanel.remove(oldPanel);
+		archivedIncidentPanel.add(oldPanel);
 		incidentPanel.revalidate();
 		incidentPanel.repaint();
+		archivedIncidentPanel.revalidate();
+		archivedIncidentPanel.repaint();
 	}
 
 
