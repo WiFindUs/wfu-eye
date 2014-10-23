@@ -40,7 +40,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 
 	private double timerCounter = 0.0;
 	private static final int COLUMN_DEVICE = 0;
-	private static final int COLUMN_DISTANCE = 1;
 	private transient DefaultTableModel deviceTableModel = new DefaultTableModel(
 			new Object[][]{},
 			new String[] {"Device", "Distance"}
@@ -277,7 +276,9 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	{
 		deviceTableModel.setNumRows(0);
 		EyeApplication.get().removeTimerListener(this);
-		updateTimerLabel(0);	
+		updateTimerLabel(0);
+		
+		//TODO: change appearance when archived (smaller size, hide buttons, etc)
 	}
 
 	@Override

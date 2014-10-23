@@ -34,7 +34,6 @@ import wifindus.eye.Node;
 import wifindus.eye.NodeEventListener;
 import wifindus.eye.User;
 
-//TODO: implement the EyeApplicationListener
 public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	NodeEventListener, IncidentEventListener, DeviceEventListener, ComponentListener, MouseMotionListener
 {
@@ -176,7 +175,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		
 		//attach ourselves as an EyeApplicationListener so we get notified of new
 		//devices, incidents and nodes as they are created
-		EyeApplication.get().addEventListener(this);
+		EyeApplication.get().addEyeListener(this);
 		
 		
 		addMouseMotionListener(this);

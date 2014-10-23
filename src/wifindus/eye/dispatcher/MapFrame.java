@@ -7,7 +7,6 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -17,13 +16,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-
 import wifindus.ResourcePool;
 
 public class MapFrame extends JFrame implements ActionListener
 {
+	private static final long serialVersionUID = -6996363857862779838L;
 	private JSplitPane splitPane;
-	public MapImagePanel mapImagePanel;
+	private MapImagePanel mapImagePanel;
 	private JButton gridButton, incidentsButton, nodesButton, devicesButton, expandLegendButton;
 	private Color green = new Color(0x0a9a06);
 	private transient JLabel gridLabel, incidentsLabel, nodesLabel, devicesLabel, legend;
@@ -41,8 +40,6 @@ public class MapFrame extends JFrame implements ActionListener
 		ResourcePool.loadImage("expand_legend_icon", "images/expand_legend.png");
 		ResourcePool.loadImage("retract_legend_icon", "images/retract_legend.png");
 	}
-
-	   
 
 	public MapFrame()
 	{
