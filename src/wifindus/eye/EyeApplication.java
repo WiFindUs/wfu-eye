@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
@@ -23,6 +25,7 @@ import javax.swing.SwingWorker;
 import wifindus.ConfigFile;
 import wifindus.Debugger;
 import wifindus.DebuggerFrame;
+import wifindus.HighResolutionTimerListener;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLResultSet;
 
@@ -32,7 +35,8 @@ import wifindus.MySQLResultSet;
  * @author Mark 'marzer' Gillard
  */
 public abstract class EyeApplication extends JFrame
-	implements EyeApplicationListener, DeviceEventListener, NodeEventListener, UserEventListener, IncidentEventListener, WindowListener
+	implements EyeApplicationListener, DeviceEventListener, NodeEventListener,
+	UserEventListener, IncidentEventListener, WindowListener
 {
 	//properties
 	private static final long serialVersionUID = -3410394016911856177L;
@@ -41,9 +45,13 @@ public abstract class EyeApplication extends JFrame
 	private volatile ConfigFile config = null;
 	private transient volatile boolean abortThreads = false;
 	private transient volatile MySQLUpdateWorker mysqlWorker = null;
-	private transient EyeMySQLConnection mysql = new EyeMySQLConnection();
+	private transient volatile EyeMySQLConnection mysql = new EyeMySQLConnection();
 	private transient static EyeApplication singleton;
 	private transient volatile CopyOnWriteArrayList<EyeApplicationListener> listeners = new CopyOnWriteArrayList<>();
+	private transient volatile CopyOnWriteArrayList<HighResolutionTimerListener> timerListeners = new CopyOnWriteArrayList<>();
+	private transient volatile Timer timer;
+	private volatile long lastNanoTime;
+	
 	//database structures
 	private transient volatile ConcurrentHashMap<String,Device> devices = new ConcurrentHashMap<>();
 	private transient volatile ConcurrentHashMap<String,Node> nodes = new ConcurrentHashMap<>();
@@ -168,6 +176,8 @@ public abstract class EyeApplication extends JFrame
 		config.defaultDouble("map.longitude_end", 138.593057);
 		config.defaultInt("map.grid_rows", 10);
 		config.defaultInt("map.grid_columns", 10);
+		//ui stuff
+		config.defaultInt("ui.update_fps", 60);
 		//output config
 		Debugger.i("Parsed configuration: " + config);
 		
@@ -190,11 +200,14 @@ public abstract class EyeApplication extends JFrame
 		}
 		
 		//attach self as creation listener
-		addEventListener(this);
+		addEyeListener(this);
 		
 		//create and launch mysql worker task
 		mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
 		mysqlWorker.execute();
+		
+		//start ui timer
+		startTimer();
 	}
 	
 	/**
@@ -277,8 +290,12 @@ public abstract class EyeApplication extends JFrame
 	public void windowClosing(WindowEvent e)
 	{
 		Debugger.i("Cleaning up...");
-		mysql.disconnect();
 		abortThreads = true;
+		
+		stopTimer();
+		clearEyeListeners();
+		clearTimerListeners();
+		mysql.disconnect();
 		Debugger.clearEventListeners();
 		Debugger.close();
 	}
@@ -625,7 +642,7 @@ public abstract class EyeApplication extends JFrame
 	 * Adds a new EyeApplicationListener.
 	 * @param listener subscribes an EyeApplicationListener to this application's state events.
 	 */
-	public final void addEventListener(EyeApplicationListener listener)
+	public final void addEyeListener(EyeApplicationListener listener)
 	{
 		if (listener == null || listeners.contains(listener))
 			return;
@@ -637,11 +654,28 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	/**
+	 * Adds a new HighResolutionTimerListener.
+	 * @param timerListener subscribes an HighResolutionTimerListener to this application's timerTick() events.
+	 */
+	public final void addTimerListener(HighResolutionTimerListener timerListener)
+	{
+		if (timerListener == null || timerListeners.contains(timerListener))
+			return;
+		
+		synchronized(timerListeners)
+		{
+			timerListeners.add(timerListener);
+		}
+	}
+	
+	
+	
+	/**
 	 * Removes an existing EyeApplicationListener. 
 	 * @param listener unsubscribes an EyeApplicationListener from this application's state events.
 	 * Has no effect if this parameter is null, or is not currently subscribed to this object.
 	 */
-	public final void removeEventListener(EyeApplicationListener listener)
+	public final void removeEyeListener(EyeApplicationListener listener)
 	{
 		if (listener == null)
 			return;
@@ -652,13 +686,39 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	/**
+	 * Removes an existing HighResolutionTimerListener. 
+	 * @param timerListener unsubscribes an HighResolutionTimerListener from this application's timerTick() events.
+	 * Has no effect if this parameter is null, or is not currently subscribed to this object.
+	 */
+	public final void removeTimerListener(HighResolutionTimerListener timerListener)
+	{
+		if (timerListener == null)
+			return;
+		synchronized(timerListeners)
+		{
+			timerListeners.remove(timerListener);
+		}
+	}
+	
+	/**
 	 * Unsubscribes all EyeApplicationListeners from this application's state events.
 	 */
-	public final void clearEventListeners()
+	public final void clearEyeListeners()
 	{
 		synchronized(listeners)
 		{
 			listeners.clear();
+		}
+	}
+	
+	/**
+	 * Unsubscribes all HighResolutionTimerListeners from this application's state events.
+	 */
+	public final void clearTimerListeners()
+	{
+		synchronized(timerListeners)
+		{
+			timerListeners.clear();
 		}
 	}
 	
@@ -989,5 +1049,51 @@ public abstract class EyeApplication extends JFrame
 			while(iterator.hasNext())
 				iterator.next().nodeCreated(node);
 		}
+	}
+	
+	private void startTimer()
+	{
+		if (timer != null)
+			return;
+
+		//store first time
+		lastNanoTime = System.nanoTime();
+		
+		//init timer
+		int rate = (int)(1000.0 / (double)config.getInt("ui.update_fps"));
+		timer = new Timer();
+    	timer.scheduleAtFixedRate(
+    		new TimerTask()
+    		{
+    			@Override
+    			public void run()
+    			{
+    				synchronized(timerListeners)
+    				{
+    					//work out delta
+    					long currentNanoTime = System.nanoTime();
+    					double deltaTime = (double)(currentNanoTime - lastNanoTime) / 1000000000.0;
+    					lastNanoTime = currentNanoTime;
+    					
+    					//call subscribers
+    					ListIterator<HighResolutionTimerListener> iterator = timerListeners.listIterator();
+    					while(iterator.hasNext())
+    						iterator.next().timerTick(deltaTime);
+    				}
+    			}
+    		}, rate, rate
+    	);
+    	
+    	Debugger.i("High-resolution timer started.");
+	}
+	
+	private void stopTimer()
+	{		
+		if (timer == null)
+			return;
+		
+		timer.cancel();
+		timer = null;
+		Debugger.i("High-resolution timer terminated.");
 	}
 }
