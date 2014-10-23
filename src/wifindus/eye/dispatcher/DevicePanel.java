@@ -32,6 +32,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     private transient volatile Device device = null;
     private transient JButton newIncidentButton, locateOnMapButton;
     private transient JLabel logo, name, location, status;
+   
     
     static
     {
@@ -163,6 +164,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
     		EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
+    		Dispatcher.setLoadedExisingEventTimes(true);
     		Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
     	}
     	else if (e.getSource() == locateOnMapButton)
@@ -198,6 +200,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 	public void deviceLocationChanged(Device device, Location oldLocation,
 			Location newLocation)
 	{
+		IncidentPanel.deviceLocationChanged(device);
 		updateLabelState();
 		updateButtonState();
 	}

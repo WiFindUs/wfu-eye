@@ -6,9 +6,17 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -17,11 +25,13 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
@@ -45,11 +55,14 @@ public class Dispatcher extends EyeApplication
 		"Currently Responding First",
 		"Unused Devices First"
 	};
-	private transient JPanel menuPanel, queryPanel, incidentPanel, devicePanel;
+	private transient JPanel menuPanel, queryPanel, incidentPanel, archivedIncidentPanel, devicePanel;
 	private transient JComboBox<String> sortComboBox;
 	private transient ButtonGroup filterButtonGroup;
 	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
+	private transient  Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
+    static int counter = 0;
+    private transient static boolean loadedExisingEventTimes = false;
 	
     static
     {
@@ -254,19 +267,60 @@ public class Dispatcher extends EyeApplication
 		incidentPanel = new JPanel();
         incidentPanel.setLayout(new BoxLayout(incidentPanel, BoxLayout.Y_AXIS));
         
+        JTabbedPane incidentTabs = new JTabbedPane();
+        
         JScrollPane incidentPanelScroll = new JScrollPane(incidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         incidentPanel.setBackground(Color.WHITE);
         
+        archivedIncidentPanel = new JPanel();
+        archivedIncidentPanel.setLayout(new BoxLayout(archivedIncidentPanel, BoxLayout.Y_AXIS));
+        
+        JScrollPane archivedIncidentPanelScroll = new JScrollPane(archivedIncidentPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        archivedIncidentPanel.setBackground(Color.WHITE);
+        
+        incidentTabs.add("Active Incidents", incidentPanelScroll);
+        incidentTabs.add("Archived Incidents", archivedIncidentPanelScroll);
+        
         contentPane.add(menuPanel, BorderLayout.NORTH);
         contentPane.add(deviceControlPanel, BorderLayout.WEST);
-        contentPane.add(incidentPanelScroll, BorderLayout.CENTER);
+       // contentPane.add(incidentPanelScroll, BorderLayout.CENTER);
+        contentPane.add(incidentTabs, BorderLayout.CENTER);
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(timerTask, 0, 1000);
+
+		incidentPanel.revalidate();
+		incidentPanel.repaint();
+
+		 
+	
 	}
+	
+  
+    TimerTask timerTask = new TimerTask() 
+    {
+
+        @Override
+        public void run() 
+        {
+            for(Map.Entry<Integer,IncidentPanel> entry : incidentPanels.entrySet()) 
+            {
+                entry.getValue().incrementTimer();
+            }
+        }
+    };
 	
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
+	public static void setLoadedExisingEventTimes(boolean b) {
+		// TODO Auto-generated method stub
+		loadedExisingEventTimes = b;
+	}
+    
 	@Override
 	public void deviceCreated(Device device)
 	{
@@ -281,9 +335,43 @@ public class Dispatcher extends EyeApplication
 	public void incidentCreated(Incident incident)
 	{
 		super.incidentCreated(incident);
-		incidentPanel.add(new IncidentPanel(incident));
+		IncidentPanel i = new IncidentPanel(incident); 
+		incidentPanels.put(incident.getID(), i);
+		incidentPanel.add(incidentPanels.get(incident.getID()));
+		
+		
+		if(loadedExisingEventTimes == false)
+		{
+			java.util.Date date= new java.util.Date();
+					 
+			Date incidentTime = incident.getCreated();
+			Date currentTime = new Timestamp(date.getTime());
+			long timeDifference = currentTime.getTime() - incidentTime.getTime();
+					 
+			long seconds = timeDifference / 1000;
+			long minutes = seconds / 60;
+			long hours = minutes / 60;
+			incidentPanels.get(incident.getID()).setTime((int)hours % 24, (int)minutes % 60, (int)seconds % 60);
+		}
+        
+		
+		archivedIncidentPanel.revalidate();
 		incidentPanel.revalidate();
 	}
+	
+	@Override
+	public void incidentArchived(Incident incident)
+	{
+		super.incidentArchived(incident);
+		incidentPanel.remove(incidentPanels.get(incident.getID()));
+		archivedIncidentPanel.add(incidentPanels.get(incident.getID()));
+		for (Device device : incident.getRespondingDevices())
+			EyeApplication.get().db_setDeviceIncident(device, null);
+		
+		incidentPanel.revalidate();
+		incidentPanel.repaint();
+	}
+
 
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
@@ -354,6 +442,8 @@ public class Dispatcher extends EyeApplication
 		    }
 		});
 	}
+
+
 }
 
 

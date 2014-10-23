@@ -7,7 +7,13 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
+
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
@@ -17,24 +23,49 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
+
+import wifindus.Debugger;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
+import wifindus.eye.Location;
+import wifindus.eye.User;
 
 public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
     private transient Incident incident = null;
-    private transient JLabel incidentTime, idLabel, onTaskLabel;
+    private transient  JLabel incidentTime;
+	private transient JLabel idLabel;
+	private transient JLabel onTaskLabel;
     private transient JButton locateOnMap, addRespondent, removeRespondent,
-    	removeIncident, codeButton, statusButton, incidentIconButton;
-	private transient JList<Device> onTaskList;
-	private transient DefaultListModel<Device> onTaskListModel;
+    	removeIncident, codeButton, statusButton, incidentIconButton, archiveIncident;
+	//private transient JList<Device> onTaskList;
+	//private transient DefaultListModel<Device> onTaskListModel;
+	
+
+	
+	
+	
+     int seconds = 0;
+     int minutes = 0;
+     int hours = 0;
+    int counter = 0;
+    
+    
+    
+    String[] colName = new String[] {"Device", "Distance"};
+    Object[][] devices = new Object[][] {};
+     DefaultTableModel deviceTableModel = new DefaultTableModel(devices, colName);
+     JTable assignedDevicesTable;
+    
 	
     static
     {
@@ -87,6 +118,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         locateOnMap.setBorder(emptyBorder);
         locateOnMap.setFont(font);
         locateOnMap.setHorizontalAlignment(SwingConstants.LEFT);
+        locateOnMap.addActionListener(this);
         
         addRespondent = new JButton("Add Respondent");
         addRespondent.setBackground(lightBlue);
@@ -112,10 +144,22 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         removeIncident.setHorizontalAlignment(SwingConstants.LEFT);
         removeIncident.addActionListener(this);
         
+        archiveIncident = new JButton("Archive Incident");
+        archiveIncident.setBackground(lightBlue);
+        archiveIncident.setIcon(ResourcePool.getIcon("minus_small"));
+        archiveIncident.setBorder(emptyBorder);
+        archiveIncident.setFont(font);
+        archiveIncident.setHorizontalAlignment(SwingConstants.LEFT);
+        archiveIncident.addActionListener(this);
+        
         onTaskLabel = new JLabel ("On Task:");
         onTaskLabel.setFont(font);
-        onTaskList = new JList<Device>(onTaskListModel = new DefaultListModel<Device>());
-        JScrollPane onTaskListScroll = new JScrollPane(onTaskList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+        
+        //onTaskList = new JList<Device>(onTaskListModel = new DefaultListModel<Device>());
+        
+        assignedDevicesTable = new JTable(deviceTableModel);
+       
+        JScrollPane onTaskListScroll = new JScrollPane(assignedDevicesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         onTaskListScroll.setPreferredSize(new Dimension(200,70));
         
@@ -142,6 +186,9 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         statusButton.setFont(rightColumnFont);
         statusButton.setBorder(emptyBorder);
         statusButton.setMinimumSize(new Dimension(186,30));
+        
+              
+        
         
         /*
           The panel is divided into 4 columns and 2 main rows.
@@ -183,6 +230,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         columnButtons.addComponent(addRespondent, 0, GroupLayout.DEFAULT_SIZE, 150);
         columnButtons.addComponent(removeIncident, 0, GroupLayout.DEFAULT_SIZE, 150);
         
+        columnButtons.addComponent(archiveIncident, 0, GroupLayout.DEFAULT_SIZE, 150);
         columnButtons.addComponent(removeRespondent, 0, GroupLayout.DEFAULT_SIZE, 150);
         
         columnList.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
@@ -211,6 +259,8 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
         
         buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
+        buttonGroup.addComponent(archiveIncident);
+        buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
         buttonGroup.addComponent(locateOnMap);
         buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
         buttonGroup.addComponent(addRespondent);
@@ -218,6 +268,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
         buttonGroup.addComponent(removeRespondent);
         buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
         buttonGroup.addComponent(removeIncident);
+       
         
         onTaskGroup.addComponent(onTaskLabel);
         onTaskGroup.addComponent(onTaskListScroll);
@@ -242,25 +293,111 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
    
         incident.addEventListener(this);
     }
+
     
+    public void setTime(int hours, int minutes, int seconds)
+    {
+    	this.hours = hours;
+    	this.minutes = minutes;
+    	this.seconds = seconds;
+    }
+    
+    public void incrementTimer() 
+    {
+    	if(incident.isArchived() == false)
+    	{
+    	seconds++;
+    	if (seconds == 60)
+        {
+            minutes++;
+            seconds = 0;
+        }
+        
+        if(minutes == 60)
+        {
+            hours++;
+            minutes = 0;
+        }
+        
+        String secondsDisplay = Integer.toString(seconds);
+        String minutesDisplay = Integer.toString(minutes);
+        String hoursDisplay = Integer.toString(hours);
+    
+        if(seconds < 10)
+        {
+            secondsDisplay = "0" + Integer.toString(seconds);
+        }
+        if(minutes < 10)
+        {
+            minutesDisplay = "0" + Integer.toString(minutes);
+        }
+        if(hours < 10)
+        {
+            hoursDisplay = "0" + Integer.toString(hours);
+        }
+        incidentTime.setText(hoursDisplay+" : "+minutesDisplay+" : "+secondsDisplay);
+    	}
+    	else
+    	{
+            String secondsDisplay = Integer.toString(seconds);
+            String minutesDisplay = Integer.toString(minutes);
+            String hoursDisplay = Integer.toString(hours);
+    		
+            if(seconds < 10)
+            {
+                secondsDisplay = "0" + Integer.toString(seconds);
+            }
+            if(minutes < 10)
+            {
+                minutesDisplay = "0" + Integer.toString(minutes);
+            }
+            if(hours < 10)
+            {
+                hoursDisplay = "0" + Integer.toString(hours);
+            }
+    		incidentTime.setText(hoursDisplay+" : "+minutesDisplay+" : "+secondsDisplay);
+    	}
+    }
+    
+      
 	@Override
 	public void incidentArchived(Incident incident)
 	{
-		onTaskListModel.clear();
+		  for(int i = 0; i < deviceTableModel.getRowCount(); i++)
+			  deviceTableModel.removeRow(i);
+		
 	}
 	
 	@Override
 	public void incidentAssignedDevice(Incident incident, Device device)
 	{
-		if (device != null && !onTaskListModel.contains(device))
-			onTaskListModel.addElement(device);
+		/*if (device != null && !onTaskListModel.contains(device))
+			onTaskListModel.addElement(device);*/
+		
+		if(deviceTableModel.getRowCount() == 0)
+		{
+			deviceTableModel.addRow(new Object[] {device, (int)device.getLocation().distanceTo(incident.getLocation()) + " meters"});
+		}
+		
+		  for(int i = 0; i < deviceTableModel.getRowCount(); i++)
+		  {
+			  if (device != null && deviceTableModel.getValueAt(i,0) != device)
+			  {
+				  deviceTableModel.addRow(new Object[] {device, (int)device.getLocation().distanceTo(incident.getLocation()) + " meters"});
+			  }
+		  }
+
 	}
 	
 	@Override
 	public void incidentUnassignedDevice(Incident incident, Device device)
 	{
-		if (device != null && onTaskListModel.contains(device))
-			onTaskListModel.removeElement(device);
+		/*if (device != null && onTaskListModel.contains(device))
+			onTaskListModel.removeElement(device);*/
+		
+		 for(int i = 0; i < deviceTableModel.getRowCount(); i++)
+			 if (device != null && deviceTableModel.getValueAt(i,0) == device)
+				 deviceTableModel.removeRow(i);
 	}
 	
 	@Override
@@ -268,6 +405,12 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	{
 		//TODO: visually reflect selection state in some way
 	}
+	
+	public static void deviceLocationChanged(Device device)
+	{
+		//System.out.println(device.getLocation().distanceTo(incident.getLocation()));
+	}
+	
 	
 	@Override
 	public void actionPerformed(ActionEvent e) 
@@ -316,6 +459,15 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			for (Device device : getSelectedDevices())
 				EyeApplication.get().db_setDeviceIncident(device, null); //null incident for 'unassigning'
 		}
+		else if(e.getSource() == archiveIncident)
+		{
+			EyeApplication.get().db_archiveIncident(incident);
+		}
+    	else if (e.getSource() == locateOnMap)
+    	{
+    		Debugger.i("Locate "+ (incident == null ? incident.toString() : incident.getID()) +" on map.");
+    		MapImagePanel.locateOnMap(incident);
+    	}
 	}
 	
 	/**
@@ -324,7 +476,14 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	 */
 	public List<Device> getSelectedDevices()
 	{
-		return new ArrayList<Device>(onTaskList.getSelectedValuesList());
+		List<Device> deviceList = new ArrayList<Device>();
+		int selectedDevices[] = assignedDevicesTable.getSelectedRows();
+		for(int i = 0; i < deviceTableModel.getColumnCount(); i++)
+			if (selectedDevices.length > 1 && deviceTableModel.getValueAt(i,0) == deviceTableModel.getValueAt(selectedDevices[i],0))
+				 deviceList.add((Device)deviceTableModel.getValueAt(i,0));	
+				else
+				 deviceList.add((Device)deviceTableModel.getValueAt(selectedDevices[0],0));	
+		return deviceList;
 	}
 	
 	/////////////////////////////////////////////////////////////////////

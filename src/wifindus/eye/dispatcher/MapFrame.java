@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -13,7 +15,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+
 import wifindus.ResourcePool;
 
 public class MapFrame extends JFrame implements ActionListener
@@ -189,11 +193,24 @@ public class MapFrame extends JFrame implements ActionListener
 		mapControls.add(legendTitlePanel);
 		mapControls.add(Box.createRigidArea(new Dimension(0,10)));
 		mapControls.add(legendPanel);
+		
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		double screenWidth = screenSize.getWidth();
+
+		mapControls.setMaximumSize(new Dimension(40,100000));
 				
+	    mapControls.setMinimumSize(new Dimension(400, 0));
+	    mapControls.setMaximumSize(new Dimension(400, 1000));
+	    mapPanel.setMinimumSize(new Dimension((int) (screenWidth - 500), 0));
+	       
+        JScrollPane controlsScroll = new JScrollPane(mapControls, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+	    
 		//outer splitter
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, mapControls);
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, controlsScroll);
 		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerLocation(300);
+		splitPane.setDividerLocation(getWidth() - 400);
+		
 
 		add(splitPane);
 	}

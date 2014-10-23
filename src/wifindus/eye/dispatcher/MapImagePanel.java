@@ -79,7 +79,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	private transient Incident hoveredIncident = null;
 	
 	private static transient Device deviceToLocate = null;
-	private transient Incident incidentToLocate = null;
+	private static transient Incident incidentToLocate = null;
 	
 	static
 	{
@@ -422,8 +422,15 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		else
 			deviceToLocate = device;
 	}
-	
+	public static/*sorry*/ void locateOnMap(Incident incident)
+	{
+		if(incidentToLocate == incident)
+			incidentToLocate = null;
+		else
+			incidentToLocate = incident;
+	}
 
+	
 	/////////////////////////////////////////////////////////////////////
 	// UNIMPLEMENTED INTERFACE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -437,8 +444,13 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
 
+
 	//IncidentEventListener
-	@Override public void incidentArchived(Incident incident) { }
+	@Override public void incidentArchived(Incident incident) 
+	{ 
+		incidentMarkers.remove(incident);
+		repaintIncidents();
+	}
 	@Override public void incidentAssignedDevice(Incident incident, Device device) { }
 	@Override public void incidentUnassignedDevice(Incident incident, Device device) { }
 	
@@ -503,6 +515,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	paintDeviceName(g, targetArea, markerScale);
     	
     	paintMapLocator(g, targetArea, markerScale, deviceToLocate, this.getWidth(), this.getHeight());
+    	paintMapLocator(g, targetArea, markerScale, incidentToLocate, this.getWidth(), this.getHeight());
     	
     }
     
@@ -590,6 +603,58 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	
     	repaintDeviceLocator();
     }
+    
+    
+    
+    
+    protected void paintMapLocator(Graphics g, Rectangle targetArea, double markerScale, Incident incidentToLocate, int mapPanelWidth , int mapPanelHeight)
+    {
+    	double deviceX = 0.0;
+    	double deviceY = 0.0;
+    	    	   	
+    	double mapX = mapPanelWidth;
+    	double mapY = mapPanelHeight;
+    	
+    	if(incidentToLocate != null)
+    	{
+    		Point deviceLocation = gpsArea.translate(new Rectangle(0,0, mapPanelWidth, mapPanelHeight), incidentToLocate.getLocation());
+    		deviceX = deviceLocation.getX();
+    		deviceY = deviceLocation.getY();
+    		if(incidentToLocate != null)
+    		{
+    			double relativeXLocation = deviceX / mapX ;
+    			relativeXLocation *= 10;		
+    			double relativeYLocation = deviceY / mapY;
+    			relativeYLocation *= 10;	
+    			
+    			g.setColor(Color.RED);
+       			    			
+    			Graphics2D locatorGraphics = (Graphics2D) g;
+    			Stroke oldWeight = locatorGraphics.getStroke();
+    			locatorGraphics.setStroke(new BasicStroke(3));
+    			
+    			int scaleWidth = targetArea.width/10;
+    			int scaleHeight = targetArea.height/10;
+    			int locatorRectX = targetArea.x + (int)relativeXLocation * scaleWidth;
+    			int locatorRectY = targetArea.y + (int)relativeYLocation * scaleHeight;
+    			g.drawRect(locatorRectX, locatorRectY, scaleWidth, scaleHeight);
+    			
+    			locatorGraphics.setStroke(oldWeight);
+    			g = locatorGraphics;
+    			g.setColor(Color.WHITE);
+    		}
+    	}
+    	
+    	repaintDeviceLocator();
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     
     protected void paintNodes(Graphics g, Rectangle targetArea, double markerScale)
     {

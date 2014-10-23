@@ -107,6 +107,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			fireEvent("selectionchanged");
 		}
 	}
+
 	
 	/**
 	 * Gets this Incident's ID.
