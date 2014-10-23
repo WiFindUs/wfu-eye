@@ -212,7 +212,7 @@ public abstract class EyeApplication extends JFrame
 	
 	/**
 	 * Creates a new EyeApplication.
-	 * @see {@link #EyeApplication(String[], boolean)}
+	 * @see wifindus.eye.EyeApplication#EyeApplication(String[], boolean)
 	 */
 	public EyeApplication(String[] args)
 	{

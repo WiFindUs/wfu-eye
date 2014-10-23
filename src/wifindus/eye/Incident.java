@@ -263,14 +263,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		archived = true;
 		fireEvent("archived", this);
 	}
-	
-	/**
-	 * Gets ImageIcons based on incident type.
-	 * @param type The type of incident you need an icon for.
-	 * @param small true for 30x30, false for 50x50.
-	 * @return An ImageIcon loaded with the appropriate image resource.
-	 */
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	/////////////////////////////////////////////////////////////////////
