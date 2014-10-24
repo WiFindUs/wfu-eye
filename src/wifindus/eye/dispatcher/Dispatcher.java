@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,11 +28,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import wifindus.ConfigFile;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
+import wifindus.eye.MapRenderer;
 import wifindus.eye.User;
 
 /**
@@ -57,6 +60,7 @@ public class Dispatcher extends EyeApplication
 	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
 	private transient Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
+	private transient MapRenderer mapRenderer;
 	
     static
     {
@@ -268,6 +272,15 @@ public class Dispatcher extends EyeApplication
 
 		incidentPanel.revalidate();
 		incidentPanel.repaint();
+		
+		//create map renderer
+		mapRenderer = new MapRenderer(
+			getConfig().getDouble("map.center_latitude"),
+			getConfig().getDouble("map.center_longitude"),
+			getConfig().getInt("map.zoom"),
+			getConfig().getBoolean("map.high_res"),
+			getConfig().getString("map.api_key"),
+			getConfig().getString("map.type"));
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -325,6 +338,13 @@ public class Dispatcher extends EyeApplication
 			}
 	}
 
+	@Override
+	public void windowClosing(WindowEvent e)
+	{
+		mapRenderer.dispose();
+		super.windowClosing(e);
+	}
+	
 
 
 	/////////////////////////////////////////////////////////////////////
