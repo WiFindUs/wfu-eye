@@ -23,7 +23,7 @@ public class Location implements Serializable
 	//some gps constants
 	public static final Location GPS_MARKS_HOUSE = new Location(-35.025435,138.561954);
 	public static final Location GPS_PARKSIDE = new Location(-34.951551,138.623063);
-	public static final Location GPS_BONYTHON_PARK = new Location(-34.917212,138.581479);
+	public static final Location GPS_BONYTHON_PARK = new Location(-34.9165,138.581479);
 	
 
 	
