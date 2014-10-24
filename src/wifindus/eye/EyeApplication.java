@@ -131,6 +131,7 @@ public abstract class EyeApplication extends JFrame
 		//parse command line arguments for config parameters
 		Debugger.i("Parsing command line arguments for config files...");
 		List<File> configFiles = new ArrayList<>();
+		configFiles.add(new File("eye.conf"));
 		for (int i = 0; i < args.length-1; i++)
 		{
 			//skip arguments that do not begin with a dash
@@ -145,14 +146,7 @@ public abstract class EyeApplication extends JFrame
 				continue;
 			}
 		}
-		
-		//use eye.conf as default if none were supplied
-		if (configFiles.size() == 0)
-		{
-			Debugger.i("None found, using default 'eye.conf'.");
-			configFiles.add(new File("eye.conf"));
-		}
-		
+	
 		//try loading files
 		config = new ConfigFile(configFiles);
 		//ensure required keys are present and valid, enforce defaults if not
