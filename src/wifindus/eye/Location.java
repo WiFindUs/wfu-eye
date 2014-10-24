@@ -20,6 +20,13 @@ public class Location implements Serializable
 	 */
 	public static final double EARTH_RADIUS_MEAN = 6378.1370;
 	
+	//some gps constants
+	public static final Location GPS_MARKS_HOUSE = new Location(-35.025435,138.561954);
+	public static final Location GPS_PARKSIDE = new Location(-34.951551,138.623063);
+	public static final Location GPS_BONYTHON_PARK = new Location(-34.917212,138.581479);
+	
+
+	
 	private Double latitude = null;
 	private Double longitude = null;
 	private Double altitude = null;
@@ -40,11 +47,11 @@ public class Location implements Serializable
 	public Location (Double latitude, Double longitude, Double accuracy, Double altitude)
 	{
 		if (latitude != null && (latitude > 90.0 || latitude < -90.0))
-			throw new IllegalArgumentException("Latitude must be between -90.0 and 90.0 (inclusive).");
+			throw new IllegalArgumentException("Latitude must be null or between -90.0 and 90.0 (inclusive).");
 		if (longitude != null && (longitude > 180.0 || longitude < -180.0))
-			throw new IllegalArgumentException("Longitude must be between -180.0 and 180.0 (inclusive).");
+			throw new IllegalArgumentException("Longitude must be null or between -180.0 and 180.0 (inclusive).");
 		if (accuracy != null && accuracy <= 0.0)
-			throw new IllegalArgumentException("Accuracy must be greater than 0m.");
+			throw new IllegalArgumentException("Accuracy must null or greater than 0m.");
 		
 		this.latitude = latitude;
 		this.longitude = longitude;
