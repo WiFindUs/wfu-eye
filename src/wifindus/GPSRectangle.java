@@ -15,6 +15,7 @@ public class GPSRectangle implements Serializable
 	private static final long serialVersionUID = 5246886591603837227L;
 	private double latitudeStart, latitudeEnd, longitudeStart, longitudeEnd;
 	private double width, height;
+	private Location center;
 	
 	/**
 	 * Creates a new GPS rectangle using the given coordinates.
@@ -42,6 +43,8 @@ public class GPSRectangle implements Serializable
 		
 		width = longitudeEnd - longitudeStart;
 		height = latitudeStart - latitudeEnd;
+		
+		center = new Location(latitudeStart - (height/2.0), longitudeStart + (width/2.0));
 	}
 	
 	/**
@@ -68,6 +71,11 @@ public class GPSRectangle implements Serializable
 		if (coords == null || !coords.hasLatLong())
 			return false;
 		return contains(coords.getLatitude(), coords.getLongitude());
+	}
+	
+	public Location getCenter()
+	{
+		return center;
 	}
 	
 	public Point translate(Rectangle target, double latitude, double longitude)
