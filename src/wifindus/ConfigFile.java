@@ -460,6 +460,41 @@ public class ConfigFile implements Serializable
 	}
 	
 	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists and
+	 * is of the correct type. If any of these conditions fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param allowedValues An array of strings containing the set of allowed values. The first element will be used as a default. 
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultString(String key, String[] allowedValues)
+	{
+		if (allowedValues == null)
+			throw new NullPointerException("Parameter 'allowedValues' cannot be null.");
+		if (allowedValues.length == 0)
+			throw new IllegalArgumentException("Parameter 'allowedValues' cannot be an empty array.");	
+		
+		//get current value; if it's null, do default immediately
+		String value = kvps.get(key = checkKey(key));
+		if (value == null)
+		{
+			kvps.put(key, allowedValues[0] == null ? "" : allowedValues[0]);
+			return this;
+		}
+		
+		//check the current value against the allowed values
+		for(String allowed : allowedValues)
+		{
+			if (allowed == null)
+				continue;
+			if (value.equals(allowed))
+				return this;
+		}
+
+		kvps.put(key, allowedValues[0] == null ? "" : allowedValues[0]);
+		return this;
+	}
+	
+	/**
 	 * Ensures a key is a valid value 'by default' by checking the stored value exists,
 	 * is of the correct type, and is within an acceptable range. If any of these conditions
 	 * fails, a default value is applied.
@@ -486,6 +521,19 @@ public class ConfigFile implements Serializable
 	public ConfigFile defaultDouble(String key, double defaultValue)
 	{
 		return defaultDouble(key,defaultValue,(Double.MAX_VALUE-1.0)*-1.0,Double.MAX_VALUE);		
+	}
+	
+	/**
+	 * Ensures a key is a valid value 'by default' by checking the stored value exists and
+	 * is of the correct type. If any of these conditions fails, a default value is applied.
+	 * @param key The key to search for.
+	 * @param defaultValue The value to assign at the given key by default.
+	 * @return The calling ConfigFile object, so you may chain operations.
+	 */
+	public ConfigFile defaultBoolean(String key, boolean defaultValue)
+	{
+		setBoolean((key = checkKey(key)), getBoolean(key, defaultValue));
+		return this;
 	}
 	
 	/////////////////////////////////////////////////////////////////////

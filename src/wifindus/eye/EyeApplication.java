@@ -44,7 +44,6 @@ public abstract class EyeApplication extends JFrame
 	private transient static final Pattern PATTERN_CONSOLE = Pattern.compile( "^-console?$", Pattern.CASE_INSENSITIVE);
 	private volatile ConfigFile config = null;
 	private transient volatile boolean abortThreads = false;
-	private transient volatile MySQLUpdateWorker mysqlWorker = null;
 	private transient volatile EyeMySQLConnection mysql = new EyeMySQLConnection();
 	private transient static EyeApplication singleton;
 	private transient volatile CopyOnWriteArrayList<EyeApplicationListener> listeners = new CopyOnWriteArrayList<>();
@@ -164,12 +163,20 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("dispatcher.tcp_port", 33340, 1024, 65535);
 		//map
 		config.defaultString("map.image", "maps/base.png");
-		config.defaultDouble("map.latitude_start", -34.908591);
-		config.defaultDouble("map.longitude_start", 138.576943);
-		config.defaultDouble("map.latitude_end", -34.919506);
-		config.defaultDouble("map.longitude_end", 138.593057);
+		config.defaultDouble("map.latitude_start", -34.908591, -90.0, 90.0);
+		config.defaultDouble("map.longitude_start", 138.576943, -180.0, 180.0);
+		config.defaultDouble("map.latitude_end", -34.919506, -90.0, 90.0);
+		config.defaultDouble("map.longitude_end", 138.593057, -180.0, 180.0);
 		config.defaultInt("map.grid_rows", 10);
 		config.defaultInt("map.grid_columns", 10);
+		
+		config.defaultDouble("map.center_latitude", Location.GPS_BONYTHON_PARK.getLatitude().doubleValue(), -90.0, 90.0);
+		config.defaultDouble("map.center_longitude", Location.GPS_BONYTHON_PARK.getLongitude().doubleValue(), -180.0, 180.0);
+		config.defaultBoolean("map.high_res", true);
+		config.defaultInt("map.zoom", 16, 15, 21);
+		config.defaultString("map.type", new String[]{"satellite","roadmap","terrain","hybrid"});
+		
+		
 		//ui stuff
 		config.defaultInt("ui.update_fps", 60);
 		//output config
@@ -197,7 +204,7 @@ public abstract class EyeApplication extends JFrame
 		addEyeListener(this);
 		
 		//create and launch mysql worker task
-		mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
+		MySQLUpdateWorker mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
 		mysqlWorker.execute();
 		
 		//start ui timer

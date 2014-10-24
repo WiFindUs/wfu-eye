@@ -1,6 +1,7 @@
 *.class
 *.conf
 logs/
+maps/
 ~$*.xlsx
 
 # Mobile Tools for Java (J2ME)
