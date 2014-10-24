@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -25,10 +26,12 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
+import wifindus.eye.Location;
 import wifindus.eye.User;
 
 /**
@@ -37,7 +40,7 @@ import wifindus.eye.User;
  * to incidents, etc. 
  * @author Mark 'marzer' Gillard, Hussein Al Hammad, Mitchell Templeton
  */
-public class Dispatcher extends EyeApplication
+public class Dispatcher extends EyeApplication 
 {
 	private static final long serialVersionUID = 12094147960785467L;
 	private static final String[] sortModes = {
@@ -306,6 +309,22 @@ public class Dispatcher extends EyeApplication
 		archivedIncidentPanel.revalidate();
 		archivedIncidentPanel.repaint();
 	}
+	
+	@Override
+	public void deviceLocationChanged(Device device, Location oldLocation,
+			Location newLocation) {
+		
+		super.deviceLocationChanged(device, oldLocation, newLocation);
+		// TODO Auto-generated method stub
+		
+		for(Map.Entry<Integer,IncidentPanel> entry : incidentPanels.entrySet()) 
+			if(incidentPanels.get(entry.getKey()).getIncident().getRespondingDevices().contains(device))
+			{
+				incidentPanels.get(entry.getKey()).setDeviceLocation(device, newLocation);
+				break;
+			}
+	}
+
 
 
 	/////////////////////////////////////////////////////////////////////

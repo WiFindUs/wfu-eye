@@ -6,8 +6,10 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
@@ -20,13 +22,18 @@ import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
+
 import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.ResourcePool;
+import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
+import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
+import wifindus.eye.Location;
+import wifindus.eye.User;
 
 public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
 {
@@ -71,7 +78,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		Border emptyBorder = BorderFactory.createEmptyBorder();
 		setMaximumSize(new Dimension(1000,150));
 		setMinimumSize(new Dimension(500,150));
-
 		Font font, rightColumnFont, idFont;
 		font = getFont().deriveFont(Font.BOLD, 15.0f);
 		idFont = getFont().deriveFont(Font.BOLD, 17.0f);
@@ -281,6 +287,9 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		//TODO: change appearance when archived (smaller size, hide buttons, etc)
 	}
 
+	/* (non-Javadoc)
+	 * @see wifindus.eye.IncidentEventListener#incidentAssignedDevice(wifindus.eye.Incident, wifindus.eye.Device)
+	 */
 	@Override
 	public void incidentAssignedDevice(Incident incident, Device device)
 	{
@@ -309,6 +318,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			}
 		}
 	}
+
 
 	@Override
 	public void incidentSelectionChanged(Incident incident)
@@ -388,7 +398,31 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		return deviceList;
 	}
 	
+	public Incident getIncident()
+	{
+		return incident;
+	}
 
+	public void setDeviceLocation(Device device, Location newLocation)
+	{
+			if(deviceTableModel.getRowCount() > 1)
+			{
+				for(int i = 0; i < deviceTableModel.getRowCount(); i++)
+				{
+					if (device != null && deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
+					{
+						deviceTableModel.setValueAt((int)device.getLocation().distanceTo(incident.getLocation()) + " meters", i, 1);
+					}
+				}
+			}
+			else
+				{
+					deviceTableModel.setValueAt((int)device.getLocation().distanceTo(incident.getLocation()) + " meters", 0, 1);
+				}
+		}
+	
+	
+	
 	@Override
 	public void timerTick(double deltaTime)
 	{
@@ -431,6 +465,11 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		
 		incidentTime.setText(String.format("%02d : %02d : %02d", hours % 24, minutes % 60, seconds % 60));
 	}
+
+	
+	
+	
+	
 }
 
 
