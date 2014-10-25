@@ -80,7 +80,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			throw new NullPointerException("Parameter 'created' cannot be null.");
 		if (location.isEmpty())
 			throw new IllegalArgumentException("Parameter 'location' cannot be empty.");
-		if (location.getLatitude() == null || location.getLongitude() == null)
+		if (!location.hasLatLong())
 			throw new IllegalArgumentException("Parameter 'location' is missing horizontal positioning data.");
 		
 		this.id = id;
