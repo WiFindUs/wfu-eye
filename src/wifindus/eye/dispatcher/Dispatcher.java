@@ -34,6 +34,7 @@ import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
+import wifindus.eye.MapFrameNew;
 import wifindus.eye.MapRenderer;
 import wifindus.eye.User;
 
@@ -280,7 +281,11 @@ public class Dispatcher extends EyeApplication
 			getConfig().getInt("map.zoom"),
 			getConfig().getBoolean("map.high_res"),
 			getConfig().getString("map.api_key"),
-			getConfig().getString("map.type"));
+			getConfig().getString("map.type"),
+			getConfig().getInt("map.grid_rows"),
+			getConfig().getInt("map.grid_columns"));
+		
+		(new MapFrameNew(mapRenderer)).setVisible(true);
 	}
 	
 	/////////////////////////////////////////////////////////////////////
