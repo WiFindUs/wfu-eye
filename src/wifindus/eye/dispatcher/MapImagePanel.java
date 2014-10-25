@@ -110,8 +110,6 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 		ResourcePool.loadImage("incident_marker_wfu_selected", "images/incident_marker_wfu_selected.png" );
 		ResourcePool.loadImage("node_marker_inactive_selected", "images/node_marker_inactive_selected.png" );
 		ResourcePool.loadImage("node_marker_active_selected", "images/node_marker_active_selected.png" );
-	
-	
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -538,8 +536,8 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	if (!drawGrid || g == null || targetArea == null)
     		return;
     	    	    	
-        int wStep = (int)((double)targetArea.width / 10.0);
-        int hStep = (int)((double)targetArea.height / 10.0);
+        int wStep = (int)((double)targetArea.width / gridColumns);
+        int hStep = (int)((double)targetArea.height / gridRows);
         g.setColor(Color.WHITE);
         
         //rows
