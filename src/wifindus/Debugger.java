@@ -71,7 +71,7 @@ public final class Debugger
 		catch (IOException e)
 		{
 			log(Verbosity.Exception,System.err,
-					e.getClass().getName() + ": " + e.getMessage());
+					e.getClass().getName() + ": " + e.getMessage(), false);
 			if (writer != null)
 			{
 				try { writer.close(); }
@@ -155,40 +155,40 @@ public final class Debugger
 	 * Outputs a line of debugging information with a verbosity level of <code>Verbose</code>. Console output is done on stdout.
 	 * @param s The string to output.
 	 */
-	public static void v(String s)
+	public static void v(String s, Object... args)
 	{
 		if (debugger != null)
-			debugger.log(Verbosity.Verbose, System.out, s);
+			debugger.log(Verbosity.Verbose, System.out, s, false, args);
 	}
 	
 	/**
 	 * Outputs a line of debugging information with a verbosity level of <code>Information</code>. Console output is done on stdout.
 	 * @param s The string to output.
 	 */
-	public static void i(String s)
+	public static void i(String s, Object... args)
 	{
 		if (debugger != null)	
-			debugger.log(Verbosity.Information, System.out, s);
+			debugger.log(Verbosity.Information, System.out, s, false, args);
 	}
 	
 	/**
 	 * Outputs a line of debugging information with a verbosity level of <code>Warning</code>. Console output is done on stdout.
 	 * @param s The string to output.
 	 */
-	public static void w(String s)
+	public static void w(String s, Object... args)
 	{
 		if (debugger != null)
-			debugger.log(Verbosity.Warning, System.out, s);
+			debugger.log(Verbosity.Warning, System.out, s, false, args);
 	}
 	
 	/**
 	 * Outputs a line of debugging information with a verbosity level of <code>Error</code>. Console output is done on stderr.
 	 * @param s The string to output.
 	 */
-	public static void e(String s)
+	public static void e(String s, Object... args)
 	{
 		if (debugger != null)
-			debugger.log(Verbosity.Error, System.err, s);
+			debugger.log(Verbosity.Error, System.err, s, false, args);
 	}
 	
 	/**
@@ -199,7 +199,7 @@ public final class Debugger
 	{
 		if (debugger != null)
 			debugger.log(Verbosity.Exception,System.err,
-					e.getClass().getName() + ": " + e.getMessage());
+					e.getClass().getName() + ": " + e.getMessage(), false);
 	}
 	
 	/**
@@ -210,7 +210,8 @@ public final class Debugger
 	{
 		if (debugger != null)
 			debugger.log(Verbosity.Exception,System.err,
-				e.getClass().getName() + ": " + e.getMessage() + " (SQLState: " + e.getSQLState() +", VendorError: " + e.getErrorCode() + ")");
+				e.getClass().getName() + ": " + e.getMessage() + " (SQLState: " + e.getSQLState() +", VendorError: " + e.getErrorCode() + ")",
+				false);
 	}
 	
 	/**
@@ -260,11 +261,13 @@ public final class Debugger
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	private void log(final Verbosity level, PrintStream stream, String text, boolean force)
+	private void log(final Verbosity level, PrintStream stream, String text, boolean force, Object... args)
 	{
 		if (!force && level.compareTo(minVerbosity) < 0)
 			return;
 		
+		if (args != null && args.length > 0)
+			text = String.format(text,args);
 		final String timestamp = getTimestamp();
 		final String s = (text == null ? "" : text.trim());
 		final String message = timestamp + " " + s;
@@ -292,15 +295,10 @@ public final class Debugger
 		     }
 		 });
 	}
-	
-	private void log(Verbosity level, PrintStream stream, String s)
-	{
-		log(level,stream,s,false);
-	}
-	
+
 	private void dispose() 
 	{
-		log(Verbosity.Information, System.out, "Session terminated.",true);
+		log(Verbosity.Information, System.out, "Session terminated.", true);
 		if (writer != null)
 		{
 			try { writer.close(); }
