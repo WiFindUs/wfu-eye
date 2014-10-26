@@ -6,10 +6,8 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
@@ -22,18 +20,14 @@ import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
-
 import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.ResourcePool;
-import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
-import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
-import wifindus.eye.User;
 
 public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
 {
