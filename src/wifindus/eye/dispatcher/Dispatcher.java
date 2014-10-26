@@ -85,7 +85,7 @@ public class Dispatcher extends EyeApplication
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
 
-		(new MapFrame()).setVisible(true);
+		//(new MapFrame()).setVisible(true);
 		
 		// query Panel
 		(queryPanel = new JPanel()).setBackground(new Color(0xedf4fb));
@@ -282,6 +282,7 @@ public class Dispatcher extends EyeApplication
 			getConfig().getInt("map.grid_rows"),
 			getConfig().getInt("map.grid_columns"));
 		
+		//spawn map window
 		(new MapFrameNew(mapRenderer)).setVisible(true);
 	}
 	
