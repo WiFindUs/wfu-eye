@@ -7,6 +7,8 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -15,13 +17,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import wifindus.ResourcePool;
 
-public class MapFrame extends JFrame implements ActionListener
+public class MapFrame extends JFrame implements ActionListener, ComponentListener
 {
 	private static final long serialVersionUID = -6996363857862779838L;
-	private JSplitPane splitPane;
 	private MapImagePanel mapImagePanel;
 	private JButton gridButton, incidentsButton, nodesButton, devicesButton, expandLegendButton;
 	private Color green = new Color(0x0a9a06);
@@ -29,6 +29,8 @@ public class MapFrame extends JFrame implements ActionListener
 	private ImageIcon expandLegendIcon, retractLegendIcon;
 	private JPanel legendPanel;
 	private Color red = new Color(0xfd0b15);
+	private JPanel mapPanel;
+	private JScrollPane controlsScroll;
 	
 	static
 	{
@@ -43,11 +45,8 @@ public class MapFrame extends JFrame implements ActionListener
 
 	public MapFrame()
 	{
-		//frame properties
-		setMinimumSize(new Dimension(400,400));
-		
 		//left panel - map		
-		JPanel mapPanel = new JPanel();
+		mapPanel = new JPanel();
 		mapPanel.setLayout(new BoxLayout(mapPanel, BoxLayout.X_AXIS));
 		mapPanel.add(mapImagePanel = new MapImagePanel());
 		
@@ -194,25 +193,21 @@ public class MapFrame extends JFrame implements ActionListener
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		double screenWidth = screenSize.getWidth();
 
-		mapControls.setMaximumSize(new Dimension(40,100000));
+		//mapControls.setMaximumSize(new Dimension(40,100000));
 				
 	    mapControls.setMinimumSize(new Dimension(400, 0));
 	    mapControls.setMaximumSize(new Dimension(400, 1000));
 	    mapPanel.setMinimumSize(new Dimension((int) (screenWidth - 500), 0));
 	       
-        JScrollPane controlsScroll = new JScrollPane(mapControls, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+        controlsScroll = new JScrollPane(mapControls, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 	    
-		//outer splitter
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, controlsScroll);
-		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerLocation(getWidth() - 400);
-		
-
-		add(splitPane);
+        add(mapPanel);
+        add(controlsScroll);
+        setLayout(null);
+        addComponentListener(this);
+		setMinimumSize(new Dimension(400,400));
 	}
-	
-
 	
 	@Override
 	public void actionPerformed(ActionEvent e)
@@ -297,7 +292,26 @@ public class MapFrame extends JFrame implements ActionListener
 			}
 		}
 			
-	} 
+	}
+
+	@Override
+	public void componentResized(ComponentEvent e)
+	{
+		positionComponents();
+	}
+
+	@Override public void componentMoved(ComponentEvent e) { }
+	@Override public void componentShown(ComponentEvent e) { }
+	@Override public void componentHidden(ComponentEvent e) { }
+	
+	private void positionComponents()
+	{
+		Dimension size = getContentPane().getSize();
+		int padding = 5;
+		int split = 3 * (size.width / 4);
+		mapPanel.setBounds(padding, padding, split-padding, size.height-(padding*2));
+		controlsScroll.setBounds(split+padding, padding, size.width-split-padding, size.height-(padding*2));
+	}
 
 }
 
