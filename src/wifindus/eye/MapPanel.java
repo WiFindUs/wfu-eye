@@ -30,7 +30,7 @@ public class MapPanel extends JPanel
 	private int mouseY = 0;
 	private double xPos = 0.5;
 	private double yPos = 0.5;
-	private double zoom = 1.0;	
+	private double zoom = 0.5;	
 
 	public MapPanel(MapRenderer renderer)
 	{
