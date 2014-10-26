@@ -445,7 +445,6 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 	//IncidentEventListener
 	@Override public void incidentArchived(Incident incident) 
 	{ 
-		incidentMarkers.remove(incident);
 		repaintIncidents();
 	}
 	@Override public void incidentAssignedDevice(Incident incident, Device device) { }
@@ -997,6 +996,7 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
     	if (devices.size() > 0)
 			repaint();
     }
+    
     private final void repaintDeviceName()
     {
     	if (hoveredDevice != null)
