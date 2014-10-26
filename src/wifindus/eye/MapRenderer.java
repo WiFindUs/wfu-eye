@@ -49,10 +49,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	private volatile ImageDownloadWorker downloadThread = null;
 	private int gridRows = 10;
 	private int gridColumns = 10;
-	private final boolean highRes;
 	private final ArrayList<MappableObject> devices = new ArrayList<>();
 	private final ArrayList<MappableObject> incidents = new ArrayList<>();
 	private final ArrayList<MappableObject> nodes = new ArrayList<>();
+	private MappableObject callout = null, hover = null, selected = null;
 
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -63,7 +63,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		//properties
 		this.gridRows = gridRows;
 		this.gridColumns = gridColumns;
-		this.highRes = highRes;
 		
 		//create bounds
 		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0, zoom - (double)(zoom < CHUNK_MIN_ZOOM ? CHUNK_MIN_ZOOM : zoom));
@@ -212,6 +211,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	        for (int i = 0; i < gridRows; i++)
 	        {
 	        	int lineY = (int)(mapArea.y + gridStepY * (double)(i + 1));
+	        	if (lineY < shownArea.y)
+	        		continue;
+	        	if (lineY > (shownArea.y+shownArea.height))
+	        		break;
 				char letter = (char) ('A' + i);
 				String label = "" + letter;
 				int stringW = metrics.stringWidth(label);
@@ -242,6 +245,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	        for (int i = 0; i < gridColumns; i++)
 	        {
 	        	int lineX = (int)(mapArea.x + gridStepX * (double)(i + 1));
+	        	if (lineX < shownArea.x)
+	        		continue;
+	        	if (lineX > (shownArea.x+shownArea.width))
+	        		break;
 				String label = Integer.toString(i+1);
 				int stringW = metrics.stringWidth(label);
 				int stringH = metrics.getAscent() + metrics.getDescent();
@@ -270,11 +277,23 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		
 		//draw layers
 		if (settings.drawNodes)
-			paintObjects(graphics, nodes, mapArea, shownArea);
+			paintObjects(graphics, nodes, mapArea, shownArea, true);
 		if (settings.drawDevices)
-			paintObjects(graphics, devices, mapArea, shownArea);
+			paintObjects(graphics, devices, mapArea, shownArea, true);
 		if (settings.drawIncidents)
-			paintObjects(graphics, incidents, mapArea, shownArea);
+			paintObjects(graphics, incidents, mapArea, shownArea, true);
+		if (selected != null)
+			paintObject(graphics, selected, mapArea, shownArea);
+		if (hover != null)
+			paintObject(graphics, hover, mapArea, shownArea);
+		
+		//draw special "callout"
+		if (callout != null)
+		{
+			graphics.setColor(settings.calloutOverlayColor);
+			graphics.fillRect(0, 0, (int)clientArea.width,  (int)clientArea.height);
+			paintObject(graphics, callout, mapArea, shownArea);
+		}		
 		
 		//draw download notification
 		if (downloadThread != null)
@@ -411,14 +430,35 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	@Override public void nodeAddressChanged(Node node, InetAddress oldAddress,	InetAddress newAddress) { }
 	@Override public void userCreated(User user) { }
 	
+	public void setSelection(MappableObject object)
+	{
+		if (object == selected)
+			return;
+		selected = object;
+		repaint();
+	}
+	
+	public void setCallout(MappableObject object)
+	{
+		if (object == callout)
+			return;
+		callout = object;
+		repaint();
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-    private final void paintObjects(final Graphics2D graphics, final Collection<MappableObject> objects, final Rectangle2D.Double mapArea, final Rectangle2D.Double shownArea)
+    private final void paintObjects(final Graphics2D graphics, 	final Collection<MappableObject> objects,
+    		final Rectangle2D.Double mapArea, final Rectangle2D.Double shownArea, boolean skipInteractives)
     {
 		for (MappableObject object : objects)
+		{
+			if (skipInteractives && (object == hover || object == selected || object == callout))
+				continue;
 			paintObject(graphics,object,mapArea,shownArea);
+		}
     }
 	
     private final void paintObject(final Graphics2D graphics, final MappableObject object, final Rectangle2D.Double mapArea, final Rectangle2D.Double shownArea)
@@ -430,31 +470,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		if (!shownArea.contains(point))
 			return;
 		
-		object.paintMarker(graphics, (int)point.x, (int)point.y);
+		object.paintMarker(graphics, (int)point.x, (int)point.y, object == hover, object == selected);
     }
-	
-    /*
-    private final void paintMarker(Graphics2D graphics,
-    		Image image, Location location, Rectangle2D.Double mapArea, Rectangle2D.Double shownArea)
-    {
-    	int imageWidth = image.getWidth(null);
-		int imageHeight = image.getHeight(null);
-		int xOffset = -(int)((double)imageWidth/2.0);
-		int yOffset = -imageHeight;
-		
-		graphics.drawImage(
-				//source image
-				image,
-				//destination coords
-				(int)point.x+xOffset, (int)point.y+yOffset,
-				(int)point.x+xOffset+imageWidth,
-				(int)point.y+yOffset+imageHeight,
-				//source coords
-				0, 0, imageWidth, imageHeight,
-				//observer
-				null);
-    }
-    */
 	
 	private void setMapImage(Image image)
 	{
@@ -520,6 +537,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
 		public Stroke gridStroke = new BasicStroke(1);
 		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 16);
+		
+		public Color calloutOverlayColor = new Color(255, 255, 255, 100);
 	}
 	
 	private class ImageDownloadWorker extends SwingWorker<Image, Double>

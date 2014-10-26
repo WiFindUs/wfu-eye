@@ -1,5 +1,6 @@
 package wifindus.eye;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.net.InetAddress;
@@ -71,17 +72,21 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	private transient Incident currentIncident = null;
 	
 	//marker stuff
-	private static final Image pinImage;
+	private static final Image pinImage, pinHoverImage, pinSelectedImage;
 	private static final Map<Incident.Type, Image> adornmentImages = new HashMap<>();
 	static
 	{
 		ResourcePool.loadImage("pin", "images/pin.png" );
+		ResourcePool.loadImage("pin_hover", "images/pin_hover.png" );
+		ResourcePool.loadImage("pin_selected", "images/pin_selected.png" );
 		ResourcePool.loadImage("cog_pin", "images/cog_pin.png" );
 		ResourcePool.loadImage("shield_pin", "images/shield_pin.png" );
 		ResourcePool.loadImage("question_pin", "images/question_pin.png" );
 		ResourcePool.loadImage("cross_pin", "images/cross_pin.png" );
 		
 		pinImage = ResourcePool.getImage("pin");
+		pinHoverImage = ResourcePool.getImage("pin_hover");
+		pinSelectedImage = ResourcePool.getImage("pin_selected");
 		adornmentImages.put(Incident.Type.Medical, ResourcePool.getImage("cross_pin"));
 		adornmentImages.put(Incident.Type.Security, ResourcePool.getImage("shield_pin"));
 		adornmentImages.put(Incident.Type.WiFindUs, ResourcePool.getImage("cog_pin"));
@@ -369,14 +374,17 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	}
 	
 	@Override
-	public void paintMarker(Graphics2D graphics, int x, int y)
+	public void paintMarker(Graphics2D graphics, int x, int y, boolean isHovering, boolean isSelected)
 	{		
 		Image adornment = adornmentImages.get(getCurrentUserType());
 		int left = x-16;
 		int top = y-51;
+		graphics.setColor(Color.white);
 		graphics.fillOval(left+3, top+3, 28, 28);
-		graphics.drawImage(pinImage, left, top, null);
+		graphics.drawImage(isSelected ? pinSelectedImage : pinImage, left, top, null);
 		graphics.drawImage(adornment, left+8, top+8, null);
+		if (isHovering)
+			graphics.drawImage(pinHoverImage, left, top, null);
 	}
 	
 	/////////////////////////////////////////////////////////////////////

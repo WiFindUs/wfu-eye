@@ -62,16 +62,20 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
 	
 	//marker stuff
-	private static final Image tagImage;
+	private static final Image tagImage, tagHoverImage, tagSelectedImage;
 	private static final Map<Incident.Type, Image> adornmentImages = new HashMap<>();
 	static
 	{
 		ResourcePool.loadImage("tag", "images/tag.png" );
+		ResourcePool.loadImage("tag_hover", "images/tag_hover.png" );
+		ResourcePool.loadImage("tag_selected", "images/tag_selected.png" );
 		ResourcePool.loadImage("cog_white", "images/cog_white.png" );
 		ResourcePool.loadImage("cross_white", "images/cross_white.png" );
 		ResourcePool.loadImage("shield_white", "images/shield_white.png" );
 		
 		tagImage = ResourcePool.getImage("tag");
+		tagHoverImage = ResourcePool.getImage("tag_hover");
+		tagSelectedImage = ResourcePool.getImage("tag_selected");
 		adornmentImages.put(Incident.Type.Medical, ResourcePool.getImage("cross_white"));
 		adornmentImages.put(Incident.Type.Security, ResourcePool.getImage("shield_white"));
 		adornmentImages.put(Incident.Type.WiFindUs, ResourcePool.getImage("cog_white"));
@@ -293,14 +297,16 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	}
 	
 	@Override
-	public void paintMarker(Graphics2D graphics, int x, int y)
+	public void paintMarker(Graphics2D graphics, int x, int y, boolean isHovering, boolean isSelected)
 	{
 		Image adornment = adornmentImages.get(type);
 		int left = x-32;
 		int top = y-84;
-		graphics.drawImage(tagImage, left, top, null);
+		graphics.drawImage(isSelected ? tagSelectedImage : tagImage, left, top, null);
 		if (adornment != null)
 			graphics.drawImage(adornment, left+8, top+8, 48, 48, null);
+		if (isHovering)
+			graphics.drawImage(tagHoverImage, left, top, null);
 	}
 
 	/////////////////////////////////////////////////////////////////////

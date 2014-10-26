@@ -193,7 +193,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	}
 	
 	@Override
-	public void paintMarker(Graphics2D graphics, int x, int y)
+	public void paintMarker(Graphics2D graphics, int x, int y, boolean isHovering, boolean isSelected)
 	{
 		int w = nodeImage.getWidth(null);
 		int h = nodeImage.getHeight(null);
