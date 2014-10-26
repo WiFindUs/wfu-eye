@@ -1,17 +1,23 @@
 package wifindus.eye;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
+import wifindus.ResourcePool;
 
 /**
  * An security, medical or wifindus incident occurring in the field, as reported by field personnel. 
  * @author Mark 'marzer' Gillard
  */
-public class Incident extends EventObject<IncidentEventListener> implements MySQLUpdateTarget
+public class Incident extends EventObject<IncidentEventListener> implements MySQLUpdateTarget, MappableObject
 {
 	/**
 	 * A description of an Incident's 'type' (i.e. who is supposed to respond to it).
@@ -40,6 +46,11 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		None
 	}
 	
+	public static final Color COLOR_NONE = new Color(192,192,192);
+	public static final Color COLOR_MEDICAL = new Color(255,102,102);
+	public static final Color COLOR_SECURITY = new Color(102,178,255);
+	public static final Color COLOR_WIFINDUS= new Color(178,255,102);
+	
 	//properties
 	private int id;
 	private Type type;
@@ -49,6 +60,23 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private boolean selected = false;
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
+	
+	//marker stuff
+	private static final Image tagImage;
+	private static final Map<Incident.Type, Image> adornmentImages = new HashMap<>();
+	static
+	{
+		ResourcePool.loadImage("tag", "images/tag.png" );
+		ResourcePool.loadImage("cog_white", "images/cog_white.png" );
+		ResourcePool.loadImage("cross_white", "images/cross_white.png" );
+		ResourcePool.loadImage("shield_white", "images/shield_white.png" );
+		
+		tagImage = ResourcePool.getImage("tag");
+		adornmentImages.put(Incident.Type.Medical, ResourcePool.getImage("cross_white"));
+		adornmentImages.put(Incident.Type.Security, ResourcePool.getImage("shield_white"));
+		adornmentImages.put(Incident.Type.WiFindUs, ResourcePool.getImage("cog_white"));
+	}
+	
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -262,6 +290,17 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			return;
 		archived = true;
 		fireEvent("archived", this);
+	}
+	
+	@Override
+	public void paintMarker(Graphics2D graphics, int x, int y)
+	{
+		Image adornment = adornmentImages.get(type);
+		int left = x-32;
+		int top = y-84;
+		graphics.drawImage(tagImage, left, top, null);
+		if (adornment != null)
+			graphics.drawImage(adornment, left+8, top+8, 48, 48, null);
 	}
 
 	/////////////////////////////////////////////////////////////////////

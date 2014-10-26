@@ -1,5 +1,7 @@
 package wifindus.eye;
 
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
@@ -7,12 +9,13 @@ import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
+import wifindus.ResourcePool;
 
 /**
  * A mesh node device forming part of the WFU client network route.
  * @author Mark 'marzer' Gillard
  */
-public class Node extends EventObject<NodeEventListener> implements MySQLUpdateTarget
+public class Node extends EventObject<NodeEventListener> implements MySQLUpdateTarget, MappableObject
 {
 	//properties
 	private String hash = "";
@@ -21,6 +24,14 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	private Double voltage = null;
 	private Timestamp lastUpdate = new Timestamp(0);
 	private boolean selected = false;
+	
+	//marker stuff
+	private static Image nodeImage;
+	static
+	{
+		ResourcePool.loadImage("node", "images/node.png" );
+		nodeImage = ResourcePool.getImage("node");
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -179,6 +190,14 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 			lastUpdate = ts;
 			fireEvent("updated");
 		}
+	}
+	
+	@Override
+	public void paintMarker(Graphics2D graphics, int x, int y)
+	{
+		int w = nodeImage.getWidth(null);
+		int h = nodeImage.getHeight(null);
+		graphics.drawImage(nodeImage, x-w/2, y-h/2, w, h, null);
 	}
 	
 	/////////////////////////////////////////////////////////////////////

@@ -1,18 +1,23 @@
 package wifindus.eye;
 
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
+import wifindus.ResourcePool;
 
 /**
  * A client device in use by medical, security or wifindus personnel.
  * @author Mark 'marzer' Gillard
  */
-public class Device extends EventObject<DeviceEventListener> implements MySQLUpdateTarget
+public class Device extends EventObject<DeviceEventListener> implements MySQLUpdateTarget, MappableObject
 {
 	/**
 	 * A description of a client device's 'type'.
@@ -64,6 +69,24 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	//database relationships
 	private transient User currentUser = null;
 	private transient Incident currentIncident = null;
+	
+	//marker stuff
+	private static final Image pinImage;
+	private static final Map<Incident.Type, Image> adornmentImages = new HashMap<>();
+	static
+	{
+		ResourcePool.loadImage("pin", "images/pin.png" );
+		ResourcePool.loadImage("cog_pin", "images/cog_pin.png" );
+		ResourcePool.loadImage("shield_pin", "images/shield_pin.png" );
+		ResourcePool.loadImage("question_pin", "images/question_pin.png" );
+		ResourcePool.loadImage("cross_pin", "images/cross_pin.png" );
+		
+		pinImage = ResourcePool.getImage("pin");
+		adornmentImages.put(Incident.Type.Medical, ResourcePool.getImage("cross_pin"));
+		adornmentImages.put(Incident.Type.Security, ResourcePool.getImage("shield_pin"));
+		adornmentImages.put(Incident.Type.WiFindUs, ResourcePool.getImage("cog_pin"));
+		adornmentImages.put(Incident.Type.None, ResourcePool.getImage("question_pin"));
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -174,6 +197,15 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	public final User getCurrentUser()
 	{
 		return currentUser;
+	}
+	
+	/**
+	 * Gets type of the user currently logged into the device.
+	 * @return The current user's Incident.Type, or None if there is no logged in user.
+	 */
+	public final Incident.Type getCurrentUserType()
+	{
+		return currentUser == null ? Incident.Type.None : currentUser.getType();
 	}
 
 	/**
@@ -334,6 +366,17 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 			currentIncident.assignDevice(this);
 			fireEvent("assigned", currentIncident);
 		}
+	}
+	
+	@Override
+	public void paintMarker(Graphics2D graphics, int x, int y)
+	{		
+		Image adornment = adornmentImages.get(getCurrentUserType());
+		int left = x-16;
+		int top = y-51;
+		graphics.fillOval(left+3, top+3, 28, 28);
+		graphics.drawImage(pinImage, left, top, null);
+		graphics.drawImage(adornment, left+8, top+8, null);
 	}
 	
 	/////////////////////////////////////////////////////////////////////
