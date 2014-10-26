@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -26,6 +27,7 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
@@ -316,10 +318,13 @@ public class Dispatcher extends EyeApplication
 	public void incidentArchived(Incident incident)
 	{
 		super.incidentArchived(incident);
-		
 		IncidentPanel oldPanel = incidentPanels.get(Integer.valueOf(incident.getID()));
+		
+		ArchivedIncidentPanel archivedPanel = new ArchivedIncidentPanel(incident);
+		
 		incidentPanel.remove(oldPanel);
-		archivedIncidentPanel.add(oldPanel);
+		archivedIncidentPanel.add(archivedPanel);
+		
 		incidentPanel.revalidate();
 		incidentPanel.repaint();
 		archivedIncidentPanel.revalidate();
