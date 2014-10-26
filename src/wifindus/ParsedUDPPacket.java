@@ -14,7 +14,7 @@ public class ParsedUDPPacket implements Serializable
 	private static final Pattern PATTERN_KVP = Pattern.compile( "^([a-zA-Z0-9_\\-.]+)[ \t]*[:][ \t]*(.+)[ \t]*$" );
 	
 	private static final long serialVersionUID = 8194196852269581979L;
-	private Map<String, String> kvps = new HashMap<>();
+	private final Map<String, String> kvps = new HashMap<>();
 	private InetAddress sourceAddress;
 	private int sourcePort;
 
