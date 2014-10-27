@@ -17,7 +17,7 @@ SET foreign_key_checks = 1;
 CREATE TABLE Devices (
   hash                 char(8) NOT NULL, 
   deviceType           char(3) DEFAULT 'PHO' NOT NULL CHECK (deviceType IN('PHO','TAB','WAT','COM','OTH')), 
-  address              varchar(255), 
+  address              varchar(255) NOT NULL DEFAULT '', 
   latitude             decimal(18, 16) CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
   longitude            decimal(18, 15) CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude             decimal(9, 2), 
@@ -49,7 +49,8 @@ CREATE TABLE Incidents (
   archived     tinyint DEFAULT 0 NOT NULL, 
   archivedTime datetime, 
   severity	   int(10),
-  code		   varchar(32), 
+  code		   varchar(32) NOT NULL DEFAULT '',
+  description  varchar(2048) NOT NULL DEFAULT '',
   reportingUserID int(10), 
   PRIMARY KEY (id)) ENGINE=InnoDB;
   
@@ -65,7 +66,7 @@ CREATE TABLE DeviceUsers (
   
 CREATE TABLE Nodes (
   hash       char(8) NOT NULL, 
-  address    varchar(255), 
+  address    varchar(255) NOT NULL DEFAULT '', 
   latitude   decimal(18, 16) CHECK (latitude IS NULL OR latitude BETWEEN -90.00000000000000 AND 90.00000000000000), 
   longitude  decimal(18, 15) CHECK (longitude IS NULL OR longitude BETWEEN -180.00000000000000 AND 180.00000000000000), 
   altitude   decimal(9, 2), 
