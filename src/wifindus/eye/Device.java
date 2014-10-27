@@ -282,7 +282,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		//internet address
 		String addressString = (String)resultRow.get("address");
 		InetAddress newAddress = null;
-		if (addressString != null)
+		if (addressString != null && !addressString.isEmpty())
 		{
 			try
 			{
@@ -355,11 +355,12 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		if (this.currentIncident == currentIncident)
 			return;
 
+		Incident oldIncident = this.currentIncident;
+		this.currentIncident = currentIncident;
+		
 		//unassigned
-		if (this.currentIncident != null)
+		if (oldIncident != null)
 		{
-			Incident oldIncident = this.currentIncident;
-			this.currentIncident = null;
 			oldIncident.unassignDevice(this);
 			fireEvent("unassigned", oldIncident);
 		}
@@ -367,7 +368,6 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		//log in
 		if (currentIncident != null)
 		{
-			this.currentIncident = currentIncident;
 			currentIncident.assignDevice(this);
 			fireEvent("assigned", currentIncident);
 		}

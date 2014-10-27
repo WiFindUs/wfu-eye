@@ -154,7 +154,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		//internet address
 		String addressString = (String)resultRow.get("address");
 		InetAddress newAddress = null;
-		if (addressString != null)
+		if (addressString != null && !addressString.isEmpty())
 		{
 			try
 			{
