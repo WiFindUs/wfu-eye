@@ -48,7 +48,7 @@ CREATE TABLE Incidents (
   created      datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   archived     tinyint DEFAULT 0 NOT NULL, 
   archivedTime datetime, 
-  severity	   int(10),
+  severity	   int(10) NOT NULL DEFAULT 0,
   code		   varchar(32) NOT NULL DEFAULT '',
   description  varchar(2048) NOT NULL DEFAULT '',
   reportingUserID int(10), 
