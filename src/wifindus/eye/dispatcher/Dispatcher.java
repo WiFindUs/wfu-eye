@@ -349,7 +349,8 @@ public class Dispatcher extends EyeApplication
 	@Override
 	public void windowClosing(WindowEvent e)
 	{
-		mapRenderer.dispose();
+		if (mapRenderer != null)
+			mapRenderer.dispose();
 		super.windowClosing(e);
 	}
 	
