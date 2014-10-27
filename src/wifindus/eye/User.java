@@ -153,6 +153,15 @@ public class User extends EventObject<UserEventListener> implements MySQLUpdateT
 		return currentDevice;
 	}
 	
+	/**
+	 * Gets the Incident currently assigned to this user, if any.
+	 * @return A reference to a Incident object representing the incident this User is currently assigned to, or null.  
+	 */
+	public final Incident getCurrentIncident()
+	{
+		return currentDevice != null ? currentDevice.getCurrentIncident() : null;
+	}
+	
 	@Override
 	public void updateFromMySQL(MySQLResultRow resultRow)
 	{
