@@ -28,6 +28,7 @@ import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
+import wifindus.eye.User;
 
 public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
 {
@@ -458,6 +459,33 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		long hours = minutes / 60;
 		
 		incidentTime.setText(String.format("%02d : %02d : %02d", hours % 24, minutes % 60, seconds % 60));
+	}
+
+	@Override
+	public void incidentArchivedResponderAdded(Incident incident, User user) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentSeverityChanged(Incident incident, int oldSeverity,
+			int newSeverity) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentCodeChanged(Incident incident, String oldCode,
+			String newCode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void incidentReportingUserChanged(Incident incident, User oldUser,
+			User newUser) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	

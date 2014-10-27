@@ -733,6 +733,10 @@ public abstract class EyeApplication extends JFrame
 	//IncidentEventListener
 	@Override public void incidentAssignedDevice(Incident incident, Device device) { }
 	@Override public void incidentUnassignedDevice(Incident incident, Device device) { }
+	@Override public void incidentArchivedResponderAdded(Incident incident, User user) { }
+	@Override public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity) { }
+	@Override public void incidentCodeChanged(Incident incident, String oldCode, String newCode) { }
+	@Override public void incidentReportingUserChanged(Incident incident, User oldUser,	User newUser) { }
 	
 	//NodeEventListener
 	@Override public void nodeTimedOut(Node node) { }

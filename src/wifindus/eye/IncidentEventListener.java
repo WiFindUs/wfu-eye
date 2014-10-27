@@ -29,5 +29,41 @@ public interface IncidentEventListener
 	 */
 	public void incidentUnassignedDevice(Incident incident, Device device);
 	
+	/**
+	 * Event fired when a User is marked as having responded to this incident during archival.
+	 * Corresponds to the event key "reponderadded".
+	 * @param incident The incident object.
+	 * @param user The User object.
+	 */
+	public void incidentArchivedResponderAdded(Incident incident, User user);
+	
+	/**
+	 * Event fired when the severity of an incident is changed.
+	 * Corresponds to the event key "severity".
+	 * @param incident The incident object.
+	 * @param oldSeverity The incident's previous Severity.
+	 * @param newSeverity The incident's new Severity.
+	 */
+	public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity);
+	
+	/**
+	 * Event fired when the code of an incident is changed.
+	 * Corresponds to the event key "code".
+	 * @param incident The incident object.
+	 * @param oldCode The incident's previous Code.
+	 * @param newCode The incident's new Code.
+	 */
+	public void incidentCodeChanged(Incident incident, String oldCode, String newCode);
+	
+	/**
+	 * Event fired when the reporting user of an incident is changed.
+	 * Corresponds to the event key "reportinguser".
+	 * @param incident The incident object.
+	 * @param oldUser The incident's previous responding user.
+	 * @param newUser The incident's new responding user.
+	 */
+	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser);
+	
+	
 	public void incidentSelectionChanged(Incident incident);
 }
