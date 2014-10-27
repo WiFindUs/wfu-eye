@@ -2,6 +2,8 @@ package wifindus.eye;
 
 import java.io.Serializable;
 
+import wifindus.MathHelper;
+
 /**
  * An immutable, serializable packet of data describing an object's location.
  * Values within are represented with Java's boxing Double type to allow for incomplete location data
@@ -173,25 +175,25 @@ public class Location implements Serializable
 	    //latitude
 	    if ((loc.getLatitude() == null && latitude != null)
 	    	|| (loc.getLatitude() != null && latitude == null)
-	    	|| (latitude != null && latitude.compareTo(loc.getLatitude()) != 0))
+	    	|| (latitude != null && !MathHelper.equal(latitude, loc.getLatitude())))
 	    	return false;
 	    
 	    //longitude
 	    if ((loc.getLongitude() == null && longitude != null)
 	    	|| (loc.getLongitude() != null && longitude == null)
-	    	|| (longitude != null && longitude.compareTo(loc.getLongitude()) != 0))
+	    	|| (longitude != null && !MathHelper.equal(longitude, loc.getLongitude())))
 	    	return false;
     
 	    //accuracy
 	    if ((loc.getAccuracy() == null && accuracy != null)
 	    	|| (loc.getAccuracy() != null && accuracy == null)
-	    	|| (accuracy != null && accuracy.compareTo(loc.getAccuracy()) != 0))
+	    	|| (accuracy != null && !MathHelper.equal(accuracy, loc.getAccuracy())))
 	    	return false;
 	    
 	    //altitude
 	    if ((loc.getAltitude() == null && altitude != null)
 	    	|| (loc.getAltitude() != null && altitude == null)
-	    	|| (altitude != null && altitude.compareTo(loc.getAltitude()) != 0))
+	    	|| (altitude != null && !MathHelper.equal(altitude, loc.getAltitude())))
 	    	return false;
 
 	    //if we get here, we're the same

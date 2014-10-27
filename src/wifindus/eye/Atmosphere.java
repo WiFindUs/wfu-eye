@@ -2,6 +2,8 @@ package wifindus.eye;
 
 import java.io.Serializable;
 
+import wifindus.MathHelper;
+
 /**
  * An immutable, serializable packet of data describing the atmospheric condition at an object's location.
  * Values within are represented with Java's boxing Double type to allow for incomplete data
@@ -151,25 +153,25 @@ public class Atmosphere implements Serializable
 	    //humidity
 	    if ((atmos.getHumidity() == null && humidity != null)
 	    	|| (atmos.getHumidity() != null && humidity == null)
-	    	|| (humidity != null && humidity.compareTo(atmos.getHumidity()) != 0))
+	    	|| (humidity != null && !MathHelper.equal(humidity, atmos.getHumidity())))
 	    	return false;
 	    
 	    //airPressure
 	    if ((atmos.getAirPressure() == null && airPressure != null)
 	    	|| (atmos.getAirPressure() != null && airPressure == null)
-	    	|| (airPressure != null && airPressure.compareTo(atmos.getAirPressure()) != 0))
+	    	|| (airPressure != null && !MathHelper.equal(airPressure, atmos.getAirPressure())))
 	    	return false;
     
 	    //temperature
 	    if ((atmos.getTemperature() == null && temperature != null)
 	    	|| (atmos.getTemperature() != null && temperature == null)
-	    	|| (temperature != null && temperature.compareTo(atmos.getTemperature()) != 0))
+	    	|| (temperature != null && !MathHelper.equal(temperature, atmos.getTemperature())))
 	    	return false;
 	    
 	    //lightLevel
 	    if ((atmos.getLightLevel() == null && lightLevel != null)
 	    	|| (atmos.getLightLevel() != null && lightLevel == null)
-	    	|| (lightLevel != null && lightLevel.compareTo(atmos.getLightLevel()) != 0))
+	    	|| (lightLevel != null && !MathHelper.equal(lightLevel, atmos.getLightLevel())))
 	    	return false;
 
 	    //if we get here, we're the same
