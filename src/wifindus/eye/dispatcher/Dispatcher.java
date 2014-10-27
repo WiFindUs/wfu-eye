@@ -277,7 +277,6 @@ public class Dispatcher extends EyeApplication
 			getConfig().getDouble("map.center_latitude"),
 			getConfig().getDouble("map.center_longitude"),
 			getConfig().getInt("map.zoom"),
-			getConfig().getBoolean("map.high_res"),
 			getConfig().getString("map.api_key"),
 			getConfig().getString("map.type"),
 			getConfig().getInt("map.grid_rows"),
