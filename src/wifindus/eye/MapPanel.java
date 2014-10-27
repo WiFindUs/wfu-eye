@@ -12,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+
 import javax.swing.JPanel;
 
 public class MapPanel extends JPanel
@@ -19,8 +20,7 @@ public class MapPanel extends JPanel
 {
 	private static final Color OVERLAY_COLOR = new Color(0,0,0,50);
 	
-	private static final double PAN_SPEED = 1.0;
-	private static final double ZOOM_SPEED = 0.2;
+	private static final double ZOOM_AMOUNT = 0.2;
 	private static final long serialVersionUID = -1496522215279713246L;
 	private MapRenderer renderer;
 	private boolean mouseEntered = false;
@@ -28,9 +28,6 @@ public class MapPanel extends JPanel
 	private boolean mouseDownMiddle = false;
 	private int mouseX = 0;
 	private int mouseY = 0;
-	private double xPos = 0.5;
-	private double yPos = 0.5;
-	private double zoom = 0.5;	
 
 	public MapPanel(MapRenderer renderer)
 	{
@@ -75,10 +72,7 @@ public class MapPanel extends JPanel
 			return;
 		
 		if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) 
-		{
-			zoom = Math.min(4.0, Math.max(0.2, zoom - (e.getWheelRotation() * ZOOM_SPEED)));
-			repaint();
-		}
+			renderer.dragZoom(this, e.getWheelRotation() * ZOOM_AMOUNT, true);
 	}
 	
 	@Override
@@ -110,17 +104,16 @@ public class MapPanel extends JPanel
 	{
 		if (mouseDownLeft)
 		{
-			xPos = Math.min(1.0, Math.max(0.0,  xPos - (((double)(e.getX() - mouseX) / (double)MapRenderer.MAP_SIZE) * PAN_SPEED / zoom)));
-			yPos = Math.min(1.0, Math.max(0.0,  yPos - (((double)(e.getY() - mouseY) / (double)MapRenderer.MAP_SIZE) * PAN_SPEED / zoom)));
+			renderer.dragPan(this,(e.getX() - mouseX), (e.getY() - mouseY), false);
 			mouseX = e.getX();
 			mouseY = e.getY();
-			repaint();
 		}
 	}
 
 	@Override
 	public void componentResized(ComponentEvent e)
 	{
+		renderer.regenerateGeometry(this);
 		repaint();
 	}
 	
@@ -130,16 +123,28 @@ public class MapPanel extends JPanel
 		repaint();
 	}
 	
-	@Override public void mouseClicked(MouseEvent e) { }
+	@Override
+	public void mouseClicked(MouseEvent e)
+	{
+		if (e.getButton() == MouseEvent.BUTTON1)
+			renderer.setSelectedObjects(renderer.getObjectsAtPoint(this, e.getX(), e.getY()));
+	}
+
 	@Override public void componentMoved(ComponentEvent e) { }
 	@Override public void componentHidden(ComponentEvent e) { }
-	@Override public void mouseMoved(MouseEvent e) { }	
+	
+	@Override
+	public void mouseMoved(MouseEvent e)
+	{
+		if (mouseEntered)
+			renderer.setHoverObjects(renderer.getObjectsAtPoint(this, e.getX(), e.getY()));
+	}	
 	
 	@Override
     protected void paintComponent(Graphics g) 
     {
     	super.paintComponent(g);
-    	renderer.paintMap(this, (Graphics2D)g, xPos, yPos, zoom);
+    	renderer.paintMap(this, (Graphics2D)g);
     	if (mouseDownMiddle)
     	{
     		g.setColor(OVERLAY_COLOR);
