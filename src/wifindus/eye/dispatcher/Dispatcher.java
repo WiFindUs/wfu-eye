@@ -33,7 +33,7 @@ import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.Location;
-import wifindus.eye.MapFrameNew;
+import wifindus.eye.MapFrame;
 import wifindus.eye.MapRenderer;
 import wifindus.eye.User;
 
@@ -61,6 +61,7 @@ public class Dispatcher extends EyeApplication
 	private transient Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
 	private transient MapRenderer mapRenderer;
+	private transient MapFrame mapFrame;
 	
     static
     {
@@ -86,8 +87,6 @@ public class Dispatcher extends EyeApplication
 		(menuPanel = new JPanel()).setBackground(Color.white);
 		menuPanel.setPreferredSize(new Dimension(800, 70));
 		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
-
-		//(new MapFrame()).setVisible(true);
 		
 		// query Panel
 		(queryPanel = new JPanel()).setBackground(new Color(0xedf4fb));
@@ -285,7 +284,7 @@ public class Dispatcher extends EyeApplication
 			getConfig().getInt("map.grid_columns"));
 		
 		//spawn map window
-		(new MapFrameNew(mapRenderer)).setVisible(true);
+		(mapFrame = new MapFrame(mapRenderer)).setVisible(true);
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -296,7 +295,8 @@ public class Dispatcher extends EyeApplication
 	public void deviceCreated(Device device)
 	{
 		super.deviceCreated(device);
-		devicePanels.add(new DevicePanel(device));
+		DevicePanel newPanel = new DevicePanel(device, mapFrame);
+		devicePanels.add(newPanel);
 		updateDeviceSort();
 		updateDeviceFilter();
 		devicePanel.revalidate();
@@ -307,7 +307,7 @@ public class Dispatcher extends EyeApplication
 	{
 		super.incidentCreated(incident);
 		
-		IncidentPanel newPanel = new IncidentPanel(incident); 
+		IncidentPanel newPanel = new IncidentPanel(incident, mapFrame);
 		incidentPanels.put(Integer.valueOf(incident.getID()), newPanel);
 		incidentPanel.add(newPanel);
 		incidentPanel.revalidate();
@@ -318,15 +318,15 @@ public class Dispatcher extends EyeApplication
 	public void incidentArchived(Incident incident)
 	{
 		super.incidentArchived(incident);
-		IncidentPanel oldPanel = incidentPanels.get(Integer.valueOf(incident.getID()));
 		
-		ArchivedIncidentPanel archivedPanel = new ArchivedIncidentPanel(incident);
+		//remove old panel
+		IncidentPanel oldPanel = incidentPanels.remove(Integer.valueOf(incident.getID()));
+		if (oldPanel != null)
+			incidentPanel.remove(oldPanel);
 		
-		incidentPanel.remove(oldPanel);
+		//add new panel
+		ArchivedIncidentPanel archivedPanel = new ArchivedIncidentPanel(incident, mapFrame);
 		archivedIncidentPanel.add(archivedPanel);
-		
-		incidentPanel.revalidate();
-		incidentPanel.repaint();
 		archivedIncidentPanel.revalidate();
 		archivedIncidentPanel.repaint();
 	}
