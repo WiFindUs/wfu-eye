@@ -6,6 +6,22 @@ Documentation for WiFindUs's Eye Platform.
 Hussein Al Hammad  
 Mitchell Templeton
 
+## Adding an java-event-handled column to a monitored MySQL table
+Many of the variables used by the classes in this project are Java mirrors of MySQL constructs, and fire events appropriately when they're changed in the backing database. This is triggered by a monitoring thread that polls the database every few seconds. As useful as this is, in the event a column needs to be added it can be a pretty frustrating process with a lot of points of failure (it's easy to forget something).  
+
+Following these steps should help minimize this problem.
+
+1. Append the database initialization script, [wfu_init.sql](https://github.com/WiFindUs/wfu-eye/blob/master/wfu_init.sql), with the new column(s)
+2. Add the new columns to the appropriate table retrieval function in the [EyeMySQLConnection](https://github.com/WiFindUs/wfu-eye/blob/master/src/wifindus/eye/EyeMySQLConnection.java)
+3. Add a member variable to the relevant class
+4. Create any necessary accessors
+5. Add new handlers to the relevant event listener interface (e.g. [IncidentEventListener](https://github.com/WiFindUs/wfu-eye/blob/master/src/wifindus/eye/IncidentEventListener.java))
+6. Connect your new event in the target class's `mapEvents()`
+7. Add updating logic to the target class's `updateFromMySQL()`
+8. Add mutators to trigger changes in response to database updates
+9. Link any key-based values (object references etc) up in `EyeApplication.MySQLUpdateWorker`
+10. Make any necessary changes to associated `db_...()` functions in `EyeApplication`
+
 ## Code/Style Guidelines
 
 ### Use 'self-documenting' method and variable names
