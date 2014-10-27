@@ -76,7 +76,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		this.gridColumns = gridColumns;
 		
 		//create bounds
-		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0, zoom - (double)(zoom < CHUNK_MIN_ZOOM ? CHUNK_MIN_ZOOM : zoom));
+		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0,(zoom - (zoom < CHUNK_MIN_ZOOM ? zoom : CHUNK_MIN_ZOOM)));
 		bounds = new GPSRectangle(
 				latitude + scaledRadius,
 				longitude - (scaledRadius * CHUNK_LONG_SCALE),
