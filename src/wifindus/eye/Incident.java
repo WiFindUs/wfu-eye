@@ -55,11 +55,17 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private int id;
 	private Type type;
 	private Location location = Location.EMPTY;
-	private Timestamp created = new Timestamp(0);
+	private Timestamp created;
 	private boolean archived = false;
 	private boolean selected = false;
+	private Timestamp archivedTime;
+	private int severity;
+	private String code = ""; 
+	
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
+	private transient volatile User reportingUser = null;
+	private transient volatile ConcurrentHashMap<Integer,User> archivedResponders = new ConcurrentHashMap<>();
 	
 	//marker stuff
 	private static final Image tagImage, tagHoverImage, tagSelectedImage;
@@ -125,7 +131,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-	
 	public boolean getSelected()
 	{
 		return selected;
@@ -139,7 +144,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			fireEvent("selectionchanged");
 		}
 	}
-
 	
 	/**
 	 * Gets this Incident's ID.
@@ -200,6 +204,59 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	}
 	
 	/**
+	 * Gets this Incident's archival timestamp.
+	 * @return An sql.Timestamp object representing the date/time the incident was archived.
+	 * Since Timestamp is a mutable structure, the returned object is a clone, and thus calling any
+	 * mutators will have no effect on the Incident's timestamp data.
+	 * 
+	 * Note that this will return null if the incident has not yet been archived.
+	 */
+	public final Timestamp getArchivedTime()
+	{
+		return (Timestamp)archivedTime.clone();
+	}
+	
+	/**
+	 * Gets the severity of the incident.
+	 * @return An integer containing the incident's severity level.
+	 */
+	public final int getSeverity()
+	{
+		return severity;
+	}
+	
+	/**
+	 * Gets the code of the incident.
+	 * @return A string containing the incident's code.
+	 */
+	public final String getCode()
+	{
+		return code;
+	}
+	
+	/**
+	 * Gets the User who called in this incident, if applicable.
+	 * @return A reference to a User object representing the user who reported the incident, or null if this information is not available.  
+	 */
+	public final User getReportingUser()
+	{
+		return reportingUser;
+	}
+	
+	/**
+	 * Gets a list of all Users who using devices that were assigned to this incident at the time of it's archival.  
+	 * @return An ArrayList of Devices assigned to this Incident.
+	 * Since the backing collection is a mutable structure, the returned list is a clone,
+	 * and thus calling any mutators will have no effect on the backing collection data.
+	 * 
+	 * Note that the list returned by this function will return null if the incident has not yet been archived.
+	 */
+	public final ArrayList<User> getArchivedResponders()
+	{
+		return archived ? new ArrayList<User>(archivedResponders.values()) : null;
+	}
+	
+	/**
 	 * Gets a Type from a database type key.
 	 * @param key The key to match with an Incident.Type.
 	 * @return The Incident.Type enum value matching the given key.
@@ -238,7 +295,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		}
 	}
 	
-	
 	@Override
 	public String toString()
 	{
@@ -252,10 +308,27 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			throw new NullPointerException("Parameter 'resultRow' cannot be null.");
 		if (((Integer)resultRow.get("id")).intValue() != getID())
 			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
+
+		//TODO: process code, severity and archived values from DB
+		//TODO: fire new event handlers
+		
 		
 		boolean archived = (boolean)resultRow.get("archived");
 		if (!this.archived && archived)
 			archive();
+	}
+	
+	/**
+	 * Adds a user to the list of archived responders.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param responder The user to add to the list.
+	 */
+	public void assignArchivedResponder(User responder)
+	{
+		if (responder == null)
+			throw new NullPointerException("Parameter 'responder' cannot be null.");
+		archivedResponders.put(Integer.valueOf(responder.getID()), responder);
+		fireEvent("reponderadded", responder);
 	}
 	
 	/**
@@ -329,6 +402,18 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 				break;
 			case "selectionchanged":
 				listener.incidentSelectionChanged(this);
+				break;
+			case "reponderadded":
+				listener.incidentArchivedResponderAdded(this, (User)data[0]);
+				break;
+			case "severity":
+				listener.incidentSeverityChanged(this, (int)data[0], (int)data[1]);
+				break;
+			case "code":
+				listener.incidentCodeChanged(this, (String)data[0], (String)data[1]);
+				break;
+			case "reportinguser":
+				listener.incidentReportingUserChanged(this, (User)data[0], (User)data[1]);
 				break;
 		}
 	}
