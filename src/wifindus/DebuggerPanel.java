@@ -3,6 +3,7 @@ package wifindus;
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
@@ -11,6 +12,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
+
 import wifindus.Debugger.Verbosity;
 
 public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
