@@ -10,7 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.swing.SwingUtilities;
+
 import wifindus.Debugger;
 import wifindus.DebuggerPanel;
 import wifindus.MySQLResultRow;

@@ -7,15 +7,10 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -26,20 +21,15 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
-import javax.swing.table.DefaultTableModel;
 
 import wifindus.Debugger;
-import wifindus.HighResolutionTimerListener;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
-import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
-import wifindus.eye.Location;
 import wifindus.eye.User;
 
 public class ArchivedIncidentPanel extends JPanel implements

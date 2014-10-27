@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
+
 import wifindus.eye.Location;
 
 /**
