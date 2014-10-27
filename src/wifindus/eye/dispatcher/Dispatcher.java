@@ -322,7 +322,11 @@ public class Dispatcher extends EyeApplication
 		//remove old panel
 		IncidentPanel oldPanel = incidentPanels.remove(Integer.valueOf(incident.getID()));
 		if (oldPanel != null)
+		{
 			incidentPanel.remove(oldPanel);
+			incidentPanel.revalidate();
+			incidentPanel.repaint();
+		}
 		
 		//add new panel
 		ArchivedIncidentPanel archivedPanel = new ArchivedIncidentPanel(incident, mapFrame);
