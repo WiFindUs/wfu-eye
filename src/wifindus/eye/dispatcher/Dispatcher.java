@@ -332,18 +332,20 @@ public class Dispatcher extends EyeApplication
 	}
 	
 	@Override
-	public void deviceLocationChanged(Device device, Location oldLocation,
-			Location newLocation) {
-		
+	public void deviceLocationChanged(Device device, Location oldLocation, Location newLocation)
+	{	
 		super.deviceLocationChanged(device, oldLocation, newLocation);
-		// TODO Auto-generated method stub
-		
-		for(Map.Entry<Integer,IncidentPanel> entry : incidentPanels.entrySet()) 
-			if(incidentPanels.get(entry.getKey()).getIncident().getRespondingDevices().contains(device))
+
+		//updates the device location for panels
+		// TODO move this to an event-based function in the panels themselves
+		for(Map.Entry<Integer,IncidentPanel> entry : incidentPanels.entrySet())
+		{
+			if(entry.getValue().getIncident().getRespondingDevices().contains(device))
 			{
-				incidentPanels.get(entry.getKey()).setDeviceLocation(device, newLocation);
+				entry.getValue().setDeviceLocation(device, newLocation);
 				break;
 			}
+		}
 	}
 
 	@Override
@@ -353,7 +355,6 @@ public class Dispatcher extends EyeApplication
 			mapRenderer.dispose();
 		super.windowClosing(e);
 	}
-	
 
 
 	/////////////////////////////////////////////////////////////////////

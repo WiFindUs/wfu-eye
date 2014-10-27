@@ -42,6 +42,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 
 	private double timerCounter = 0.0;
 	private static final int COLUMN_DEVICE = 0;
+	private static final int COLUMN_DISTANCE = 1;
 	private transient DefaultTableModel deviceTableModel = new DefaultTableModel(
 			new Object[][]{},
 			new String[] {"Device", "Distance"}
@@ -278,23 +279,17 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		deviceTableModel.setNumRows(0);
 		EyeApplication.get().removeTimerListener(this);
 		updateTimerLabel(0);
-		
-		//TODO: change appearance when archived (smaller size, hide buttons, etc)
 	}
 
-	/* (non-Javadoc)
-	 * @see wifindus.eye.IncidentEventListener#incidentAssignedDevice(wifindus.eye.Incident, wifindus.eye.Device)
-	 */
 	@Override
 	public void incidentAssignedDevice(Incident incident, Device device)
 	{
 		if (device == null)
 			return;
+		
 		for(int i = 0; i < deviceTableModel.getRowCount(); i++)
-		{
 			if (deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
 				return;
-		}
 		deviceTableModel.addRow(new Object[] {device, (int)device.getLocation().distanceTo(incident.getLocation()) + " meters"});
 	}
 
@@ -398,25 +393,18 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		return incident;
 	}
 
+	//TODO: implement DeviceEventListener on this class when a device is added, and respond to location that way
 	public void setDeviceLocation(Device device, Location newLocation)
 	{
-			if(deviceTableModel.getRowCount() > 1)
+		for(int i = 0; i < deviceTableModel.getRowCount(); i++)
+		{
+			if (deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
 			{
-				for(int i = 0; i < deviceTableModel.getRowCount(); i++)
-				{
-					if (device != null && deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
-					{
-						deviceTableModel.setValueAt((int)device.getLocation().distanceTo(incident.getLocation()) + " meters", i, 1);
-					}
-				}
+				deviceTableModel.setValueAt((int)device.getLocation().distanceTo(incident.getLocation()) + " meters", i, COLUMN_DISTANCE);
+				break;
 			}
-			else
-				{
-					deviceTableModel.setValueAt((int)device.getLocation().distanceTo(incident.getLocation()) + " meters", 0, 1);
-				}
 		}
-	
-	
+	}
 	
 	@Override
 	public void timerTick(double deltaTime)
@@ -431,6 +419,12 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			updateTimerLabel(System.currentTimeMillis());			
 		}
 	}
+	
+	@Override public void incidentArchivedResponderAdded(Incident incident, User user) { }
+	@Override public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity) { }
+	@Override public void incidentCodeChanged(Incident incident, String oldCode, String newCode) { }
+	@Override public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser) {	}
+	@Override public void incidentDescriptionChanged(Incident incident) { }
 
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
@@ -460,38 +454,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		
 		incidentTime.setText(String.format("%02d : %02d : %02d", hours % 24, minutes % 60, seconds % 60));
 	}
-
-	@Override
-	public void incidentArchivedResponderAdded(Incident incident, User user) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentSeverityChanged(Incident incident, int oldSeverity,
-			int newSeverity) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentCodeChanged(Incident incident, String oldCode,
-			String newCode) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentReportingUserChanged(Incident incident, User oldUser,
-			User newUser) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	
-	
-	
-	
 }
 
 
