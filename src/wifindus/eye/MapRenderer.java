@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -24,14 +25,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.SwingWorker;
+
 import wifindus.Debugger;
 import wifindus.GPSRectangle;
+import wifindus.HighResolutionTimerListener;
+import wifindus.MathHelper;
 
-public class MapRenderer implements EyeApplicationListener, NodeEventListener, IncidentEventListener, DeviceEventListener 
+public class MapRenderer implements EyeApplicationListener, NodeEventListener,
+	IncidentEventListener, DeviceEventListener, HighResolutionTimerListener
 {
+	public static final double ZOOM_SPEED = 2.0;
 	public static final int CHUNK_IMAGE_SIZE = 640;
 	public static final int MAP_SIZE = CHUNK_IMAGE_SIZE * 2;
 	private static final double CHUNK_RADIUS = 0.01126;
@@ -52,7 +59,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	private final ArrayList<MappableObject> devices = new ArrayList<>();
 	private final ArrayList<MappableObject> incidents = new ArrayList<>();
 	private final ArrayList<MappableObject> nodes = new ArrayList<>();
-	private MappableObject callout = null, hover = null, selected = null;
+	private MappableObject callout = null;
+	private final ArrayList<MappableObject> hover = new ArrayList<>();
+	private final ArrayList<MappableObject> selected = new ArrayList<>();
+	private JComponent lastClient = null;
+	private ClientSettings lastSettings = null;
 
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -107,6 +118,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		//attach ourselves as an EyeApplicationListener so we get notified of new
 		//devices, incidents and nodes as they are created
 		EyeApplication.get().addEyeListener(this);
+		EyeApplication.get().addTimerListener(this);
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -122,7 +134,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		if (client == null || clients.containsKey(client))
 			return;
 		
-		clients.put(client, new ClientSettings());
+		ClientSettings settings = new ClientSettings();
+		settings.client = client;
+		clients.put(client, settings);
+		regenerateGeometry(client);
 		client.repaint();
 	}
 	
@@ -135,50 +150,116 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	{
 		if (client == null)
 			return;
+		ClientSettings settings = clients.get(client);
+		if (settings == null)
+			return;
+		
+		settings.objectData.clear();
 		clients.remove(client);
+		if (client == lastClient)
+		{
+			lastClient = null;
+			lastSettings = null;
+		}
 	}
-	
+
 	/**
 	 * Unsubscribes all render clients from this MapRenderer's events.
 	 */
 	public final void clearRenderClients()
 	{
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().objectData.clear();
 		clients.clear();
+		lastClient = null;
+		lastSettings = null;
 	}
 	
 	public final void dispose()
 	{
-		clients.clear();
+		EyeApplication.get().removeTimerListener(this);
+		EyeApplication.get().removeEyeListener(this);
+		for (Device device : EyeApplication.get().getDevices())
+			device.removeEventListener(this);
+		for (Incident incident : EyeApplication.get().getIncidents())
+			incident.removeEventListener(this);
+		for (Node node : EyeApplication.get().getNodes())
+			node.removeEventListener(this);
+		clearRenderClients();
 		abortThread = true;
 		if (mapImage != null)
 			mapImage = null;
 	}
-	
-	public final void paintMap(JComponent client, Graphics2D graphics, double xPos, double yPos, double zoom)
+
+	public final void setPan(JComponent client, double xPos, double yPos, boolean interpolated)
 	{
-		//sanity checks
-		if (client == null)
-			throw new NullPointerException("Parameter 'client' cannot be null.");
-		if (graphics == null) 
-			throw new NullPointerException("Parameter 'graphics' cannot be null.");
+		getSettings(client).setPan(xPos, yPos, interpolated);
+	}
+	
+	public final void setPan(JComponent client, MappableObject target, boolean interpolated)
+	{
+		if (target == null)
+			return;
+		ClientSettings settings = getSettings(client);
+		ClientObjectData data = settings.objectData.get(target);
+		if (data == null || data.point == null)
+			return;
+		getSettings(client).setPan(
+			data.point.x / settings.mapArea.width,
+			data.point.y / settings.mapArea.height,
+			interpolated);
+	}
+	
+	public final void dragPan(JComponent client, double xDelta, double yDelta, boolean interpolated)
+	{
+		ClientSettings settings = getSettings(client);
+		settings.setPan(settings.xPos - (xDelta / settings.mapSize),
+			settings.yPos - (yDelta / settings.mapSize),
+			interpolated);
+	}
+	
+	public final void setZoom(JComponent client, double zoom, boolean interpolated)
+	{
+		getSettings(client).setZoom(zoom, interpolated);
+	}
+	
+	public final void dragZoom(JComponent client, double zoomDelta, boolean interpolated)
+	{
+		ClientSettings settings = getSettings(client);
+		settings.setZoom(settings.zoomTarget - zoomDelta, interpolated);
+	}
+	
+	public final void regenerateGeometry(JComponent client)
+	{
 		ClientSettings settings = clients.get(client);
-		if (settings == null)
-			throw new IllegalArgumentException("The given client has not been subscribed to this MapRenderer.");
-		
-		//range checks
-		xPos = Math.min(1.0, Math.max(0.0,xPos));
-		yPos = Math.min(1.0, Math.max(0.0,yPos));
-		zoom = Math.min(4.0, Math.max(0.2,zoom));
 		
 		//determine bounds
-		double mapSize = (double)MAP_SIZE * zoom;
-		Rectangle2D.Double clientArea = new Rectangle2D.Double(0.0,0.0,client.getWidth(),client.getHeight());
-		Rectangle2D.Double mapArea = new Rectangle2D.Double(
-			(clientArea.width / 2.0) - (mapSize * xPos),
-			(clientArea.height / 2.0) - (mapSize * yPos),
-			mapSize, mapSize);
-		Rectangle2D.Double shownArea = new Rectangle2D.Double();
-		Rectangle2D.Double.intersect(clientArea, mapArea, shownArea);
+		settings.mapSize = (double)MAP_SIZE * settings.zoom;
+		settings.clientArea = new Rectangle2D.Double(0.0,0.0,client.getWidth(),client.getHeight());
+		settings.mapArea = new Rectangle2D.Double(
+			(settings.clientArea.width / 2.0) - (settings.mapSize * settings.xPos),
+			(settings.clientArea.height / 2.0) - (settings.mapSize * settings.yPos),
+			settings.mapSize, settings.mapSize);
+		settings.shownArea = new Rectangle2D.Double();
+		Rectangle2D.Double.intersect(settings.clientArea, settings.mapArea, settings.shownArea);
+		
+		//grid stuff
+        settings.gridStepX = settings.mapSize / (double)gridColumns;
+        settings.gridStepY = settings.mapSize / (double)gridRows;
+        
+        //object locations
+        settings.setPoints(devices);
+        settings.setPoints(incidents);
+        settings.setPoints(nodes);
+	}
+	
+	public final void paintMap(JComponent client, Graphics2D graphics)
+	{
+		//sanity checks
+		if (graphics == null) 
+			throw new NullPointerException("Parameter 'graphics' cannot be null.");
+		
+		ClientSettings settings = clients.get(client);
 		
 		//draw map image
 		if (settings.drawImage && mapImage != null)
@@ -187,11 +268,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 				//source image
 				mapImage,
 				//destination coords
-				(int)shownArea.x, (int)shownArea.y, //top left
-				(int)(shownArea.x + shownArea.width), (int)(shownArea.y + shownArea.height), //bottom right
+				(int)settings.shownArea.x, (int)settings.shownArea.y, //top left
+				(int)(settings.shownArea.x + settings.shownArea.width), (int)(settings.shownArea.y + settings.shownArea.height), //bottom right
 				//source coords
-				(int)((shownArea.x-mapArea.x)/zoom), (int)((shownArea.y-mapArea.y)/zoom), //top left
-				(int)((shownArea.x-mapArea.x+shownArea.width)/zoom), (int)((shownArea.y-mapArea.y+shownArea.height)/zoom), //bottom right
+				(int)((settings.shownArea.x-settings.mapArea.x)/settings.zoom), (int)((settings.shownArea.y-settings.mapArea.y)/settings.zoom), //top left
+				(int)((settings.shownArea.x-settings.mapArea.x+settings.shownArea.width)/settings.zoom), (int)((settings.shownArea.y-settings.mapArea.y+settings.shownArea.height)/settings.zoom), //bottom right
 				//observer
 				null);
 		}
@@ -199,9 +280,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		//draw grid
 		if (settings.drawGrid)
 		{
-	        double gridStepX = mapSize / (double)gridColumns;
-	        double gridStepY = mapSize / (double)gridRows;
-	        
 	        //metrics etc
 	        graphics.setFont(settings.gridFont);
 	        graphics.setStroke(settings.gridStroke);
@@ -210,18 +288,18 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	        //rows
 	        for (int i = 0; i < gridRows; i++)
 	        {
-	        	int lineY = (int)(mapArea.y + gridStepY * (double)(i + 1));
-	        	if (lineY < shownArea.y)
+	        	int lineY = (int)(settings.mapArea.y + settings.gridStepY * (double)(i + 1));
+	        	if (lineY < settings.shownArea.y)
 	        		continue;
-	        	if (lineY > (shownArea.y+shownArea.height))
+	        	if (lineY > (settings.shownArea.y+settings.shownArea.height))
 	        		break;
 				char letter = (char) ('A' + i);
 				String label = "" + letter;
 				int stringW = metrics.stringWidth(label);
 				int stringH = metrics.getAscent() + metrics.getDescent();
 				int labelSize = Math.max(stringW,stringH);
-				int labelX = (int)(mapArea.x+2.0);
-				int labelY = lineY - (int)(gridStepY/2.0);
+				int labelX = settings.shownArea.x > labelSize ? (int)(settings.shownArea.x-labelSize) : 0;
+				int labelY = lineY - (int)(settings.gridStepY/2.0);
 	        	
 	        	//text shadow
 		        graphics.setColor(settings.gridShadingColor);
@@ -232,7 +310,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	        	//line
 	        	graphics.setColor(settings.gridLineColor);
 	        	if (i < gridRows-1)
-	        		graphics.drawLine((int)mapArea.x, lineY, (int)(mapArea.x+mapArea.width), lineY);
+	        		graphics.drawLine((int)settings.mapArea.x, lineY, (int)(settings.mapArea.x+settings.mapArea.width), lineY);
 	        	
 	        	//text
 	        	graphics.setColor(settings.gridTextColor);
@@ -244,17 +322,17 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	        //columns
 	        for (int i = 0; i < gridColumns; i++)
 	        {
-	        	int lineX = (int)(mapArea.x + gridStepX * (double)(i + 1));
-	        	if (lineX < shownArea.x)
+	        	int lineX = (int)(settings.mapArea.x + settings.gridStepX * (double)(i + 1));
+	        	if (lineX < settings.shownArea.x)
 	        		continue;
-	        	if (lineX > (shownArea.x+shownArea.width))
+	        	if (lineX > (settings.shownArea.x+settings.shownArea.width))
 	        		break;
 				String label = Integer.toString(i+1);
 				int stringW = metrics.stringWidth(label);
 				int stringH = metrics.getAscent() + metrics.getDescent();
 				int labelSize = Math.max(stringW,stringH);
-				int labelX = lineX - (int)(gridStepX/2.0);
-				int labelY = (int)(mapArea.y+2.0);
+				int labelX = lineX - (int)(settings.gridStepX/2.0);
+				int labelY = settings.shownArea.y > labelSize ? (int)(settings.shownArea.y-labelSize) : 0;
 	        	
 	        	//text shadow
 		        graphics.setColor(settings.gridShadingColor);
@@ -265,7 +343,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	        	//line
 	        	graphics.setColor(settings.gridLineColor);
 	        	if (i < gridColumns-1)
-	        		graphics.drawLine(lineX,(int)mapArea.y,lineX,(int)(mapArea.y+mapArea.height));
+	        		graphics.drawLine(lineX,(int)settings.mapArea.y,lineX,(int)(settings.mapArea.y+settings.mapArea.height));
 
 	        	//text
 	        	graphics.setColor(settings.gridTextColor);
@@ -277,22 +355,22 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		
 		//draw layers
 		if (settings.drawNodes)
-			paintObjects(graphics, nodes, mapArea, shownArea, true);
+			paintObjects(graphics, nodes, settings, true);
 		if (settings.drawDevices)
-			paintObjects(graphics, devices, mapArea, shownArea, true);
+			paintObjects(graphics, devices, settings, true);
 		if (settings.drawIncidents)
-			paintObjects(graphics, incidents, mapArea, shownArea, true);
-		if (selected != null)
-			paintObject(graphics, selected, mapArea, shownArea);
-		if (hover != null)
-			paintObject(graphics, hover, mapArea, shownArea);
+			paintObjects(graphics, incidents, settings, true);
+		if (selected.size() > 0)
+			paintObjects(graphics, selected, settings, false);
+		if (hover.size() > 0)
+			paintObjects(graphics, hover, settings, false);
 		
 		//draw special "callout"
 		if (callout != null)
 		{
 			graphics.setColor(settings.calloutOverlayColor);
-			graphics.fillRect(0, 0, (int)clientArea.width,  (int)clientArea.height);
-			paintObject(graphics, callout, mapArea, shownArea);
+			graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
+			paintObject(graphics, callout, settings);
 		}		
 		
 		//draw download notification
@@ -301,15 +379,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 			int progressHeight = 30;
 			int padding = 3;
 			graphics.setColor(settings.gridShadingColor);
-			graphics.fillRect(0, (int)clientArea.height-progressHeight, (int)clientArea.width, progressHeight);
+			graphics.fillRect(0, (int)settings.clientArea.height-progressHeight, (int)settings.clientArea.width, progressHeight);
 			graphics.setColor(settings.gridTextColor);
-			graphics.fillRect(padding, (int)(clientArea.height-progressHeight+padding), (int)((clientArea.width-padding*2)*downloadThread.percentage), progressHeight-padding*2);
+			graphics.fillRect(padding, (int)(settings.clientArea.height-progressHeight+padding), (int)((settings.clientArea.width-padding*2)*downloadThread.percentage), progressHeight-padding*2);
 		}
-	}
-	
-	public final void paintMap(JComponent client, Graphics2D graphics)
-	{
-		paintMap(client, graphics, 0.5, 0.5, 1.0);
 	}
 	
 	@Override
@@ -334,6 +407,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	public void deviceLocationChanged(Device device, Location oldLocation,
 			Location newLocation)
 	{
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().setPoint(device);
 		repaintDevices();
 	}
 
@@ -354,11 +429,13 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	{
 		repaintDevices();
 	}
-
+	
 	@Override
 	public void incidentArchived(Incident incident)
 	{
-		repaintIncidents();
+		removeMappableObject(incident);
+		incident.removeEventListener(this);
+		repaintClients();
 	}
 
 	@Override
@@ -389,6 +466,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	public void nodeLocationChanged(Node node, Location oldLocation,
 			Location newLocation)
 	{
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().setPoint(node);
 		repaintNodes();
 	}
 
@@ -401,24 +480,33 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	@Override
 	public void deviceCreated(Device device)
 	{
-		if (!devices.contains(device))
-			devices.add(device);
+		if (devices.contains(device))
+			return;
+		devices.add(device);
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().setPoint(device);
 		repaintDevices();
 	}
 
 	@Override
 	public void incidentCreated(Incident incident)
 	{
-		if (!incidents.contains(incident))
-			incidents.add(incident);
+		if (incidents.contains(incident))
+			return;
+		incidents.add(incident);
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().setPoint(incident);
 		repaintIncidents();
 	}
 
 	@Override
 	public void nodeCreated(Node node)
 	{
-		if (!nodes.contains(node))
-			nodes.add(node);
+		if (nodes.contains(node))
+			return;
+		nodes.add(node);
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().setPoint(node);
 		repaintNodes();
 	}
 
@@ -435,12 +523,28 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	@Override public void nodeAddressChanged(Node node, InetAddress oldAddress,	InetAddress newAddress) { }
 	@Override public void userCreated(User user) { }
 	
-	public void setSelection(MappableObject object)
+	public void setSelectedObjects(List<MappableObject> objects)
 	{
-		if (object == selected)
-			return;
-		selected = object;
-		repaint();
+		if (updateList(selected, objects))
+			repaintClients();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<MappableObject> getSelectedObjects()
+	{
+		return (List<MappableObject>)selected.clone();
+	}
+	
+	public void setHoverObjects(List<MappableObject> objects)
+	{
+		if (updateList(hover, objects))
+			repaintClients();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<MappableObject> getHoverObjects()
+	{
+		return (List<MappableObject>)hover.clone();
 	}
 	
 	public void setCallout(MappableObject object)
@@ -448,34 +552,141 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		if (object == callout)
 			return;
 		callout = object;
-		repaint();
+		repaintClients();
+	}
+	
+	public List<MappableObject> getObjectsAtPoint(JComponent client, int x, int y)
+	{
+		ClientSettings settings = getSettings(client);
+		List<MappableObject> foundObjects = new ArrayList<>();
+		
+		if (settings.mapArea.contains(x, y))
+		{
+			for (Map.Entry<MappableObject, ClientObjectData> entry : settings.objectData.entrySet())
+			{
+				ClientObjectData data = entry.getValue();
+				if (data.hitbox != null && data.hitbox.contains(x, y))
+					foundObjects.add(entry.getKey());
+			}
+		}
+		
+		return foundObjects;
+	}
+	
+	@Override
+	public void timerTick(double deltaTime)
+	{
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+		{
+			ClientSettings settings = entry.getValue();
+			boolean regen = false;
+			boolean repaint = false;
+			if (!MathHelper.equal(settings.zoomInterp, 1.0))
+			{
+				settings.zoomInterp += deltaTime * ZOOM_SPEED;
+				if (settings.zoomInterp > 1.0)
+					settings.zoomInterp = 1.0;
+				settings.zoom = MathHelper.coserp(settings.zoomStart, settings.zoomTarget, settings.zoomInterp);
+				regen = true;
+				repaint = true;
+			}
+			
+			if (!MathHelper.equal(settings.posInterp, 1.0))
+			{
+				settings.posInterp += deltaTime * ZOOM_SPEED;
+				if (settings.posInterp > 1.0)
+					settings.posInterp = 1.0;
+				settings.xPos = MathHelper.coserp(settings.xPosStart, settings.xPosTarget, settings.posInterp);
+				settings.yPos = MathHelper.coserp(settings.yPosStart, settings.yPosTarget, settings.posInterp);
+				regen = true;
+				repaint = true;
+			}
+			
+			if (regen)
+				regenerateGeometry(entry.getKey());
+			if (repaint)
+				entry.getKey().repaint();
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
 	
-    private final void paintObjects(final Graphics2D graphics, 	final Collection<MappableObject> objects,
-    		final Rectangle2D.Double mapArea, final Rectangle2D.Double shownArea, boolean skipInteractives)
+	private boolean updateList(List<MappableObject> list, List<MappableObject> input)
+	{
+		if ((list == null || list.size() == 0) && (input == null || input.size() == 0))
+			return false;
+		
+		if (input == null || input.size() == 0)
+		{
+			list.clear();
+			return true;
+		}
+		else if (!input.equals(list))
+		{
+			list.clear();
+			list.addAll(input);
+			return true;
+		}
+		return false;
+	}
+	
+	private void removeMappableObject(MappableObject object)
+	{
+		if (object == null)
+			return;
+		
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getValue().objectData.remove(object);
+		
+		devices.remove(object);
+		incidents.remove(object);
+		nodes.remove(object);
+		hover.remove(object);
+		selected.remove(object);
+		if (callout == object)
+			callout = null;
+	}
+	
+	private ClientSettings getSettings(JComponent client)
+	{
+		if (client == null)
+			throw new NullPointerException("Parameter 'client' cannot be null.");
+		
+		if (client == lastClient)
+			return lastSettings;
+		
+		ClientSettings settings = clients.get(client);
+		if (settings == null)
+			throw new IllegalArgumentException("The given client has not been subscribed to this MapRenderer.");
+		
+		lastClient = client;
+		lastSettings = settings;
+		return settings;
+	}
+	
+    private void paintObjects(final Graphics2D graphics, 	final Collection<MappableObject> objects,
+    		final ClientSettings settings, boolean skipInteractives)
     {
 		for (MappableObject object : objects)
 		{
-			if (skipInteractives && (object == hover || object == selected || object == callout))
+			if (skipInteractives && (hover.contains(object) || selected.contains(object) || object == callout))
 				continue;
-			paintObject(graphics,object,mapArea,shownArea);
+			paintObject(graphics,object,settings);
 		}
     }
 	
-    private final void paintObject(final Graphics2D graphics, final MappableObject object, final Rectangle2D.Double mapArea, final Rectangle2D.Double shownArea)
+    private void paintObject(final Graphics2D graphics, final MappableObject object, final ClientSettings settings)
     {
 		if (!object.getLocation().hasLatLong())
 			return;
 		
-    	Point2D.Double point = bounds.translate(mapArea, object.getLocation());
-		if (!shownArea.contains(point))
+    	Point2D.Double point = settings.objectData.get(object).point;
+		if (point == null || !settings.shownArea.contains(point))
 			return;
 		
-		object.paintMarker(graphics, (int)point.x, (int)point.y, object == hover, object == selected);
+		object.paintMarker(graphics, (int)point.x, (int)point.y, hover.contains(object), selected.contains(object));
     }
 	
 	private void setMapImage(Image image)
@@ -483,32 +694,22 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		if (image == mapImage)
 			return;
 		mapImage = image;
-		repaint();
+		repaintClients();
 	}
 	
-	private void repaint(JComponent client)
+	private void repaintClients()
 	{	
-		if (client != null) //one client
-			client.repaint();
-		else //trigger repaint on all subscribed clients
-		{
-			for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-				entry.getKey().repaint();
-		}
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getKey().repaint();
 	}
-	
-	private void repaint()
-	{
-		repaint(null);		
-	}
-	
+
 	private void downloadMapImage()
 	{
 		if (downloadThread != null)
 			return;
 		downloadThread = new ImageDownloadWorker();
 		downloadThread.execute();
-		repaint();
+		repaintClients();
 	}
 	
 	private boolean loadMapImage()
@@ -529,21 +730,104 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		return false;
 	}
 	
+	private class ClientObjectData
+	{
+		public Point2D.Double point = null;
+		public Polygon hitbox = null;
+	}
+	
 	private class ClientSettings
 	{
+		//client
+		public JComponent client;
+		
+		//geometry
+		public double xPos = 0.5, xPosStart = 0.5, xPosTarget = 0.5, posInterp = 1.0;
+		public double yPos = 0.5, yPosStart = 0.5, yPosTarget = 0.5;
+		public double zoom = 1.0, zoomStart = 1.0, zoomTarget = 1.0, zoomInterp = 1.0;
+		public final HashMap<MappableObject, ClientObjectData> objectData = new HashMap<>();
+		public double mapSize;
+		Rectangle2D.Double clientArea;
+		Rectangle2D.Double mapArea;
+		Rectangle2D.Double shownArea;	
+        public double gridStepX;
+        public double gridStepY;
+        
+        //cosmetics
 		public boolean drawImage = true;
 		public boolean drawGrid = true;
 		public boolean drawNodes = true;
 		public boolean drawIncidents = true;
 		public boolean drawDevices = true;
-
 		public Color gridLineColor = new Color(0, 0, 0, 70);
-		public Color gridTextColor = new Color(255, 255, 255, 150);
+		public Color gridTextColor = new Color(255, 255, 255, 200);
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
 		public Stroke gridStroke = new BasicStroke(1);
-		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 16);
-		
+		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public Color calloutOverlayColor = new Color(255, 255, 255, 100);
+		
+		public void setPoint(MappableObject object)
+        {
+			ClientObjectData data = objectData.get(object);
+			if (data == null)
+				objectData.put(object,data = new ClientObjectData());
+			data.point = object.getLocation().hasLatLong() ? bounds.translate(mapArea, object.getLocation()) : null;
+			data.hitbox = data.point == null ? null : object.generateMarkerHitbox((int)data.point.x, (int)data.point.y); 
+        }
+		
+        public void setPoints(List<MappableObject> objects)
+        {
+            for (MappableObject object : objects)
+            	setPoint(object);
+        }
+        
+        public void setPan(double x, double y, boolean interpolated)
+        {
+        	x = Math.min(1.0, Math.max(0.0,x));
+        	y = Math.min(1.0, Math.max(0.0,y));
+    		if (MathHelper.equal(xPos, x) && MathHelper.equal(yPos, y))
+    			return;
+        	
+    		if (interpolated)
+    		{
+    			xPosStart = xPos;
+    			xPosTarget = x;
+    			yPosStart = yPos;
+    			yPosTarget = y;
+    			posInterp = 0.0;
+    		}
+    		else
+    		{
+    			xPosStart = xPos = xPosTarget = x;
+    			yPosStart = yPos = yPosTarget = y;
+    			posInterp = 1.0;
+    			
+    			regenerateGeometry(client);
+    			client.repaint();
+    		}
+        }
+        
+        public void setZoom(double target, boolean interpolated)
+        {
+        	target = Math.min(4.0, Math.max(0.2,target));
+    		if (MathHelper.equal(zoom, target))
+    			return;
+        	
+    		if (interpolated)
+    		{
+    			zoomStart = zoom;
+    			zoomTarget = target;
+    			zoomInterp = 0.0;
+    		}
+    		else
+    		{
+    			zoomStart = zoom = zoomTarget = target;
+    			zoomInterp = 1.0;
+    			
+    			regenerateGeometry(client);
+    			client.repaint();
+    		}
+        }
 	}
 	
 	private class ImageDownloadWorker extends SwingWorker<Image, Double>
@@ -662,7 +946,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 		@Override
 		protected void process(List<Double> chunks)
 		{
-			repaint();
+			repaintClients();
 		}
 
 		@Override
@@ -681,24 +965,22 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 			}
 		}		
 	}
-	
+
     private final void repaintNodes()
     {
 		if (clients.size() > 0 && nodes.size() > 0)
-			repaint();
+			repaintClients();
     }
 
-    //quick check to see if it's worth firing a repaint()
     private final void repaintIncidents()
     {
 		if (clients.size() > 0 && incidents.size() > 0)
-			repaint();
+			repaintClients();
     }
     
-    //quick check to see if it's worth firing a repaint()
     private final void repaintDevices()
     {
     	if (clients.size() > 0 && devices.size() > 0)
-			repaint();
+    		repaintClients();
     }
 }
