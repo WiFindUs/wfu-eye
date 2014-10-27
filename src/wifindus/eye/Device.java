@@ -395,9 +395,10 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		Polygon poly = new Polygon();
 		poly.addPoint(x,y);
 		poly.addPoint(x-16,y-34);
-		poly.addPoint(x-12,y-45);
-		poly.addPoint(x,y-50);
-		poly.addPoint(x+11,y-45);
+		poly.addPoint(x-13,y-46);
+		poly.addPoint(x,y-52);
+		poly.addPoint(x+13,y-46);
+		poly.addPoint(x+16,y-34);
 		return poly;
 	}
 	
