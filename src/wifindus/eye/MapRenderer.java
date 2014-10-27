@@ -69,7 +69,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
-	public MapRenderer(double latitude, double longitude, int zoom, boolean highRes, String apiKey, String mapType, int gridRows, int gridColumns)
+	public MapRenderer(double latitude, double longitude, int zoom, String apiKey, String mapType, int gridRows, int gridColumns)
 	{
 		//properties
 		this.gridRows = gridRows;
@@ -89,7 +89,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			mapDownloadURL = new URL(String.format(
 				"%scenter=%.6f,%.6f&zoom=%d&scale=%d&size=%dx%d&key=%s&maptype=%s",
 				MAPS_URL_BASE, latitude, longitude, zoom,
-				highRes ? 2 : 1, CHUNK_IMAGE_SIZE, CHUNK_IMAGE_SIZE,
+				2, CHUNK_IMAGE_SIZE, CHUNK_IMAGE_SIZE,
 				apiKey, mapType));
 		}
 		catch (MalformedURLException e)
@@ -98,7 +98,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			mapDownloadURL = null;
 		}
 		mapFile = new File("maps/"
-			+ String.format("%.6f_%.6f_%d_%s_%s.png", latitude, longitude, zoom, mapType, highRes ? "high" : "low"));
+			+ String.format("%.6f_%.6f_%d_%s_%s.png", latitude, longitude, zoom, mapType, "high"));
 		
 		//load or download image
 		Debugger.i("MapRenderer loading... (source: \""+mapFile+"\")");
@@ -235,12 +235,17 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		
 		//determine bounds
 		settings.mapSize = (double)MAP_SIZE * settings.zoom;
-		settings.clientArea = new Rectangle2D.Double(0.0,0.0,client.getWidth(),client.getHeight());
-		settings.mapArea = new Rectangle2D.Double(
+		if (settings.clientArea == null)
+			settings.clientArea = new Rectangle2D.Double();
+		settings.clientArea.setRect(0.0,0.0,client.getWidth(),client.getHeight());
+		if (settings.mapArea == null)
+			settings.mapArea = new Rectangle2D.Double();
+		settings.mapArea.setRect(
 			(settings.clientArea.width / 2.0) - (settings.mapSize * settings.xPos),
 			(settings.clientArea.height / 2.0) - (settings.mapSize * settings.yPos),
 			settings.mapSize, settings.mapSize);
-		settings.shownArea = new Rectangle2D.Double();
+		if (settings.shownArea == null)
+			settings.shownArea = new Rectangle2D.Double();
 		Rectangle2D.Double.intersect(settings.clientArea, settings.mapArea, settings.shownArea);
 		
 		//grid stuff
