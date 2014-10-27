@@ -24,11 +24,12 @@ import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
+import wifindus.eye.MapFrame;
 import wifindus.eye.Incident.Type;
 import wifindus.eye.Location;
 import wifindus.eye.User;
 
-public class DevicePanel extends JPanel implements ActionListener, DeviceEventListener
+public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, DeviceEventListener
 {
 	private static final long serialVersionUID = -953467312117311967L;
     private transient volatile Device device = null;
@@ -54,9 +55,10 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
      * @param device The Device to bind to.
      * @throws NullPointerException if device is null.
      */
-    public DevicePanel(Device device)
+    public DevicePanel(Device device, MapFrame mapFrame)
     {
-		if (device == null)
+		super(mapFrame);
+    	if (device == null)
 			throw new NullPointerException("Parameter 'device' cannot be null.");
 		this.device = device;
 		
@@ -143,7 +145,7 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-    
+   
     /**
      * Gets the Device associated with this DevicePanel. 
      * @return A reference to a Device object.
@@ -167,12 +169,8 @@ public class DevicePanel extends JPanel implements ActionListener, DeviceEventLi
     		EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
     		Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
     	}
-    	else if (e.getSource() == locateOnMapButton)
-    	{
-    		User user  = device.getCurrentUser();
-    		Debugger.i("Locate "+ (user == null ? device.toString() : user.getNameFull()) +" on map.");
-    		MapImagePanel.locateOnMap(device);
-    	}
+		else if (e.getSource() == locateOnMapButton)
+			locateObjectOnMap(device);
     }
 
     @Override

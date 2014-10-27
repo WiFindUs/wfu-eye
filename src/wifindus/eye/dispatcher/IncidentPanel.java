@@ -30,12 +30,13 @@ import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
+import wifindus.eye.MapFrame;
+import wifindus.eye.MapPanel;
 import wifindus.eye.User;
 
-public class IncidentPanel extends JPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
+public class IncidentPanel extends IncidentParentPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
-	private transient Incident incident = null;
 	private transient  JLabel incidentTime;
 	private transient JLabel idLabel;
 	private transient JLabel onTaskLabel;
@@ -62,11 +63,9 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		ResourcePool.loadImage("wfu", "images/wfu.png");
 	}
 
-	public IncidentPanel(Incident incident)
+	public IncidentPanel(Incident incident, MapFrame mapFrame)
 	{
-		if (incident == null)
-			throw new NullPointerException("Parameter 'incident' cannot be null.");
-		this.incident = incident;
+		super(incident, mapFrame);
 
 		//cosmetic properties
 		Color lightBlue = new Color(0xf6f9fc);
@@ -278,6 +277,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	@Override
 	public void incidentArchived(Incident incident)
 	{
+		incident.removeEventListener(this);
 		deviceTableModel.setNumRows(0);
 		EyeApplication.get().removeTimerListener(this);
 		updateTimerLabel(0);
@@ -322,7 +322,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	public void actionPerformed(ActionEvent e) 
 	{
 		//once the incident is archived, we should not be able to manipulate it (wouldn't make sense)
-		if (incident.isArchived())
+		if (getIncident().isArchived())
 			return;
 
 		if(e.getSource() == addRespondent)
@@ -337,19 +337,19 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 				if (device.getCurrentIncident() != null
 						|| !device.getLocation().hasLatLong()
 						|| device.getCurrentUser() == null
-						|| device.getCurrentUser().getType() != incident.getType())
+						|| device.getCurrentUser().getType() != getIncident().getType())
 					continue;
 
 				//if this is the first, assign it immediately as 'closest'
 				if (closestAvailableDevice == null)
 				{
 					closestAvailableDevice = device;
-					minDist = closestAvailableDevice.getLocation().distanceTo(incident.getLocation());
+					minDist = closestAvailableDevice.getLocation().distanceTo(getIncident().getLocation());
 				}
 				else //check against previous closest
 				{
 					//get test distance
-					double currDist = device.getLocation().distanceTo(incident.getLocation());
+					double currDist = device.getLocation().distanceTo(getIncident().getLocation());
 
 					//if it's smaller, this one is closer
 					if (currDist < minDist)
@@ -362,7 +362,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 
 			//if we found a valid, available device, assign it, yo
 			if (closestAvailableDevice != null)
-				EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, incident);
+				EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, getIncident());
 		}
 		else if(e.getSource() == removeRespondent)
 		{
@@ -370,12 +370,9 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 				EyeApplication.get().db_setDeviceIncident(device, null); //null incident for 'unassigning'
 		}
 		else if(e.getSource() == archiveIncident)
-			EyeApplication.get().db_archiveIncident(incident);
+			EyeApplication.get().db_archiveIncident(getIncident());
 		else if (e.getSource() == locateOnMap)
-		{
-			Debugger.i("Locate "+ incident.getID() +" on map.");
-			MapImagePanel.locateOnMap(incident);
-		}
+			locateObjectOnMap(getIncident());
 	}
 
 	/**
@@ -389,11 +386,6 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 			deviceList.add((Device)deviceTableModel.getValueAt(row,COLUMN_DEVICE));
 		return deviceList;
 	}
-	
-	public Incident getIncident()
-	{
-		return incident;
-	}
 
 	//TODO: implement DeviceEventListener on this class when a device is added, and respond to location that way
 	public void setDeviceLocation(Device device, Location newLocation)
@@ -402,7 +394,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		{
 			if (deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
 			{
-				deviceTableModel.setValueAt((int)device.getLocation().distanceTo(incident.getLocation()) + " meters", i, COLUMN_DISTANCE);
+				deviceTableModel.setValueAt((int)device.getLocation().distanceTo(getIncident().getLocation()) + " meters", i, COLUMN_DISTANCE);
 				break;
 			}
 		}
@@ -411,7 +403,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	@Override
 	public void timerTick(double deltaTime)
 	{
-		if (incident.isArchived())
+		if (getIncident().isArchived())
 			return;
 		
 		timerCounter += deltaTime;
@@ -435,7 +427,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 	private void updateButtonState()
 	{
 		ImageIcon icon = null;
-		switch (incident.getType())
+		switch (getIncident().getType())
 		{
 			case Medical: icon = ResourcePool.getIcon("medical"); break;
 			case Security: icon = ResourcePool.getIcon("security"); break;
@@ -450,7 +442,7 @@ public class IncidentPanel extends JPanel implements IncidentEventListener, Acti
 		if (endTimestamp <= 0)
 			endTimestamp = System.currentTimeMillis();
 		
-		long seconds = (endTimestamp - incident.getCreated().getTime()) / 1000;
+		long seconds = (endTimestamp - getIncident().getCreated().getTime()) / 1000;
 		long minutes = seconds / 60;
 		long hours = minutes / 60;
 		

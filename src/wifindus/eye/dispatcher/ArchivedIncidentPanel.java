@@ -30,12 +30,12 @@ import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
+import wifindus.eye.MapFrame;
 import wifindus.eye.User;
 
-public class ArchivedIncidentPanel extends JPanel implements
+public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		IncidentEventListener, ActionListener {
 	private static final long serialVersionUID = -7397843910420550797L;
-	private transient Incident incident = null;
 	private transient JLabel incidentTime;
 	private transient JLabel idLabel;
 	private transient JLabel onTaskLabel;
@@ -71,11 +71,9 @@ public class ArchivedIncidentPanel extends JPanel implements
 		ResourcePool.loadImage("time", "images/time.png");
 	}
 
-	public ArchivedIncidentPanel(Incident incident) {
-		if (incident == null)
-			throw new NullPointerException(
-					"Parameter 'incident' cannot be null.");
-		this.incident = incident;
+	public ArchivedIncidentPanel(Incident incident, MapFrame mapFrame)
+	{
+		super(incident, mapFrame);
 
 		// cosmetic properties
 		Color lightBlue = new Color(0xf6f9fc);
@@ -302,13 +300,6 @@ public class ArchivedIncidentPanel extends JPanel implements
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * wifindus.eye.IncidentEventListener#incidentAssignedDevice(wifindus.eye
-	 * .Incident, wifindus.eye.Device)
-	 */
 	@Override
 	public void incidentAssignedDevice(Incident incident, Device device) {
 
@@ -327,7 +318,7 @@ public class ArchivedIncidentPanel extends JPanel implements
 	@Override
 	public void actionPerformed(ActionEvent e) {
 
-		
+		Incident incident = getIncident();
 		//Save report to text file
 		if(e.getSource() == saveButton)
 		{
@@ -389,14 +380,7 @@ public class ArchivedIncidentPanel extends JPanel implements
 	        }
 		}
 		else if (e.getSource() == locateOnMap)
-		{
-			Debugger.i("Locate "+ incident.getID() +" on map.");
-			MapImagePanel.locateOnMap(incident);
-		}
-	}
-
-	public Incident getIncident() {
-		return incident;
+			locateObjectOnMap(getIncident());
 	}
 
 	// ///////////////////////////////////////////////////////////////////
@@ -405,7 +389,7 @@ public class ArchivedIncidentPanel extends JPanel implements
 
 	private void updateButtonState() {
 		ImageIcon icon = null;
-		switch (incident.getType()) {
+		switch (getIncident().getType()) {
 		case Medical:
 			icon = ResourcePool.getIcon("medical");
 			break;
@@ -426,7 +410,7 @@ public class ArchivedIncidentPanel extends JPanel implements
 		if (endTimestamp <= 0)
 			endTimestamp = System.currentTimeMillis();
 
-		long seconds = (endTimestamp - incident.getCreated().getTime()) / 1000;
+		long seconds = (endTimestamp - getIncident().getCreated().getTime()) / 1000;
 		long minutes = seconds / 60;
 		long hours = minutes / 60;
 

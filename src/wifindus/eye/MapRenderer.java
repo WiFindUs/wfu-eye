@@ -205,8 +205,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		if (data == null || data.point == null)
 			return;
 		getSettings(client).setPan(
-			data.point.x / settings.mapArea.width,
-			data.point.y / settings.mapArea.height,
+			(data.point.x - settings.mapArea.x) / settings.mapArea.width,
+			(data.point.y - settings.mapArea.y) / settings.mapArea.height,
 			interpolated);
 	}
 	

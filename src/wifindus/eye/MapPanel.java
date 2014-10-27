@@ -138,7 +138,17 @@ public class MapPanel extends JPanel
 	{
 		if (mouseEntered)
 			renderer.setHoverObjects(renderer.getObjectsAtPoint(this, e.getX(), e.getY()));
-	}	
+	}
+	
+	public void setPan(MappableObject object, boolean interpolated)
+	{
+		renderer.setPan(this, object, interpolated);
+	}
+	
+	public void setZoom(double zoom, boolean interpolated)
+	{
+		renderer.setZoom(this, zoom, interpolated);
+	}
 	
 	@Override
     protected void paintComponent(Graphics g) 
