@@ -29,11 +29,19 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	private boolean selected = false;
 	
 	//marker stuff
-	private static Image nodeImage;
+	private static Image nodeImage, nodeHoverImage, nodeSelectedImage, nodeHaloImage, nodeHaloInactiveImage;
 	static
 	{
 		ResourcePool.loadImage("node", "images/node.png" );
+		ResourcePool.loadImage("node_hover", "images/node_hover.png" );
+		ResourcePool.loadImage("node_selected", "images/node_selected.png" );
+		ResourcePool.loadImage("node_halo", "images/node_halo.png" );
+		ResourcePool.loadImage("node_halo_inactive", "images/node_halo_inactive.png" );
 		nodeImage = ResourcePool.getImage("node");
+		nodeHoverImage = ResourcePool.getImage("node_hover");
+		nodeSelectedImage = ResourcePool.getImage("node_selected");
+		nodeHaloImage = ResourcePool.getImage("node_halo");
+		nodeHaloInactiveImage = ResourcePool.getImage("node_halo_inactive");
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -200,21 +208,26 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	{
 		int w = nodeImage.getWidth(null);
 		int h = nodeImage.getHeight(null);
-		graphics.drawImage(nodeImage, x-w/2, y-h/2, w, h, null);
+		int left = x-w/2;
+		int top = y-h/2;
+		graphics.drawImage(isSelected ? nodeSelectedImage : nodeImage, left, top, w, h, null);
+		graphics.drawImage(nodeHaloImage, left, top, null);
+		if (isHovering)
+			graphics.drawImage(nodeHoverImage, left, top, null);
 	}
 	
 	@Override
 	public Polygon generateMarkerHitbox(int x, int y)
 	{
 		Polygon poly = new Polygon();
-		poly.addPoint(x,y+11);
-		poly.addPoint(x-9,y+9);
-		poly.addPoint(x-12,y);
-		poly.addPoint(x-1,y-12);
-		poly.addPoint(x+8,y-7);
-		poly.addPoint(x+10,y+1);
-		poly.addPoint(x+6,y+6);
-		poly.addPoint(x-16,y-16);
+		int n = 8;
+		int r = 18;
+		for (int i = 0; i < n; i++)
+		{
+            double t = 2 * Math.PI * i / n;
+            poly.addPoint((int) Math.round(x + r * Math.cos(t)),
+            		(int) Math.round(y + r * Math.sin(t)));
+        }
 		return poly;
 	}
 	
