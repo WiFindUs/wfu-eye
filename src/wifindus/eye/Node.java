@@ -2,11 +2,14 @@ package wifindus.eye;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+
 import wifindus.Debugger;
 import wifindus.EventObject;
+import wifindus.MathHelper;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
 import wifindus.ResourcePool;
@@ -176,7 +179,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		//input voltage
 		Double newVoltage = (Double)resultRow.get("voltage");
 		if ((voltage == null && newVoltage != null)
-				|| (voltage != null && (newVoltage == null || !newVoltage.equals(voltage))))
+				|| (voltage != null && (newVoltage == null || !MathHelper.equal(voltage, newVoltage))))
 		{
 			Double old = voltage;
 			voltage = newVoltage;
@@ -198,6 +201,21 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		int w = nodeImage.getWidth(null);
 		int h = nodeImage.getHeight(null);
 		graphics.drawImage(nodeImage, x-w/2, y-h/2, w, h, null);
+	}
+	
+	@Override
+	public Polygon generateMarkerHitbox(int x, int y)
+	{
+		Polygon poly = new Polygon();
+		poly.addPoint(x,y+11);
+		poly.addPoint(x-9,y+9);
+		poly.addPoint(x-12,y);
+		poly.addPoint(x-1,y-12);
+		poly.addPoint(x+8,y-7);
+		poly.addPoint(x+10,y+1);
+		poly.addPoint(x+6,y+6);
+		poly.addPoint(x-16,y-16);
+		return poly;
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -229,7 +247,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 				break;
 		}
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////

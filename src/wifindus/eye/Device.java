@@ -3,11 +3,13 @@ package wifindus.eye;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+
 import wifindus.Debugger;
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
@@ -385,6 +387,18 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		graphics.drawImage(adornment, left+8, top+8, null);
 		if (isHovering)
 			graphics.drawImage(pinHoverImage, left, top, null);
+	}
+	
+	@Override
+	public Polygon generateMarkerHitbox(int x, int y)
+	{
+		Polygon poly = new Polygon();
+		poly.addPoint(x,y);
+		poly.addPoint(x-16,y-34);
+		poly.addPoint(x-12,y-45);
+		poly.addPoint(x,y-50);
+		poly.addPoint(x+11,y-45);
+		return poly;
 	}
 	
 	/////////////////////////////////////////////////////////////////////

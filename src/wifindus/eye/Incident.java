@@ -3,12 +3,13 @@ package wifindus.eye;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import wifindus.EventObject;
 import wifindus.MySQLResultRow;
 import wifindus.MySQLUpdateTarget;
@@ -430,6 +431,20 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			graphics.drawImage(adornment, left+8, top+8, 48, 48, null);
 		if (isHovering)
 			graphics.drawImage(tagHoverImage, left, top, null);
+	}
+	
+	@Override
+	public Polygon generateMarkerHitbox(int x, int y)
+	{
+		Polygon poly = new Polygon();
+		poly.addPoint(x, y);
+		poly.addPoint(x-12,y-19);
+		poly.addPoint(x-32,y-19);
+		poly.addPoint(x-32,y-83);
+		poly.addPoint(x+31,y-83);
+		poly.addPoint(x+31,y-19);
+		poly.addPoint(x+11,y-19);
+		return poly;
 	}
 
 	/////////////////////////////////////////////////////////////////////
