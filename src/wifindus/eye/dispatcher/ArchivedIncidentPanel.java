@@ -472,9 +472,9 @@ public class ArchivedIncidentPanel extends JPanel implements
 			User newUser) {
 		// TODO Auto-generated method stub
 		System.out.println("Reporter: " + newUser);
-		
 	}
-
+	
+	@Override public void incidentDescriptionChanged(Incident incident) { }
 }
 
 

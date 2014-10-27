@@ -64,6 +64,13 @@ public interface IncidentEventListener
 	 */
 	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser);
 	
+	/**
+	 * Event fired when the general description field of an incident is changed.
+	 * Corresponds to the event key "description".
+	 * @param incident The incident object.
+	 */
+	public void incidentDescriptionChanged(Incident incident);
+	
 	
 	public void incidentSelectionChanged(Incident incident);
 }

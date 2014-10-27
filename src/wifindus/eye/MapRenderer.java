@@ -378,7 +378,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 	{
 		repaintIncidents();
 	}
-
+	
 	@Override
 	public void nodeTimedOut(Node node)
 	{
@@ -421,7 +421,12 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
 			nodes.add(node);
 		repaintNodes();
 	}
-	
+
+	@Override public void incidentDescriptionChanged(Incident incident) { }
+	@Override public void incidentArchivedResponderAdded(Incident incident, User user) { }
+	@Override public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity){ }
+	@Override public void incidentCodeChanged(Incident incident, String oldCode, String newCode) { }
+	@Override public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser){ }
 	@Override public void deviceAtmosphereChanged(Device device, Atmosphere oldAtmosphere, Atmosphere newAtmosphere) { }
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
@@ -696,31 +701,4 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener, I
     	if (clients.size() > 0 && devices.size() > 0)
 			repaint();
     }
-
-	@Override
-	public void incidentArchivedResponderAdded(Incident incident, User user) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentSeverityChanged(Incident incident, int oldSeverity,
-			int newSeverity) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentCodeChanged(Incident incident, String oldCode,
-			String newCode) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentReportingUserChanged(Incident incident, User oldUser,
-			User newUser) {
-		// TODO Auto-generated method stub
-		
-	}
 }

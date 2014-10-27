@@ -1008,32 +1008,11 @@ public class MapImagePanel extends JPanel implements EyeApplicationListener,
 			repaint();
     }
 
-	@Override
-	public void incidentArchivedResponderAdded(Incident incident, User user) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentSeverityChanged(Incident incident, int oldSeverity,
-			int newSeverity) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentCodeChanged(Incident incident, String oldCode,
-			String newCode) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentReportingUserChanged(Incident incident, User oldUser,
-			User newUser) {
-		// TODO Auto-generated method stub
-		
-	}
+	@Override public void incidentDescriptionChanged(Incident incident) { }
+	@Override public void incidentArchivedResponderAdded(Incident incident, User user) { }
+	@Override public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity){ }
+	@Override public void incidentCodeChanged(Incident incident, String oldCode, String newCode) { }
+	@Override public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser){ }
 }
 	
 	
