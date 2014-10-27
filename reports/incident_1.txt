@@ -2,15 +2,10 @@ Incident #1
 
 Type: Medical
 
-Reported By:
+Reported By:null
 Responded to By:
 
 
 Times:
-	Time Taken to Resolve: 
+	Time Taken to Resolve: 3 days, 2 hours, 29 minutes, 9 seconds
 	Reported At: 2014-10-24 15:54:41.0
-	Resolved At: 
-
-Code: 
-
-Location: 34.911282°S 138.578099°E

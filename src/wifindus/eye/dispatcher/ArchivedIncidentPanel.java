@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -39,6 +40,7 @@ import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
+import wifindus.eye.User;
 
 public class ArchivedIncidentPanel extends JPanel implements
 		IncidentEventListener, ActionListener {
@@ -55,6 +57,8 @@ public class ArchivedIncidentPanel extends JPanel implements
 			incidentIconButton, saveIconButton;
 	ImageIcon timeIcon, saveIcon;
 
+	String timeDifferenceReport; 
+	
 	JList list;
 
 	DefaultListModel model;
@@ -112,9 +116,12 @@ public class ArchivedIncidentPanel extends JPanel implements
 		incidentIconButton.setBackground(lightBlue);
 		updateButtonState();
 
+		
 		// Second Column
+		reportedName = new JLabel("reporter name");
+		if(incident.getReportingUser() != null)
+			reportedName.setText(incident.getReportingUser().toString());
 
-		reportedName = new JLabel("Need to add to DB");
 		reportedName.setFont(timeFont);
 		
 		reportedBy = new JLabel("Reported By: ");
@@ -129,42 +136,60 @@ public class ArchivedIncidentPanel extends JPanel implements
 		respondedToBy.setFont(font);
 		respondedToBy.setHorizontalAlignment(SwingConstants.LEFT);
 
-		// ///////////////////////////////////////////////////////////////////////
 		// List
 
-		model = new DefaultListModel<Device>();
-		model.addElement("Device 1");
-		model.addElement("Device 2");
+		model = new DefaultListModel<User>();
 
-		for (Device device : incident.getRespondingDevices()) {
-			model.addElement(device);
+		for (User archivedResponder : incident.getArchivedResponders()) {
+			model.addElement(archivedResponder);
 		}
 		list = new JList(model);
 
 		pane = new JScrollPane(list);
 		pane.setMaximumSize(new Dimension(500, 50));
 
-		// ///////////////////////////////////////////////////////////////////////
-
-		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		
+		// Times (Third Column)
+		DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 		Date date = new Date();
-		System.out.println(dateFormat.format(date));
+		
+		String date1 = dateFormat.format(incident.getCreated());
+		String date2 = dateFormat.format(date);
 
-		timeToResolve = new JLabel("Time to Resolve - "+ dateFormat.format(date));
-		timeToResolve.setFont(timeFont);
-		reportedAt = new JLabel("Reported At - "+ dateFormat.format(incident.getCreated()));
-		reportedAt.setFont(timeFont);
-		resolvedAt = new JLabel("Resolved At - " + dateFormat.format(date));
-		resolvedAt.setFont(timeFont);
+		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+ 
+		Date createdDate = null;
+		Date archivedDate = null;
 
+		timeDifferenceReport = "";
+		
+		try {
+			createdDate = format.parse(date1);
+			archivedDate = format.parse(date2);
+			long timeDifference = archivedDate.getTime() - createdDate.getTime();
+ 			long secondDifference = timeDifference / 1000 % 60;
+			long minuteDifference = timeDifference / (60 * 1000) % 60;
+			long hourDifference = timeDifference / (60 * 60 * 1000) % 24;
+			long dayDifference = timeDifference / (24 * 60 * 60 * 1000);
+			timeDifferenceReport = dayDifference + " days, " + hourDifference+ " hours, " + minuteDifference+ " minutes, " + secondDifference+ " seconds";
+ 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		timeIconLabel = new JLabel("Times");
 		timeIconLabel.setFont(font);
-		
 		timeIcon = ResourcePool.getIcon("time");
 		Image timeIconImage = timeIcon.getImage();
 		Image scaledTimeIcon = timeIconImage.getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH);
 		timeIcon = new ImageIcon(scaledTimeIcon);
 		timeIconLabel.setIcon(timeIcon);
+		timeToResolve = new JLabel("Time to Resolve - "+ timeDifferenceReport);
+		timeToResolve.setFont(timeFont);
+		reportedAt = new JLabel("Reported At - "+ dateFormat.format(incident.getCreated()));
+		reportedAt.setFont(timeFont);
+		resolvedAt = new JLabel("Resolved At - " + dateFormat.format(/*incident.getArchivedTime()*/date));
+		resolvedAt.setFont(timeFont);
 
 		locateOnMap = new JButton("Locate on Map");
 		locateOnMap.setBackground(lightBlue);
@@ -186,7 +211,6 @@ public class ArchivedIncidentPanel extends JPanel implements
 		Image scaledSaveIcon = saveIconImage.getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH);
 		saveIcon = new ImageIcon(scaledSaveIcon);
 
-		
 		saveButton = new JButton("Save Report");
 		saveButton.setBackground(lightBlue);
 		saveButton.setIcon(saveIcon);
@@ -332,12 +356,12 @@ public class ArchivedIncidentPanel extends JPanel implements
 	            writer.newLine();
 	            writer.newLine();
 	            
-	            writer.write("Reported By:");
+	            writer.write("Reported By:" + incident.getReportingUser());
 	            writer.newLine();
 	            writer.write("Responded to By:");
 	            writer.newLine();
-	        	for (Device device : incident.getRespondingDevices()) {
-	        		writer.write(device.toString());
+	        	for (User user : incident.getArchivedResponders()) {
+	        		writer.write(user.toString());
 	        		writer.newLine();
 	    		}
 	            writer.newLine();
@@ -345,15 +369,16 @@ public class ArchivedIncidentPanel extends JPanel implements
 	           
 	            writer.write("Times:");
 	            writer.newLine();
-	            writer.write("\tTime Taken to Resolve: ");
+	            writer.write("\tTime Taken to Resolve: "+ timeDifferenceReport);
 	            writer.newLine();
 	            writer.write("\tReported At: "+incident.getCreated());
 	            writer.newLine();
-	            writer.write("\tResolved At: ");
+	            //writer.write("\tResolved At: "+incident.getArchivedTime());
 	            writer.newLine();
 	            writer.newLine();
-	            
-	            writer.write("Code: ");
+	       	            
+	            if(incident.getCode() != null)
+	            writer.write("Code: " + incident.getCode());
 	            writer.newLine();
 	            writer.newLine();
 	            
@@ -417,6 +442,37 @@ public class ArchivedIncidentPanel extends JPanel implements
 
 		incidentTime.setText(String.format("%02d : %02d : %02d", hours % 24,
 				minutes % 60, seconds % 60));
+	}
+
+	@Override
+	public void incidentArchivedResponderAdded(Incident incident, User user) {
+		// TODO Auto-generated method stub
+		System.out.println("Respondent: "+ user);
+		
+	}
+
+	@Override
+	public void incidentSeverityChanged(Incident incident, int oldSeverity,
+			int newSeverity) {
+		// TODO Auto-generated method stub
+		System.out.println();
+		
+	}
+
+	@Override
+	public void incidentCodeChanged(Incident incident, String oldCode,
+			String newCode) {
+		// TODO Auto-generated method stub
+		System.out.println();
+		
+	}
+
+	@Override
+	public void incidentReportingUserChanged(Incident incident, User oldUser,
+			User newUser) {
+		// TODO Auto-generated method stub
+		System.out.println("Reporter: " + newUser);
+		
 	}
 
 }
