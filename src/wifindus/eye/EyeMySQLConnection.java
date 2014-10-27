@@ -80,7 +80,12 @@ public class EyeMySQLConnection extends MySQLConnection
 				"altitude", getNullableDouble(resultSet, "altitude"),
 				"accuracy", getNullableDouble(resultSet, "accuracy"),
 				"created", resultSet.getTimestamp("created"),
-				"archived", (resultSet.getShort("archived") != 0)
+				"archived", (resultSet.getShort("archived") != 0),
+				"archivedTime", resultSet.getTimestamp("archivedTime"),
+				"severity", resultSet.getInt("severity"),
+				"code", resultSet.getString("code"),
+				"description", resultSet.getString("description"),
+				"reportingUserID", getNullableInt(resultSet, "reportingUserID")
 				);
 		}
 		release(resultSet);
@@ -121,7 +126,7 @@ public class EyeMySQLConnection extends MySQLConnection
 
 	public MySQLResultSet fetchDeviceUsers() throws SQLException
 	{
-		PreparedStatement statement = prepareStatement("SELECT * FROM DeviceUsers");
+		PreparedStatement statement = prepareStatement("SELECT * FROM DeviceUsers ORDER BY userID ASC");
 		ResultSet resultSet = statement.executeQuery();
 		MySQLResultSet results = new MySQLResultSet();
 		int i = 0;
@@ -130,6 +135,24 @@ public class EyeMySQLConnection extends MySQLConnection
 			results.put(i++,
 				"userID", Integer.valueOf(resultSet.getInt("userID")),
 				"deviceHash", resultSet.getString("deviceHash")
+				);
+		}
+		release(resultSet);
+		release(statement);
+		return results;	
+	}
+	
+	public MySQLResultSet fetchPastIncidentResponders() throws SQLException
+	{
+		PreparedStatement statement = prepareStatement("SELECT * FROM PastIncidentResponders ORDER BY incidentID ASC");
+		ResultSet resultSet = statement.executeQuery();
+		MySQLResultSet results = new MySQLResultSet();
+		int i = 0;
+		while (resultSet.next())
+		{
+			results.put(i++,
+				"userID", Integer.valueOf(resultSet.getInt("userID")),
+				"incidentID", Integer.valueOf(resultSet.getInt("incidentID"))
 				);
 		}
 		release(resultSet);

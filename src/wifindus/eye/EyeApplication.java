@@ -567,6 +567,8 @@ public abstract class EyeApplication extends JFrame
 				throw new IllegalArgumentException("The given Device does not currently have an assigned User.");
 			if (device.getCurrentUser().getType().compareTo(incident.getType()) != 0)
 				throw new IllegalArgumentException("User assigned to the given device does not respond to Incidents of the given type.");
+			if (incident.isArchived())
+				throw new IllegalArgumentException("You cannot assign a Device to an archived incident.");
 		}
 		
 		//manipulate database
@@ -609,16 +611,35 @@ public abstract class EyeApplication extends JFrame
 		if (incident.isArchived())
 			return true;
 		
+		//get currently responding devices and their associated users
+		List<Device> respondingDevices = incident.getRespondingDevices();
+		List<User> respondingUsers = new ArrayList<User>();
+		for (Device device : respondingDevices)
+		{
+			User user = device.getCurrentUser();
+			if (user != null)
+				respondingUsers.add(user);
+		}
+		
 		//manipulate database
 		Statement statement = null;
 		try
 		{
 			statement = mysql.createStatement();
+			
+			if (respondingUsers.size() > 0)
+			{
+				String archivedRespondersQuery = "INSERT INTO PastIncidentResponders (userID, incidentID) VALUES ";
+				for (int i = 0; i < respondingUsers.size(); i++)
+					archivedRespondersQuery += (i > 0 ? ",":"") + "(" + respondingUsers.get(i).getID() +","+incident.getID()+")";
+				statement.executeUpdate(archivedRespondersQuery);
+			}
+			
 			statement.executeUpdate("UPDATE Devices SET "
 					+ "respondingIncidentID=NULL "
 					+ "WHERE respondingIncidentID="+incident.getID());
 			statement.executeUpdate("UPDATE Incidents SET "
-					+ "archived=1 "
+					+ "archived=1,archivedTime=NOW() "
 					+ "WHERE id="+incident.getID());
 		}
 		catch (SQLException e)
@@ -632,10 +653,11 @@ public abstract class EyeApplication extends JFrame
 		}
 		
 		//manipulate data structures
-		for (Device device : incident.getRespondingDevices())
+		for (Device device : respondingDevices)
 			device.updateIncident(null);
-		incident.archive();
-		
+		incident.archive(new Timestamp(new Date().getTime()));
+		for (User responder : respondingUsers)
+			incident.assignArchivedResponder(responder);
 		return true;
 	}
 	
@@ -737,6 +759,7 @@ public abstract class EyeApplication extends JFrame
 	@Override public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity) { }
 	@Override public void incidentCodeChanged(Incident incident, String oldCode, String newCode) { }
 	@Override public void incidentReportingUserChanged(Incident incident, User oldUser,	User newUser) { }
+	@Override public void incidentDescriptionChanged(Incident incident) { }
 	
 	//NodeEventListener
 	@Override public void nodeTimedOut(Node node) { }
@@ -790,11 +813,11 @@ public abstract class EyeApplication extends JFrame
 		{
 			while (!abortThreads)
 			{
-				//incidents
+				//users
 				try
 				{
-					publish(new Object[] { "Incidents", mysql.fetchIncidents() });
-					Thread.sleep(100);
+					publish(new Object[] { "Users", mysql.fetchUsers() });
+					Thread.sleep(50);
 				}
 				catch (SQLException e)
 				{
@@ -803,11 +826,24 @@ public abstract class EyeApplication extends JFrame
 				if (abortThreads)
 					break;
 				
-				//users
+				//incidents
 				try
 				{
-					publish(new Object[] { "Users", mysql.fetchUsers() });
-					Thread.sleep(100);
+					publish(new Object[] { "Incidents", mysql.fetchIncidents() });
+					Thread.sleep(50);
+				}
+				catch (SQLException e)
+				{
+					Debugger.ex(e);
+				}
+				if (abortThreads)
+					break;
+				
+				//archived incident users
+				try
+				{
+					publish(new Object[] { "PastIncidentResponders", mysql.fetchPastIncidentResponders() });
+					Thread.sleep(50);
 				}
 				catch (SQLException e)
 				{
@@ -820,7 +856,7 @@ public abstract class EyeApplication extends JFrame
 				try
 				{
 					publish(new Object[] { "Devices", mysql.fetchDevices() });
-					Thread.sleep(100);
+					Thread.sleep(50);
 				}
 				catch (SQLException e)
 				{
@@ -833,7 +869,7 @@ public abstract class EyeApplication extends JFrame
 				try
 				{
 					publish(new Object[] { "DeviceUsers", mysql.fetchDeviceUsers() });
-					Thread.sleep(100);
+					Thread.sleep(50);
 				}
 				catch (SQLException e)
 				{
@@ -846,7 +882,7 @@ public abstract class EyeApplication extends JFrame
 				try
 				{
 					publish(new Object[] { "Nodes", mysql.fetchNodes() });
-					Thread.sleep(100);
+					Thread.sleep(50);
 				}
 				catch (SQLException e)
 				{
@@ -860,8 +896,8 @@ public abstract class EyeApplication extends JFrame
 				int counter = 0;
 				while (!abortThreads && counter < interval)
 				{
-					Thread.sleep(100);
-					counter += 100;
+					Thread.sleep(50);
+					counter += 50;
 				}
 			}
 			return null;
@@ -882,11 +918,46 @@ public abstract class EyeApplication extends JFrame
 					case "DeviceUsers": processDeviceUsers(results); break;
 					case "Nodes": processNodes(results); break;
 					case "Incidents": processIncidents(results); break;
+					case "PastIncidentResponders": processPastIncidentResponders(results); break;
 					
 				}
 			}
 		}
 	};
+	
+	private void processPastIncidentResponders(MySQLResultSet results)
+	{
+		//check and cache ID's for performance if we have a lot
+		//from the same incident in sequence
+		int id = -1;
+		Incident incident = null;
+		
+		//process entries from database
+		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
+		{
+			//get integer
+			Integer newID = (Integer)entry.getValue().get("incidentID");
+			if (newID == null)
+				continue;
+			if (id == -1 || incident == null || newID.intValue() != id)
+			{
+				id = newID.intValue();
+				incident = incidents.get(newID);
+			}
+			if (incident == null || !incident.isArchived())
+				continue;
+			
+			//get the user
+			Integer userID = (Integer)entry.getValue().get("userID");
+			if (userID == null)
+				continue;
+			User responder = users.get(userID);
+			
+			//assign user to incident
+			if (responder != null)
+				incident.assignArchivedResponder(responder);
+		}
+	}
 	
 	private void processUsers(MySQLResultSet results)
 	{
@@ -900,13 +971,8 @@ public abstract class EyeApplication extends JFrame
 		}
 	}
 	
-	
 	private void processDevices(MySQLResultSet results)
 	{
-		//create a list of all the devices
-		ArrayList<Device> incidentlessDevices = new ArrayList<Device>(
-			devices.values());
-		
 		//update devices
 		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
 		{
@@ -914,28 +980,13 @@ public abstract class EyeApplication extends JFrame
 			String hash = (String)entry.getKey();
 			Device device = devices.get(hash);
 			if (device == null)
-			{
 				addNewDevice(hash, device = new Device(hash, (Device.Type)(entry.getValue().get("deviceType")), this));
-				incidentlessDevices.add(device);
-			}
 			device.updateFromMySQL(entry.getValue());	
 			
 			//linked incident
 			Integer incidentKey = (Integer)(entry.getValue().get("respondingIncidentID"));
-			if (incidentKey != null)
-			{
-				Incident incident = incidents.get(incidentKey);
-				if (incident != null)
-				{
-					incidentlessDevices.remove(device);
-					device.updateIncident(incident);
-				}
-			}
+			device.updateIncident(incidentKey == null ? null : incidents.get(incidentKey));
 		}
-		
-		//incident-less devices
-		for (Device device : incidentlessDevices)
-			device.updateIncident(null);
 	}
 
 	private void processDeviceUsers(MySQLResultSet results)
@@ -959,7 +1010,6 @@ public abstract class EyeApplication extends JFrame
 		for (Device d : userlessDevices)
 			d.updateUser(null);
 	}
-
 	
 	private void processNodes(MySQLResultSet results)
 	{
@@ -982,21 +1032,23 @@ public abstract class EyeApplication extends JFrame
 			Incident incident = incidents.get(id);
 			if (incident == null)
 			{
-				Double accuracy = entry.getValue().get("accuracy") == null ? null : (Double)entry.getValue().get("accuracy");
-				Double altitude = entry.getValue().get("altitude") == null ? null : (Double)entry.getValue().get("altitude");
 				addNewIncident(id, incident = new Incident(id.intValue(),
 					(Incident.Type)(entry.getValue().get("incidentType")),
 					new Location(
 						(Double)entry.getValue().get("latitude"),
 						(Double)entry.getValue().get("longitude"),
-						accuracy,
-						altitude
+						(Double)entry.getValue().get("accuracy"),
+						(Double)entry.getValue().get("altitude")
 					),
 					(Timestamp)(entry.getValue().get("created")),
 					this));
 
 			}
 			incident.updateFromMySQL(entry.getValue());
+			
+			//reporting user
+			Integer userKey = (Integer)(entry.getValue().get("reportingUserID"));
+			incident.updateReportingUser(userKey == null ? null : users.get(userKey));
 		}
 	}
 	

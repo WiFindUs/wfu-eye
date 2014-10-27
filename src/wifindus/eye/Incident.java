@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,8 +60,9 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private boolean archived = false;
 	private boolean selected = false;
 	private Timestamp archivedTime;
-	private int severity;
+	private int severity = 0;
 	private String code = ""; 
+	private String description = "";
 	
 	//database relationships
 	private transient volatile ConcurrentHashMap<String,Device> respondingDevices = new ConcurrentHashMap<>();
@@ -235,6 +237,15 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	}
 	
 	/**
+	 * Gets the general description of the incident
+	 * @return A string containing the incident's description.
+	 */
+	public final String getDescription()
+	{
+		return code;
+	}
+	
+	/**
 	 * Gets the User who called in this incident, if applicable.
 	 * @return A reference to a User object representing the user who reported the incident, or null if this information is not available.  
 	 */
@@ -309,13 +320,32 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		if (((Integer)resultRow.get("id")).intValue() != getID())
 			throw new IllegalArgumentException("Parameter 'resultRow' does not have the same primary key as this object.");
 
-		//TODO: process code, severity and archived values from DB
-		//TODO: fire new event handlers
+		int severity = (int)resultRow.get("severity");
+		if (severity != this.severity)
+		{
+			int oldSeverity = this.severity;
+			this.severity = severity;
+			fireEvent("severity",oldSeverity,this.severity);
+		}
 		
+		String code = ((String)resultRow.get("code")).trim();
+		if (!code.equals(this.code))
+		{
+			String oldCode = this.code;
+			this.code = code;
+			fireEvent("code",oldCode,this.code);
+		}
 		
+		String description = ((String)resultRow.get("description")).trim();
+		if (!description.equals(this.description))
+		{
+			this.description = description;
+			fireEvent("description");
+		}
+			
 		boolean archived = (boolean)resultRow.get("archived");
 		if (!this.archived && archived)
-			archive();
+			archive((Timestamp)resultRow.get("archivedTime"));
 	}
 	
 	/**
@@ -327,8 +357,27 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	{
 		if (responder == null)
 			throw new NullPointerException("Parameter 'responder' cannot be null.");
-		archivedResponders.put(Integer.valueOf(responder.getID()), responder);
+		if (!archived)
+			throw new IllegalArgumentException("You cannot add an archived responder to an incident not flagged as archived.");
+		Integer key = Integer.valueOf(responder.getID());
+		if (archivedResponders.containsKey(key))
+			return;
+		archivedResponders.put(key, responder);
 		fireEvent("reponderadded", responder);
+	}
+	
+	/**
+	 * Sets this incident's reporting User.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param newDevice The user to set as the reporting user.
+	 */
+	public void updateReportingUser(User user)
+	{
+		if (user == reportingUser)
+			return;
+		User oldReportingUser = reportingUser;
+		reportingUser = user;
+		fireEvent("reportinguser", oldReportingUser, reportingUser);
 	}
 	
 	/**
@@ -361,11 +410,12 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	 * Flags this incident as being archived.
 	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
 	 */
-	public void archive()
+	public void archive(Timestamp archivedTime)
 	{
 		if (archived)
 			return;
 		archived = true;
+		this.archivedTime = archivedTime;
 		fireEvent("archived", this);
 	}
 	
@@ -414,6 +464,9 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 				break;
 			case "reportinguser":
 				listener.incidentReportingUserChanged(this, (User)data[0], (User)data[1]);
+				break;
+			case "description":
+				listener.incidentDescriptionChanged(this);
 				break;
 		}
 	}
