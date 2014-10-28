@@ -21,6 +21,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
@@ -42,9 +43,11 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 
 	// For Archived Incidents
 	private transient JLabel reportedBy, respondedToBy, timeToResolve,
-			reportedAt, resolvedAt, timeIconLabel, reportedName;
+			reportedAt, resolvedAt, timeIconLabel, reportedName, descriptionLabel;
 	private transient JButton locateOnMap, codeButton, saveButton,
 			incidentIconButton, saveIconButton;
+	private transient JTextArea incidentDescription;
+	
 	ImageIcon timeIcon, saveIcon;
 
 	String timeDifferenceReport; 
@@ -105,6 +108,17 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		updateButtonState();
 
 		
+		descriptionLabel = new JLabel ("Description:");
+		descriptionLabel.setFont(font);
+				
+		incidentDescription = new JTextArea("", 5, 5);
+		Border border = BorderFactory.createLineBorder(Color.BLACK);
+		incidentDescription.setBorder(BorderFactory.createCompoundBorder(border, 
+		            BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+		incidentDescription.setLineWrap(true);
+		incidentDescription.setWrapStyleWord(true);
+		incidentDescription.setEditable(false);
+		 
 		// Second Column
 		reportedName = new JLabel("reporter name");
 		if(incident.getReportingUser() != null)
@@ -125,14 +139,8 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		respondedToBy.setHorizontalAlignment(SwingConstants.LEFT);
 
 		// List
-
 		model = new DefaultListModel<User>();
-
-		for (User archivedResponder : incident.getArchivedResponders()) {
-			model.addElement(archivedResponder);
-		}
 		list = new JList(model);
-
 		pane = new JScrollPane(list);
 		pane.setMaximumSize(new Dimension(500, 50));
 
@@ -142,7 +150,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		Date date = new Date();
 		
 		String date1 = dateFormat.format(incident.getCreated());
-		String date2 = dateFormat.format(date);
+		String date2 = dateFormat.format(incident.getArchivedTime());
 
 		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
  
@@ -176,7 +184,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		timeToResolve.setFont(timeFont);
 		reportedAt = new JLabel("Reported At - "+ dateFormat.format(incident.getCreated()));
 		reportedAt.setFont(timeFont);
-		resolvedAt = new JLabel("Resolved At - " + dateFormat.format(/*incident.getArchivedTime()*/date));
+		resolvedAt = new JLabel("Resolved At - " + dateFormat.format(incident.getArchivedTime()));
 		resolvedAt.setFont(timeFont);
 
 		locateOnMap = new JButton("Locate on Map");
@@ -211,6 +219,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		GroupLayout.ParallelGroup columnLeft = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 		GroupLayout.ParallelGroup columnButtons = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnList = layout.createParallelGroup();
+		GroupLayout.ParallelGroup columnDescription = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnRight = layout.createParallelGroup();
 		GroupLayout.SequentialGroup timeRowSequential = layout.createSequentialGroup();
 		GroupLayout.SequentialGroup iconSequential = layout.createSequentialGroup();
@@ -240,6 +249,8 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 
 		// ////////////////////////////////////
 		horizontal.addGroup(columnLeft);
+		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 30, 40);
+		horizontal.addGroup(columnDescription);
 		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 30,40);
 		horizontal.addGroup(columnButtons);
 		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED,40, Short.MAX_VALUE);
@@ -247,6 +258,9 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED,40, Short.MAX_VALUE);
 		horizontal.addGroup(columnRight);
 
+		columnDescription.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, 150);
+		columnDescription.addComponent(descriptionLabel, 0, GroupLayout.DEFAULT_SIZE, 150);
+		
 		// vertical
 		GroupLayout.ParallelGroup rowBottom = layout
 				.createParallelGroup(GroupLayout.Alignment.BASELINE);
@@ -257,6 +271,8 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		GroupLayout.SequentialGroup rightGroup = layout.createSequentialGroup();
 		GroupLayout.ParallelGroup timeRowParallel = layout
 				.createParallelGroup();
+		
+		GroupLayout.SequentialGroup descriptionGroup = layout.createSequentialGroup();
 
 		buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,GroupLayout.DEFAULT_SIZE, 10);
 		buttonGroup.addComponent(reportedBy);
@@ -271,6 +287,14 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		onTaskGroup.addComponent(timeToResolve);
 		onTaskGroup.addComponent(reportedAt);
 		onTaskGroup.addComponent(resolvedAt);
+		
+		
+		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
+		descriptionGroup.addComponent(descriptionLabel);
+		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
+		descriptionGroup.addComponent(incidentDescription);
+		
+		
 
 		rightGroup.addComponent(codeButton);
 		rightGroup.addComponent(locateOnMap);
@@ -285,6 +309,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		rowBottom.addGroup(rightGroup);
 
 		vertical.addComponent(idLabel);
+		rowBottom.addGroup(descriptionGroup);
 		vertical.addGroup(rowBottom);
 
 		layout.setHorizontalGroup(horizontal);
@@ -322,7 +347,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		//Save report to text file
 		if(e.getSource() == saveButton)
 		{
-			System.out.println("Save");
 	        BufferedWriter writer = null;
 	        try 
 	        {
@@ -339,10 +363,12 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	            
 	            writer.write("Reported By:" + incident.getReportingUser());
 	            writer.newLine();
+	            writer.newLine();
+	            
 	            writer.write("Responded to By:");
 	            writer.newLine();
 	        	for (User user : incident.getArchivedResponders()) {
-	        		writer.write(user.toString());
+	        		writer.write(user.getNameFull().toString());
 	        		writer.newLine();
 	    		}
 	            writer.newLine();
@@ -354,7 +380,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	            writer.newLine();
 	            writer.write("\tReported At: "+incident.getCreated());
 	            writer.newLine();
-	            //writer.write("\tResolved At: "+incident.getArchivedTime());
+	            writer.write("\tResolved At: "+incident.getArchivedTime());
 	            writer.newLine();
 	            writer.newLine();
 	       	            
@@ -421,15 +447,13 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	@Override
 	public void incidentArchivedResponderAdded(Incident incident, User user) {
 		// TODO Auto-generated method stub
-		System.out.println("Respondent: "+ user);
-		
+		model.addElement(user.getNameFull());
 	}
 
 	@Override
 	public void incidentSeverityChanged(Incident incident, int oldSeverity,
 			int newSeverity) {
 		// TODO Auto-generated method stub
-		System.out.println();
 		
 	}
 
@@ -437,7 +461,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	public void incidentCodeChanged(Incident incident, String oldCode,
 			String newCode) {
 		// TODO Auto-generated method stub
-		System.out.println();
 		
 	}
 
@@ -445,7 +468,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	public void incidentReportingUserChanged(Incident incident, User oldUser,
 			User newUser) {
 		// TODO Auto-generated method stub
-		System.out.println("Reporter: " + newUser);
 	}
 	
 	@Override public void incidentDescriptionChanged(Incident incident) { }

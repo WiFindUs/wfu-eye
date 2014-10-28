@@ -13,6 +13,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
@@ -166,8 +167,28 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     	//Listener for new incident
     	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
-    		EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
-    		Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
+    		
+    		
+    		Object incidentType = JOptionPane.showInputDialog(null, "Select incident type", "New Incident",
+    		        JOptionPane.QUESTION_MESSAGE, null, new Object[] { "Medical", "Security",
+    		            "WiFindUs"}, "Medical");
+    		
+    		if(incidentType != null)
+    		switch(incidentType.toString())
+    		{
+    		case "Medical":
+    			EyeApplication.get().db_createIncident(Type.Medical, device.getLocation());
+    			Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
+    			break;
+    		case "Security":
+    			EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
+    			Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
+    			break;
+    		case "WiFindUs":
+    			EyeApplication.get().db_createIncident(Type.WiFindUs, device.getLocation());
+    			Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
+    			break;
+    		}
     	}
 		else if (e.getSource() == locateOnMapButton)
 			locateObjectOnMap(device);
