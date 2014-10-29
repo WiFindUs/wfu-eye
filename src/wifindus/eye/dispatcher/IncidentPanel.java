@@ -105,10 +105,16 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 				
 		incidentDescription = new JTextArea("", 5, 5);
 		Border border = BorderFactory.createLineBorder(Color.BLACK);
-		incidentDescription.setBorder(BorderFactory.createCompoundBorder(border, 
-		            BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+
 		incidentDescription.setLineWrap(true);
 		incidentDescription.setWrapStyleWord(true);
+		
+		
+		JScrollPane descriptionScroll = new JScrollPane(incidentDescription, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		descriptionScroll.setPreferredSize(new Dimension(130,70));
+		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(border, 
+	            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 		
 		
 		
@@ -287,7 +293,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		horizontal.addGroup(columnRight);
 
 		
-		columnDescription.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, 150);
+		columnDescription.addComponent(descriptionScroll, 0, GroupLayout.DEFAULT_SIZE, 150);
 		columnDescription.addComponent(saveDescription, 0, GroupLayout.DEFAULT_SIZE, 150);
 		columnDescription.addComponent(descriptionLabel, 0, GroupLayout.DEFAULT_SIZE, 150);
 		
@@ -329,7 +335,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
 		descriptionGroup.addComponent(descriptionLabel);
 		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		descriptionGroup.addComponent(incidentDescription);
+		descriptionGroup.addComponent(descriptionScroll);
 		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
 		descriptionGroup.addComponent(saveDescription);
 		

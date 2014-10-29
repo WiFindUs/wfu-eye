@@ -39,7 +39,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	private static final long serialVersionUID = -7397843910420550797L;
 	private transient JLabel incidentTime;
 	private transient JLabel idLabel;
-	private transient JLabel onTaskLabel;
 
 	// For Archived Incidents
 	private transient JLabel reportedBy, respondedToBy, timeToResolve,
@@ -80,7 +79,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 
 		// cosmetic properties
 		Color lightBlue = new Color(0xf6f9fc);
-		Color red = new Color(0xfd0b15);
 		setBackground(lightBlue);
 		setBorder(BorderFactory.createMatteBorder(0, 1, 1, 0, new Color(
 				0x618197)));
@@ -111,13 +109,18 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		descriptionLabel = new JLabel ("Description:");
 		descriptionLabel.setFont(font);
 				
-		incidentDescription = new JTextArea("", 5, 5);
+		incidentDescription = new JTextArea("", 10, 4);
 		Border border = BorderFactory.createLineBorder(Color.BLACK);
-		incidentDescription.setBorder(BorderFactory.createCompoundBorder(border, 
-		            BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+	
 		incidentDescription.setLineWrap(true);
 		incidentDescription.setWrapStyleWord(true);
 		incidentDescription.setEditable(false);
+		
+		JScrollPane descriptionScroll = new JScrollPane(incidentDescription, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		descriptionScroll.setPreferredSize(new Dimension(130,70));
+		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(border, 
+	            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 		 
 		// Second Column
 		reportedName = new JLabel("reporter name");
@@ -147,7 +150,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		
 		// Times (Third Column)
 		DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-		Date date = new Date();
 		
 		String date1 = dateFormat.format(incident.getCreated());
 		String date2 = dateFormat.format(incident.getArchivedTime());
@@ -221,7 +223,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		GroupLayout.ParallelGroup columnList = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnDescription = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnRight = layout.createParallelGroup();
-		GroupLayout.SequentialGroup timeRowSequential = layout.createSequentialGroup();
 		GroupLayout.SequentialGroup iconSequential = layout.createSequentialGroup();
 
 		iconSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,GroupLayout.DEFAULT_SIZE, 50);
@@ -241,13 +242,10 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		columnList.addComponent(reportedAt, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 		columnList.addComponent(resolvedAt, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 
-		// ////////////////////////////////////
-
 		columnRight.addComponent(codeButton, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 		columnRight.addComponent(locateOnMap, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 		columnRight.addComponent(saveButton, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 
-		// ////////////////////////////////////
 		horizontal.addGroup(columnLeft);
 		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 30, 40);
 		horizontal.addGroup(columnDescription);
@@ -258,7 +256,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED,40, Short.MAX_VALUE);
 		horizontal.addGroup(columnRight);
 
-		columnDescription.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, 150);
+		columnDescription.addComponent(descriptionScroll, 0, GroupLayout.DEFAULT_SIZE, 150);
 		columnDescription.addComponent(descriptionLabel, 0, GroupLayout.DEFAULT_SIZE, 150);
 		
 		// vertical
@@ -269,8 +267,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		GroupLayout.SequentialGroup onTaskGroup = layout
 				.createSequentialGroup();
 		GroupLayout.SequentialGroup rightGroup = layout.createSequentialGroup();
-		GroupLayout.ParallelGroup timeRowParallel = layout
-				.createParallelGroup();
 		
 		GroupLayout.SequentialGroup descriptionGroup = layout.createSequentialGroup();
 
@@ -292,7 +288,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
 		descriptionGroup.addComponent(descriptionLabel);
 		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		descriptionGroup.addComponent(incidentDescription);
+		descriptionGroup.addComponent(descriptionScroll);
 		
 		
 
@@ -432,17 +428,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		incidentIconButton.setIcon(icon);
 	}
 
-	private void updateTimerLabel(long endTimestamp) {
-		if (endTimestamp <= 0)
-			endTimestamp = System.currentTimeMillis();
-
-		long seconds = (endTimestamp - getIncident().getCreated().getTime()) / 1000;
-		long minutes = seconds / 60;
-		long hours = minutes / 60;
-
-		incidentTime.setText(String.format("%02d : %02d : %02d", hours % 24,
-				minutes % 60, seconds % 60));
-	}
 
 	@Override
 	public void incidentArchivedResponderAdded(Incident incident, User user) {
