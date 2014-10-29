@@ -18,6 +18,7 @@ public class DebuggerFrame extends JFrame implements KeyListener
 
 	public DebuggerFrame()
 	{
+		this.setTitle("Console");
 		setLayout(new BorderLayout());
 		setMinimumSize(new Dimension(400,400));
 		getContentPane().add(debuggerPanel = new DebuggerPanel(), BorderLayout.CENTER);
@@ -25,9 +26,8 @@ public class DebuggerFrame extends JFrame implements KeyListener
 		textBox.setBackground(Color.DARK_GRAY);
 		textBox.setForeground(Color.WHITE);
 		textBox.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-		
-		
 		textBox.addKeyListener(this);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	}
 
 	@Override

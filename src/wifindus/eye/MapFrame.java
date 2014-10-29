@@ -15,11 +15,13 @@ public class MapFrame extends JFrame implements ComponentListener
 	{
 		if (renderer == null)
 			throw new NullPointerException("Parameter 'renderer' cannot be null.");
+		setTitle("Map");
 		setLayout(null);
 		getContentPane().add(mapPanel = new MapPanel(renderer));
 		addComponentListener(this);
 		setMinimumSize(new Dimension(300,300));
 		setSize(new Dimension(600,600));
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	}
 	
 	@Override
