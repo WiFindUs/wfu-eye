@@ -157,8 +157,6 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("mysql.port", 3306, 1024, 65535);
 		config.defaultString("mysql.database", "wfu_eye_db");
 		config.defaultInt("mysql.update_interval", 1000, 100, 30000);
-		//server
-		config.defaultInt("server.udp_port", 33339, 1024, 65535);
 		//map
 		config.defaultInt("map.grid_rows", 10);
 		config.defaultInt("map.grid_columns", 10);

@@ -27,7 +27,7 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 		super(new JTextPane());
 		textPane = (JTextPane)this.getViewport().getView();
 		textDocument = textPane.getStyledDocument();
-		textPane.setBackground(Color.DARK_GRAY);
+		textPane.setBackground(Color.BLACK);
 		((DefaultCaret)textPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		//base
@@ -35,6 +35,7 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 			StyleContext.getDefaultStyleContext().getStyle( StyleContext.DEFAULT_STYLE ) );
 		StyleConstants.setForeground( baseStyle, Color.white );
 		StyleConstants.setFontFamily(baseStyle, "monospaced");
+		StyleConstants.setFontSize( baseStyle, 14 );
 
 		//verbose
 		Style verbose = textDocument.addStyle("verbose", baseStyle);
@@ -73,9 +74,15 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 			textDocument.insertString(textDocument.getLength(),
 					timestamp + " " + text + "\n",
 					styles.get(verbosity));
+			textPane.setCaretPosition(textDocument.getLength());
 		}
 		catch (BadLocationException e)
 		{
 		}		
+	}
+	
+	public void clear()
+	{
+		textPane.setText("");
 	}
 }
