@@ -159,21 +159,11 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("mysql.update_interval", 1000, 100, 30000);
 		//server
 		config.defaultInt("server.udp_port", 33339, 1024, 65535);
-		config.defaultInt("server.tcp_port", 33340, 1024, 65535);
-		config.defaultInt("server.tcp_count", 33340, 1, 5);
-		//dispatcher
-		config.defaultInt("dispatcher.tcp_port", 33340, 1024, 65535);
 		//map
-		config.defaultString("map.image", "maps/base.png");
-		config.defaultDouble("map.latitude_start", -34.908591, -90.0, 90.0);
-		config.defaultDouble("map.longitude_start", 138.576943, -180.0, 180.0);
-		config.defaultDouble("map.latitude_end", -34.919506, -90.0, 90.0);
-		config.defaultDouble("map.longitude_end", 138.593057, -180.0, 180.0);
 		config.defaultInt("map.grid_rows", 10);
 		config.defaultInt("map.grid_columns", 10);
-		
-		config.defaultDouble("map.center_latitude", Location.GPS_BONYTHON_PARK.getLatitude().doubleValue(), -90.0, 90.0);
-		config.defaultDouble("map.center_longitude", Location.GPS_BONYTHON_PARK.getLongitude().doubleValue(), -180.0, 180.0);
+		config.defaultDouble("map.center_latitude", Location.GPS_MARKS_HOUSE.getLatitude().doubleValue(), -90.0, 90.0);
+		config.defaultDouble("map.center_longitude", Location.GPS_MARKS_HOUSE.getLongitude().doubleValue(), -180.0, 180.0);
 		config.defaultBoolean("map.high_res", true);
 		config.defaultInt("map.zoom", 16, 15, 21);
 		config.defaultString("map.type", new String[]{"satellite","roadmap","terrain","hybrid"});

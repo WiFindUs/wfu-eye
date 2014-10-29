@@ -45,6 +45,9 @@ public class Server extends EyeApplication
 	{
 		super(args, true);
 		
+		//server
+		getConfig().defaultInt("server.udp_port", 33339, 1024, 65535);
+		
 		//open udp socket
 		int udpListenPort = getConfig().getInt("server.udp_port");
 		Debugger.i("Opening listener UDP socket on port " + udpListenPort + "...");
