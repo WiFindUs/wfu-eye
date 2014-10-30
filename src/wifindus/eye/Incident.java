@@ -337,12 +337,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			fireEvent("code",oldCode,this.code);
 		}
 		
-		String description = ((String)resultRow.get("description")).trim();
-		if (!description.equals(this.description))
-		{
-			this.description = description;
-			fireEvent("description");
-		}
+		updateDescription((String)resultRow.get("description"));
 			
 		boolean archived = (boolean)resultRow.get("archived");
 		if (!this.archived && archived)
@@ -379,6 +374,21 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		User oldReportingUser = reportingUser;
 		reportingUser = user;
 		fireEvent("reportinguser", oldReportingUser, reportingUser);
+	}
+	
+	/**
+	 * Sets this incident's description.
+	 * <strong>DO NOT</strong> call this in client/UI code; this is handled at a higher level.
+	 * @param description The description to set.
+	 */
+	public void updateDescription(String description)
+	{
+		if (description == null)
+			description = "";
+		if ((description = description.trim()).equals(this.description))
+			return;
+		this.description = description;
+		fireEvent("description");
 	}
 	
 	/**

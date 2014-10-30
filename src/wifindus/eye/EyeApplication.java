@@ -652,6 +652,90 @@ public abstract class EyeApplication extends JFrame
 	}
 	
 	/**
+	 * Updates an incident's description in the database.
+	 * @param incident The incident to change.
+	 * @param description The description to set.
+	 * @return false if an error occurred, true otherwise.
+	 * @throws NullPointerException if the incident was null.
+	 */
+	public final boolean db_setIncidentDescription(Incident incident, String description)
+	{
+		//sanity checks
+		if (incident == null)
+			throw new NullPointerException("Parameter 'incident' cannot be null.");
+		if (description == null)
+			description = "";
+		description = description.trim();
+		if (description.equals(incident.getDescription()))
+			return true;
+		
+		//manipulate database
+		Statement statement = null;
+		try
+		{
+			statement = mysql.createStatement();
+			statement.executeUpdate("UPDATE Incidents SET "
+					+ "description='"+description+"' "
+					+ "WHERE id="+incident.getID());
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+			return false;
+		}
+		finally
+		{
+			mysql.release(statement);
+		}
+		
+		//manipulate data structures
+		incident.updateDescription(description);
+		
+		return true;
+	}
+	
+	/**
+	 * Sets an incident's reporting user in the database.
+	 * @param incident The incident to change.
+	 * @param reportingUser The user to set (null for no user).
+	 * @return false if an error occurred, true otherwise.
+	 * @throws NullPointerException if the incident was null.
+	 */
+	public final boolean db_setIncidentReportingUser(Incident incident, User reportingUser)
+	{
+		//sanity checks
+		if (incident == null)
+			throw new NullPointerException("Parameter 'incident' cannot be null.");
+		if (incident.getReportingUser() == reportingUser)
+			return true;
+		
+		//manipulate database
+		Statement statement = null;
+		try
+		{
+			statement = mysql.createStatement();
+			statement.executeUpdate("UPDATE Incidents SET "
+					+ "reportingUserID="+(reportingUser == null ? "NULL" : reportingUser.getID())+" "
+					+ "WHERE id="+incident.getID());
+		}
+		catch (SQLException e)
+		{
+			Debugger.ex(e);
+			return false;
+		}
+		finally
+		{
+			mysql.release(statement);
+		}
+		
+		//manipulate data structures
+		incident.updateReportingUser(reportingUser);
+		
+		return true;
+	}
+	
+		
+	/**
 	 * Adds a new EyeApplicationListener.
 	 * @param listener subscribes an EyeApplicationListener to this application's state events.
 	 */
