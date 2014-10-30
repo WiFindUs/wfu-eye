@@ -276,9 +276,7 @@ public class Dispatcher extends EyeApplication
 		mapRenderer = new MapRenderer(
 			getConfig().getDouble("map.center_latitude"),
 			getConfig().getDouble("map.center_longitude"),
-			getConfig().getInt("map.zoom"),
 			getConfig().getString("map.api_key"),
-			getConfig().getString("map.type"),
 			getConfig().getInt("map.grid_rows"),
 			getConfig().getInt("map.grid_columns"));
 		

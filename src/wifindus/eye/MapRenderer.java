@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
@@ -39,77 +40,66 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	IncidentEventListener, DeviceEventListener, HighResolutionTimerListener
 {
 	public static final double ZOOM_SPEED = 2.0;
-	public static final int CHUNK_IMAGE_SIZE = 640;
-	public static final int MAP_SIZE = CHUNK_IMAGE_SIZE * 2;
-	private static final double CHUNK_RADIUS = 0.01126;
-	private static final double CHUNK_LONG_SCALE = 1.22;
-	private static final int CHUNK_MIN_ZOOM = 15;
-	private static final String MAPS_URL_BASE = "https://maps.googleapis.com/maps/api/staticmap?";
-	private static final File MAPS_DIR = new File("maps/");
-	
-	private final GPSRectangle bounds;
-	private Image mapImage;
-	private volatile File mapFile;
+	public static final double ZOOM_MAX = 5.0;
+	public static final double ZOOM_MIN = 0.25;
 	private volatile Map<JComponent, ClientSettings> clients = new HashMap<>();
-	private volatile URL mapDownloadURL; 
-	private volatile boolean abortThread = false;
-	private volatile ImageDownloadWorker downloadThread = null;
 	private int gridRows = 10;
 	private int gridColumns = 10;
 	private final ArrayList<MappableObject> devices = new ArrayList<>();
 	private final ArrayList<MappableObject> incidents = new ArrayList<>();
 	private final ArrayList<MappableObject> nodes = new ArrayList<>();
-	private MappableObject callout = null;
 	private final ArrayList<MappableObject> hover = new ArrayList<>();
 	private final ArrayList<MappableObject> selected = new ArrayList<>();
+	private MappableObject callout = null;
 	private JComponent lastClient = null;
 	private ClientSettings lastSettings = null;
+	private final MapTile[][] tiles = new MapTile[][]
+	{
+		new MapTile[1],
+		new MapTile[4],
+		new MapTile[9],
+		new MapTile[16],
+	};
 
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
-	public MapRenderer(double latitude, double longitude, int zoom, String apiKey, String mapType, int gridRows, int gridColumns)
+	public MapRenderer(double latitude, double longitude, String apiKey, int gridRows, int gridColumns)
 	{
 		//properties
 		this.gridRows = gridRows;
 		this.gridColumns = gridColumns;
 		
-		//create bounds
-		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0,(zoom - (zoom < CHUNK_MIN_ZOOM ? zoom : CHUNK_MIN_ZOOM)));
-		bounds = new GPSRectangle(
-				latitude + scaledRadius,
-				longitude - (scaledRadius * CHUNK_LONG_SCALE),
-			latitude - scaledRadius,
-			longitude + (scaledRadius * CHUNK_LONG_SCALE));
+		//base level tile
+		tiles[0][0] = new MapTile(this, latitude, longitude, MapTile.CHUNK_MIN_ZOOM, apiKey);
+		double longWest = tiles[0][0].getBounds().getNorthWest().getLongitude().doubleValue();
+		double latNorth = tiles[0][0].getBounds().getNorthWest().getLatitude().doubleValue();
 		
-		//generate urls
-		try
+		//sub tiles
+		for (int zoom = 1; zoom < tiles.length; zoom++)
 		{
-			mapDownloadURL = new URL(String.format(
-				"%scenter=%.6f,%.6f&zoom=%d&scale=%d&size=%dx%d&key=%s&maptype=%s",
-				MAPS_URL_BASE, latitude, longitude, zoom,
-				2, CHUNK_IMAGE_SIZE, CHUNK_IMAGE_SIZE,
-				apiKey, mapType));
+			int row = 0, col = 0;
+			double tileWidth = tiles[0][0].getBounds().getWidth() / ((double)zoom+1.0);
+			double tileHeight = tiles[0][0].getBounds().getHeight() / ((double)zoom+1.0);
+			for (int tile = 0; tile < tiles[zoom].length; tile++)
+			{
+				tiles[zoom][tile] = new MapTile(this,
+					latNorth - tileHeight * (0.5 + (1.0 * (double)row)),
+					longWest + tileWidth * (0.5 + (1.0 * (double)col)),
+					MapTile.CHUNK_MIN_ZOOM+zoom,
+					apiKey);
+				
+				col++;
+				if (col > zoom)
+				{
+					col = 0;
+					row++;
+				}
+			}
+			
 		}
-		catch (MalformedURLException e)
-		{
-			Debugger.ex(e);
-			mapDownloadURL = null;
-		}
-		mapFile = new File("maps/"
-			+ String.format("%.6f_%.6f_%d_%s_%s.png", latitude, longitude, zoom, mapType, "high"));
 		
-		//load or download image
-		Debugger.i("MapRenderer loading... (source: \""+mapFile+"\")");
-		if (loadMapImage())
-			Debugger.i("Map image loaded OK.");
-		else
-		{
-			Debugger.w("Failed to load map image." + (mapDownloadURL == null ? "" : " Attempting download..."));
-			downloadMapImage();
-		}
-	
 		//initialise lists with all current nodes, incidents and devices
 		devices.addAll(EyeApplication.get().getDevices());
 		incidents.addAll(EyeApplication.get().getIncidents());
@@ -186,9 +176,9 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		for (Node node : EyeApplication.get().getNodes())
 			node.removeEventListener(this);
 		clearRenderClients();
-		abortThread = true;
-		if (mapImage != null)
-			mapImage = null;
+		for (int zoom = 0; zoom < tiles.length; zoom++)
+			for (int tile = 0; tile < tiles[zoom].length; tile++)
+				tiles[zoom][tile].dispose();
 	}
 
 	public final void setPan(JComponent client, double xPos, double yPos, boolean interpolated)
@@ -228,13 +218,13 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		ClientSettings settings = getSettings(client);
 		settings.setZoom(settings.zoomTarget - zoomDelta, interpolated);
 	}
-	
+
 	public final void regenerateGeometry(JComponent client)
 	{
 		ClientSettings settings = clients.get(client);
 		
 		//determine bounds
-		settings.mapSize = (double)MAP_SIZE * settings.zoom;
+		settings.mapSize = (double)MapTile.CHUNK_IMAGE_SIZE * 2.0 * settings.zoom;
 		if (settings.clientArea == null)
 			settings.clientArea = new Rectangle2D.Double();
 		settings.clientArea.setRect(0.0,0.0,client.getWidth(),client.getHeight());
@@ -267,8 +257,29 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		ClientSettings settings = clients.get(client);
 		
 		//draw map image
-		if (settings.drawImage && mapImage != null)
+		if (settings.drawImage)
 		{
+			int tileZoom = 0;
+			if (settings.zoom >= 1.25)
+				tileZoom++;
+			if (settings.zoom >= 2.5)
+				tileZoom++;
+			if (settings.zoom >= 4.0)
+				tileZoom++;
+			
+			if (tileZoom != 1)
+				tiles[0][0].paintTile(graphics, "satellite", settings.mapArea);
+			
+			if (tileZoom >= 1)
+			{
+				for (int tile = 0; tile < tiles[tileZoom].length; tile++)
+				{
+					tiles[tileZoom][tile].paintTile(graphics, "satellite",
+							tiles[0][0].getBounds().translate(settings.mapArea, tiles[tileZoom][tile].getBounds()));
+				}
+			}
+			
+			/*
 			graphics.drawImage(
 				//source image
 				mapImage,
@@ -280,6 +291,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 				(int)((settings.shownArea.x-settings.mapArea.x+settings.shownArea.width)/settings.zoom), (int)((settings.shownArea.y-settings.mapArea.y+settings.shownArea.height)/settings.zoom), //bottom right
 				//observer
 				null);
+				*/
 		}
 		
 		//draw grid
@@ -377,17 +389,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
 			paintObject(graphics, callout, settings);
 		}		
-		
-		//draw download notification
-		if (downloadThread != null)
-		{
-			int progressHeight = 30;
-			int padding = 3;
-			graphics.setColor(settings.gridShadingColor);
-			graphics.fillRect(0, (int)settings.clientArea.height-progressHeight, (int)settings.clientArea.width, progressHeight);
-			graphics.setColor(settings.gridTextColor);
-			graphics.fillRect(padding, (int)(settings.clientArea.height-progressHeight+padding), (int)((settings.clientArea.width-padding*2)*downloadThread.percentage), progressHeight-padding*2);
-		}
 	}
 	
 	@Override
@@ -428,12 +429,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	{
 		repaintDevices();
 	}
-
-	@Override
-	public void deviceSelectionChanged(Device device)
-	{
-		repaintDevices();
-	}
 	
 	@Override
 	public void incidentArchived(Incident incident)
@@ -454,12 +449,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	{
 		repaintIncidents();
 	}
-
-	@Override
-	public void incidentSelectionChanged(Incident incident)
-	{
-		repaintIncidents();
-	}
 	
 	@Override
 	public void nodeTimedOut(Node node)
@@ -474,12 +463,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
 			entry.getValue().setPoint(node);
 		repaintNodes();
-	}
-
-	@Override
-	public void nodeSelectionChanged(Node node)
-	{
-		repaintNodes();	
 	}
 
 	@Override
@@ -614,6 +597,12 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		}
 	}
 	
+	public void repaintClients()
+	{	
+		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
+			entry.getKey().repaint();
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -693,48 +682,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		
 		object.paintMarker(graphics, (int)point.x, (int)point.y, hover.contains(object), selected.contains(object));
     }
-	
-	private void setMapImage(Image image)
-	{
-		if (image == mapImage)
-			return;
-		mapImage = image;
-		repaintClients();
-	}
-	
-	private void repaintClients()
-	{	
-		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-			entry.getKey().repaint();
-	}
 
-	private void downloadMapImage()
-	{
-		if (downloadThread != null)
-			return;
-		downloadThread = new ImageDownloadWorker();
-		downloadThread.execute();
-		repaintClients();
-	}
-	
-	private boolean loadMapImage()
-	{
-		if (!mapFile.exists() || !mapFile.isFile())
-			return false;
-
-		try
-		{
-			setMapImage(ImageIO.read(mapFile));
-			return true;
-		}
-		catch (IOException e)
-		{
-			Debugger.ex(e);
-		}
-		
-		return false;
-	}
-	
 	private class ClientObjectData
 	{
 		public Point2D.Double point = null;
@@ -776,7 +724,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			ClientObjectData data = objectData.get(object);
 			if (data == null)
 				objectData.put(object,data = new ClientObjectData());
-			data.point = object.getLocation().hasLatLong() ? bounds.translate(mapArea, object.getLocation()) : null;
+			data.point = object.getLocation().hasLatLong() ? tiles[0][0].getBounds().translate(mapArea, object.getLocation()) : null;
 			data.hitbox = data.point == null ? null : object.generateMarkerHitbox((int)data.point.x, (int)data.point.y); 
         }
 		
@@ -814,7 +762,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
         
         public void setZoom(double target, boolean interpolated)
         {
-        	target = Math.min(4.0, Math.max(0.2,target));
+        	target = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN,target));
     		if (MathHelper.equal(zoom, target))
     			return;
         	
@@ -833,142 +781,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
     			client.repaint();
     		}
         }
-	}
-	
-	private class ImageDownloadWorker extends SwingWorker<Image, Double>
-	{
-		public volatile int contentLength = -1;
-		public volatile int read = 0;
-		public volatile double percentage = 0.0;
-		
-		private String downloadProgressString()
-		{
-			return String.format("Image downloaded: %d bytes %s",
-				read, (contentLength <= -1? "" : String.format("(%.2f%%)", percentage*100.0)));
-		}
-		
-		@Override
-		protected Image doInBackground() throws Exception
-		{
-			Debugger.i("Downloading static maps image from url:\n" + mapDownloadURL.toString());
-
-			//download file into a byte array
-			byte[] imageBytes = null;
-			InputStream in = null;
-			ByteArrayOutputStream baos = null;
-			try
-			{				
-				URLConnection connection = mapDownloadURL.openConnection();
-				in = connection.getInputStream();
-				contentLength = connection.getContentLength();
-				baos = new ByteArrayOutputStream(contentLength == -1 ? 1048576 : contentLength);
-				int bufSize = 512;
-				byte[] buf = new byte[bufSize];
-				int readChunk = 0;
-			    while (true)
-			    {
-		        	if (abortThread)
-		        		return null;
-			    	
-			    	int len = in.read(buf);
-			        if (len == -1)
-			            break;
-			        baos.write(buf, 0, len);
-			        
-			        read += len;
-			        readChunk += len;
-			        percentage = ((double)read/(double)contentLength);
-			        if (readChunk >= 1024*64) //push results every 64k
-			        {
-			        	readChunk = 0;
-			        	Debugger.i(downloadProgressString());
-			        	publish(percentage);			        	
-			        }
-			    }
-			    Debugger.i(downloadProgressString());
-			    Debugger.i("Map image download complete.");
-			    in.close();
-			    baos.flush();
-			    imageBytes = baos.toByteArray();
-			    
-			}
-			catch (Exception e)
-			{
-				Debugger.ex(e);
-				return null;
-			}
-			finally
-			{
-				if (in != null)
-				{
-					in.close();
-					in = null;
-				}
-				if (baos != null)
-					baos.close();
-			}
-		    
-        	if (abortThread)
-        		return null;
-			
-		    //put the download bytes into an image
-        	BufferedImage image = null;
-        	try
-        	{
-			    in = new ByteArrayInputStream(imageBytes);
-			    image = ImageIO.read(in);
-        	}
-			catch (Exception e)
-			{
-				Debugger.ex(e);
-				return null;
-			}
-			finally
-			{
-				if (in != null)
-					in.close();
-			}
-        	
-        	if (abortThread)
-        		return null;
-		    
-		    //write image file to disk
-        	try
-        	{
-        		Debugger.i("Writing download map to disk...");
-        		MAPS_DIR.mkdirs();
-			    ImageIO.write(image, "png", mapFile);
-			    Debugger.i("Image file written OK.");
-        	}
-			catch (Exception e)
-			{
-				Debugger.ex(e);
-			}
-		    
-		    return image;
-		}
-		
-		@Override
-		protected void process(List<Double> chunks)
-		{
-			repaintClients();
-		}
-
-		@Override
-		protected void done()
-		{
-			downloadThread = null;
-			if (abortThread)
-        		return;
-			try
-			{
-				setMapImage(get());
-			}
-			catch (Exception e)
-			{
-				Debugger.ex(e);
-			}
-		}		
 	}
 
     private final void repaintNodes()

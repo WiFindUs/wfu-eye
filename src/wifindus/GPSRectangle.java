@@ -73,6 +73,16 @@ public class GPSRectangle implements Serializable
 		return contains(coords.getLatitude(), coords.getLongitude());
 	}
 	
+	public double getWidth()
+	{
+		return width;
+	}
+	
+	public double getHeight()
+	{
+		return height;
+	}
+	
 	public Location getNorthWest()
 	{
 		return northWest;
@@ -86,6 +96,14 @@ public class GPSRectangle implements Serializable
 	public Location getSouthEast()
 	{
 		return southEast;
+	}
+	
+	public Rectangle2D.Double translate(Rectangle2D.Double target, GPSRectangle rect)
+	{
+		Point2D.Double tl = translate(target, rect.getNorthWest());
+		Point2D.Double br = translate(target, rect.getSouthEast());
+		
+		return new Rectangle2D.Double(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 	}
 	
 	public Point2D.Double translate(Rectangle2D.Double target, double latitude, double longitude)
