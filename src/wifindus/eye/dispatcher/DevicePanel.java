@@ -12,6 +12,7 @@ import java.util.Comparator;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -168,11 +169,18 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
     		
-    		
-    		Object incidentType = JOptionPane.showInputDialog(null, "Select incident type", "New Incident",
+    		/*Object incidentType = JOptionPane.showInputDialog(null, "Select incident type", "New Incident",
     		        JOptionPane.QUESTION_MESSAGE, null, new Object[] { "Medical", "Security",
-    		            "WiFindUs"}, "Medical");
+    		            "WiFindUs"}, "Medical");*/
     		
+    		//Dispatcher.get().setEnabled(false);
+    		
+    		IncidentTypeFrame selectIncidentType = new IncidentTypeFrame();
+    		selectIncidentType.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    		selectIncidentType.pack();
+    		selectIncidentType.setVisible(true);
+    		
+    		Object incidentType = "Security";
     		if(incidentType != null)
     		switch(incidentType.toString())
     		{
