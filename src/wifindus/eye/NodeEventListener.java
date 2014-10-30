@@ -49,6 +49,4 @@ public interface NodeEventListener
 	 * @param newAddress The node's new Address.
 	 */
 	public void nodeAddressChanged(Node node, InetAddress oldAddress, InetAddress newAddress);
-	
-	public void nodeSelectionChanged(Node node);
 }

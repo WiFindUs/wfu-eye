@@ -26,7 +26,6 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	private Location location = Location.EMPTY;
 	private Double voltage = null;
 	private Timestamp lastUpdate = new Timestamp(0);
-	private boolean selected = false;
 	
 	//marker stuff
 	private static Image nodeImage, nodeHoverImage, nodeSelectedImage, nodeHaloImage, nodeHaloInactiveImage;
@@ -70,21 +69,6 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-	
-	
-	public boolean getSelected()
-	{
-		return selected;
-	}
-
-	public void setSelected(boolean selected)
-	{
-		if (this.selected != selected)
-		{
-			this.selected = selected;
-			fireEvent("selectionchanged");
-		}
-	}
 	
 	/**
 	 * Gets this Node's Hash.
@@ -254,9 +238,6 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 				break;
 			case "updated":
 				listener.nodeUpdated(this);
-				break;
-			case "selectionchanged":
-				listener.nodeSelectionChanged(this);
 				break;
 		}
 	}

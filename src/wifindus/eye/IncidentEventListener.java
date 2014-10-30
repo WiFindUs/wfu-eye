@@ -70,7 +70,4 @@ public interface IncidentEventListener
 	 * @param incident The incident object.
 	 */
 	public void incidentDescriptionChanged(Incident incident);
-	
-	
-	public void incidentSelectionChanged(Incident incident);
 }

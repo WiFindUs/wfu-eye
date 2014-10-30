@@ -407,13 +407,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		}
 	}
 
-
-	@Override
-	public void incidentSelectionChanged(Incident incident)
-	{
-		//TODO: visually reflect selection state in some way
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e) 
 	{

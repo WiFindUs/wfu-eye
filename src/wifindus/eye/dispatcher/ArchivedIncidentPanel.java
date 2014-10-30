@@ -332,11 +332,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	}
 
 	@Override
-	public void incidentSelectionChanged(Incident incident) {
-		// TODO: visually reflect selection state in some way
-	}
-
-	@Override
 	public void actionPerformed(ActionEvent e) {
 
 		Incident incident = getIncident();

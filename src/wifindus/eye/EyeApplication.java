@@ -368,13 +368,7 @@ public abstract class EyeApplication extends JFrame
 	{
 		Debugger.v(device + " unassigned from " + incident);		
 	}
-	
-	@Override	
-	public void deviceSelectionChanged(Device device)
-	{
-		Debugger.v(device + " selection state changed");		
-	}
-	
+
 	@Override
 	public void nodeLocationChanged(Node node, Location oldLocation, Location newLocation)
 	{
@@ -397,19 +391,6 @@ public abstract class EyeApplication extends JFrame
 	public void nodeAddressChanged(Node node, InetAddress oldAddress, InetAddress newAddress)
 	{
 		Debugger.v(node + " address changed: " + newAddress);
-	}
-	
-	@Override
-	public void nodeSelectionChanged(Node node)
-	{
-		Debugger.v(node + " selection state changed");
-		
-	}
-
-	@Override
-	public void incidentSelectionChanged(Incident incident)
-	{
-		Debugger.v(incident + " selection state changed");
 	}
 
 	/**

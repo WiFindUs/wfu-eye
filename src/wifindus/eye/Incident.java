@@ -59,7 +59,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private Location location = Location.EMPTY;
 	private Timestamp created;
 	private boolean archived = false;
-	private boolean selected = false;
 	private Timestamp archivedTime;
 	private int severity = 0;
 	private String code = ""; 
@@ -133,21 +132,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	/////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
-	
-	public boolean getSelected()
-	{
-		return selected;
-	}
 
-	public void setSelected(boolean selected)
-	{
-		if (this.selected != selected)
-		{
-			this.selected = selected;
-			fireEvent("selectionchanged");
-		}
-	}
-	
 	/**
 	 * Gets this Incident's ID.
 	 * @return An integer representing this Incident's automatically-assigned id key.
@@ -474,9 +459,6 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 				break;
 			case "unassigned":
 				listener.incidentUnassignedDevice(this, (Device)data[0]);
-				break;
-			case "selectionchanged":
-				listener.incidentSelectionChanged(this);
 				break;
 			case "reponderadded":
 				listener.incidentArchivedResponderAdded(this, (User)data[0]);

@@ -250,7 +250,6 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,
 			InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
-	@Override public void deviceSelectionChanged(Device device) { }
 	
 	public static final Comparator<DevicePanel> COMPARATOR_USER_ID = new Comparator<DevicePanel>()
 	{
