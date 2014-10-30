@@ -49,13 +49,19 @@ public final class Debugger
 		/**
 		 * 4: Only <code>Exceptions</code> are output by the Debugger.
 		 */
-		Exception
+		Exception,
+		
+		/**
+		 * 5: <code>Console Messages</code>. You cannot use this as as minimum level.
+		 */
+		Console
 	}
 	
 	private BufferedWriter writer = null;
 	private Verbosity minVerbosity = Verbosity.Information;
 	private static final DateFormat dateFormat = new SimpleDateFormat("[HH:mm:ss]");
 	private static Debugger debugger = null;
+	private static Verbosity[] levels = Verbosity.values();
 	private volatile static ArrayList<DebuggerEventListener> listeners = new ArrayList<>();
 	
 	/////////////////////////////////////////////////////////////////////
@@ -66,7 +72,7 @@ public final class Debugger
 	{
 		try
 		{
-			this.minVerbosity = minVerbosity;
+			this.minVerbosity = (minVerbosity == Verbosity.Console ? Verbosity.Exception : minVerbosity);
 			writer = new BufferedWriter(new FileWriter(file));
 		}
 		catch (IOException e)
@@ -109,6 +115,17 @@ public final class Debugger
 	}
 	
 	/**
+	 * Opens a debugger session.
+	 * @param minVerbosity The minimum level of output to generate. Calls made to output functions that
+	 * use a verbosity lower than this value will be ignored.
+	 * @param file path of the log file to which debugger output will be written.
+	 */
+	public static void open(int minVerbosity, File file)
+	{
+		open(levels[Math.min(levels.length-2, Math.max(0,minVerbosity))], file);
+	}
+	
+	/**
 	 * Opens a debugger session, using an automatically-generated timestamp filename in 'logs/'. 
 	 * @param minVerbosity The minimum level of output to generate. Calls made to output functions that
 	 * use a verbosity lower than this value will be ignored.
@@ -123,6 +140,16 @@ public final class Debugger
 			dir.mkdir();
 		if (dir.exists() && dir.isDirectory())
 			debugger = new Debugger(minVerbosity, new File( "logs/session_" + new SimpleDateFormat("yy-MM-dd_HH-mm-ss").format(new Date()) + ".log" ));
+	}
+	
+	/**
+	 * Opens a debugger session, using an automatically-generated timestamp filename in 'logs/'. 
+	 * @param minVerbosity The minimum level of output to generate. Calls made to output functions that
+	 * use a verbosity lower than this value will be ignored.
+	 */
+	public static void open(int minVerbosity)
+	{
+		open(levels[Math.min(levels.length-2, Math.max(0,minVerbosity))]);
 	}
 	
 	/**
@@ -151,7 +178,7 @@ public final class Debugger
 	{
 		return dateFormat.format(new Date());
 	}
-
+	
 	/**
 	 * Outputs a line of debugging information with a verbosity level of <code>Verbose</code>. Console output is done on stdout.
 	 * @param s The string to output.
@@ -216,6 +243,16 @@ public final class Debugger
 	}
 	
 	/**
+	 * Outputs a 'console only' line of debugging information to stdout and debugger panels.
+	 * @param s The string to output.
+	 */
+	public static void c(String s, Object... args)
+	{
+		if (debugger != null)
+			debugger.log(Verbosity.Console, System.out, s, true, args);
+	}
+	
+	/**
 	 * Closes the debugger,
 	 * flushing file output and no longer logging output to stdout/stderr.
 	 */
@@ -258,6 +295,34 @@ public final class Debugger
 		listeners.clear();
 	}
 	
+	/**
+	 * Sets a new minimum verbosity level for this debugger.
+	 */
+	public static final void setMinVerbosity(Verbosity verbosity)
+	{
+		if (debugger == null)
+			return;
+		debugger.minVerbosity = (verbosity == Verbosity.Console ? Verbosity.Exception : verbosity);
+	}
+	
+	/**
+	 * Sets a new minimum verbosity level for this debugger.
+	 */
+	public static final void setMinVerbosity(int level)
+	{
+		setMinVerbosity(levels[Math.min(levels.length-2, Math.max(0,level))]);
+	}
+	
+	/**
+	 * Gets the current minimum verbosity level for this debugger.
+	 */
+	public static final Verbosity getMinVerbosity()
+	{
+		if (debugger == null)
+			return Verbosity.Information;
+		return debugger.minVerbosity;
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -272,13 +337,18 @@ public final class Debugger
 		final String timestamp = getTimestamp();
 		final String s = (text == null ? "" : text.trim());
 		final String message = timestamp + " " + s;
-		if (writer != null)
+		
+		//write to file
+		if (level != Verbosity.Console && writer != null)
 		{
 			try { writer.write(message + "\n"); }
 			catch (IOException e) { }
 		}
+		
+		//write to out
 		stream.println(message);
 		
+		//write to listeners
 		SwingUtilities.invokeLater(new Runnable() {
 		     public void run()
 		     {
@@ -299,7 +369,7 @@ public final class Debugger
 
 	private void dispose() 
 	{
-		log(Verbosity.Information, System.out, "Session terminated.", true);
+		log(Verbosity.Information, System.out, "Session terminated.", true, false);
 		if (writer != null)
 		{
 			try { writer.close(); }

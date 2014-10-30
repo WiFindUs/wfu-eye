@@ -99,14 +99,14 @@ public abstract class EyeApplication extends JFrame
 		setVisible(true);
 		
 		//check for debugger verbosity flags & start debugger
-		Debugger.Verbosity verbosity = Debugger.Verbosity.Information;
+		int verbosity = 1; //info
 		boolean spawnConsole = false;
 		for (int i = 0; i < args.length; i++)
 		{
 			Matcher match = PATTERN_VERBOSITY.matcher(args[i]);
 			if (match.matches())
 			{
-				verbosity = Debugger.Verbosity.values()[Integer.parseInt(match.group(1))];
+				verbosity = Integer.parseInt(match.group(1));
 				continue;
 			}
 			

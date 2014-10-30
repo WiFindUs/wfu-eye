@@ -62,6 +62,11 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 		StyleConstants.setBold( exception,true );
 		styles.put(Verbosity.Exception, exception);
 		
+		//console
+		Style console = textDocument.addStyle("console", baseStyle);
+		StyleConstants.setForeground( console, new Color(0,128,0) );
+		styles.put(Verbosity.Console, console);
+		
 		Debugger.addEventListener(this);
 	}
 	
@@ -72,7 +77,7 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 		try
 		{
 			textDocument.insertString(textDocument.getLength(),
-					timestamp + " " + text + "\n",
+					(verbosity == Verbosity.Console ? "" : timestamp+ " ")  + text + "\n",
 					styles.get(verbosity));
 			textPane.setCaretPosition(textDocument.getLength());
 		}
