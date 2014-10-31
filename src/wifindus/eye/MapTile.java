@@ -121,24 +121,13 @@ public class MapTile
 		
 		graphics.drawImage(
 			//source image
-				image,
-			//destination coords
-			(int)drawnArea.x, (int)drawnArea.y, //top left
-			(int)(drawnArea.x + drawnArea.width), (int)(drawnArea.y + drawnArea.height), //bottom right
-			//source coords
-			sourceX, sourceX, //top left
-			sourceX+sourceWidth, sourceY+sourceHeight, //bottom right
-			//observer
-			null);
-		
-		graphics.drawImage(
-			//source image
 			image,
 			//destination coords
 			x, y, //top left
 			width, height, //bottom right
 			//observer
 			null);
+		
 	}
 	
 	public GPSRectangle getBounds()
