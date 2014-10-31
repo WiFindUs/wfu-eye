@@ -112,22 +112,23 @@ public class MapTile
 		Rectangle2D.Double.intersect(tileArea, shownArea, drawnArea);
 		double imageWidth = (double)image.getWidth(null);
 		double imageHeight = (double)image.getHeight(null);
-		double imageScaleX = drawnArea.width / tileArea.width;
-		double imageScaleY = drawnArea.height / tileArea.height;
-		int sourceWidth = (int)(imageWidth * imageScaleX);
-		int sourceHeight = (int)(imageHeight * imageScaleY);
-		int sourceX = (int)(drawnArea.x - tileArea.x);
-		int sourceY = (int)(drawnArea.y - tileArea.y);
+		
+		int sourceX = (int)((drawnArea.x - tileArea.x) / tileArea.width * imageWidth);
+		int sourceY = (int)((drawnArea.y - tileArea.y) / tileArea.height * imageHeight);
+		int sourceWidth = (int)(drawnArea.width / tileArea.width * imageWidth);
+		int sourceHeight = (int)(drawnArea.height / tileArea.height * imageHeight);
 		
 		graphics.drawImage(
 			//source image
 			image,
 			//destination coords
-			x, y, //top left
-			width, height, //bottom right
+			(int)drawnArea.x, (int)drawnArea.y, //top left
+			(int)(drawnArea.x + drawnArea.width), (int)(drawnArea.y + drawnArea.height), //bottom right
+			//source coords
+			sourceX, sourceY, //top left
+			sourceX+sourceWidth, sourceY+sourceHeight, //bottom right
 			//observer
 			null);
-		
 	}
 	
 	public GPSRectangle getBounds()

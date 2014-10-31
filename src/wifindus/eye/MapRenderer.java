@@ -282,7 +282,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			if (settings.drawBackground)
 			{
 				for (int i = BACKGROUND_LEVELS-1; i >= 0; i--)
-					backgrounds[i].paintTile(graphics, "satellite", settings.backgroundAreas[i], settings.shownArea);
+					backgrounds[i].paintTile(graphics, "satellite", settings.backgroundAreas[i], settings.clientArea);
 				graphics.setColor(settings.backgroundOverlayColor);
 				graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
 			}
