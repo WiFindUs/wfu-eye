@@ -30,25 +30,27 @@ public class MapTile
 	public static final int CHUNK_STANDARD_ZOOM = 15;
 	public static final int CHUNK_IMAGE_SIZE = 640;
 	
+	private static volatile int runningLoaderCount = 0;
+	private static final int CONCURRENT_LOADER_LIMIT = 3;
+	private static final Color LOADING_FILL = new Color(0, 0, 0, 15);
+	private static final Color LOADING_PROGRESS = new Color(255, 255, 255, 50);
+	private static final Color BORDERS = new Color(255, 102, 0, 155);
+	private static final Stroke BORDER_STROKE = new BasicStroke(3);
 	private static final String IMAGE_FORMAT = "png";
 	private static final String MAPS_URL_BASE = "https://maps.googleapis.com/maps/api/staticmap?";
 	private static final File MAPS_DIR = new File("maps/");
 	private static final double CHUNK_RADIUS = 0.01126;
 	private static final double CHUNK_LONG_SCALE = 1.22;
-	private static ImageLoadWorker loadThread = null;
-	private volatile GPSRectangle bounds;
-	private volatile double latitude, longitude;
-	private volatile Map<String, Image> images = new HashMap<>();
-	private volatile Map<String, Boolean> failedLoads = new HashMap<>();
+	private GPSRectangle bounds;
+	private double latitude, longitude;
 	private int zoom;
-	private volatile boolean abortThread = false;
 	private String apiKey;
-	private volatile MapRenderer renderer;
-	private static final Color LOADING_FILL = new Color(0, 0, 0, 15);
-	private static final Color LOADING_PROGRESS = new Color(255, 255, 255, 50);
-	private static final Color BORDERS = new Color(255, 102, 0, 155);
-	private static final Stroke BORDER_STROKE = new BasicStroke(3);
-	
+	private MapRenderer renderer;
+	private Map<String, Image> images = new HashMap<>();
+	private ImageLoadWorker loader = null;
+	private volatile Map<String, Boolean> failedLoads = new HashMap<>();
+	private volatile boolean abortThread = false;
+
 	public MapTile(MapRenderer owner, double latitude, double longitude, int zoom, String apiKey)
 	{
 		//settings 
@@ -66,7 +68,7 @@ public class MapTile
 			latitude - scaledRadius,
 			longitude + (scaledRadius * CHUNK_LONG_SCALE));
 	}
-	
+
 	public void paintTile(Graphics2D graphics, String type, Rectangle2D.Double tileArea, Rectangle2D.Double shownArea)
 	{
 		//check for intersection
@@ -83,29 +85,34 @@ public class MapTile
 		//draw placeholder/download progress square
 		if (image == null)
 		{
+			graphics.setStroke(BORDER_STROKE);
+			graphics.setColor(BORDERS);
+			graphics.drawRect(x, y, width, height);
+			graphics.setColor(LOADING_FILL);
+			graphics.fillRect(x, y, width, height);
+			
 			//not loading currently
-			if (loadThread == null)
+			if (loader == null)
 			{
 				//failed already
 				if (failedLoads.get(type) == Boolean.TRUE)
 					return;
 				
 				//load it
-				loadThread = new ImageLoadWorker(this, type);
-				loadThread.execute();
+				if (runningLoaderCount < CONCURRENT_LOADER_LIMIT)
+				{
+					runningLoaderCount++;
+					loader = new ImageLoadWorker(type);
+					loader.execute();
+				}
 			}
-			else if (loadThread.owner == this) //currently loading this image
+			
+			if (loader != null) //currently loading this image
 			{
-				graphics.setStroke(BORDER_STROKE);
-				graphics.setColor(BORDERS);
-				graphics.drawRect(x, y, width, height);
-				graphics.setColor(LOADING_FILL);
-				graphics.fillRect(x, y, width, height);
 				graphics.setColor(LOADING_PROGRESS);
-				graphics.fillRect(x, y, (int)(width * loadThread.percentage), height);
-				
+				graphics.fillRect(x, y, (int)(width * loader.percentage), height);
 			}
-			return;			
+			return;
 		}
 		
 		Rectangle2D.Double drawnArea = new Rectangle2D.Double();
@@ -151,12 +158,11 @@ public class MapTile
 		volatile File file;
 		volatile URL url; 
 		volatile String type;
-		volatile MapTile owner;
 		
-		public ImageLoadWorker(MapTile owner, String type)
+		
+		public ImageLoadWorker(String type)
 		{
 			this.type = type;
-			this.owner = owner;
 			try 
 			{
 				url = new URL(String.format(
@@ -229,8 +235,9 @@ public class MapTile
 			        if ((percentage - lastPercentage) > 0.10) //push results each 10%
 			        {
 			        	lastPercentage = percentage;
-			        	publish(percentage);			        	
+			        	publish(percentage);
 			        }
+			        Thread.sleep(2); //just to slow the download a tiny bit
 			    }
 			    Debugger.i("Map image download complete.");
 			    in.close();
@@ -305,7 +312,8 @@ public class MapTile
 		@Override
 		protected void done()
 		{
-			loadThread = null;
+			runningLoaderCount--;
+			loader = null;
 			if (abortThread)
         		return;
 			try
