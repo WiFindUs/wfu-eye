@@ -109,14 +109,13 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		incidentDescription.setLineWrap(true);
 		incidentDescription.setWrapStyleWord(true);
 		
+		incidentDescription.setText(incident.getDescription());
 		
 		JScrollPane descriptionScroll = new JScrollPane(incidentDescription, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		descriptionScroll.setPreferredSize(new Dimension(130,70));
 		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(border, 
 	            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
-		
-		
 		
 		 DocumentListener documentListener = new DocumentListener() {
 		      public void changedUpdate(DocumentEvent documentEvent) {
@@ -370,6 +369,13 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			EyeApplication.get().addTimerListener(this);
 	}
 
+	public void setPanelDescription(String description)
+	{
+		incidentDescription.setText(description);
+	}
+	
+
+	
 	@Override
 	public void incidentArchived(Incident incident)
 	{
@@ -406,7 +412,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			}
 		}
 	}
-
+	
 	@Override
 	public void actionPerformed(ActionEvent e) 
 	{
@@ -416,7 +422,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		if(e.getSource() == saveDescription)
 		{
 			saveDescription.setText("Save");
-			incidentDescriptionChanged(getIncident());
+			EyeApplication.get().db_setIncidentDescription(getIncident(), incidentDescription.getText());
 		}
 		if(e.getSource() == addRespondent)
 		{

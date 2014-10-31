@@ -111,21 +111,21 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 				
 		incidentDescription = new JTextArea("", 10, 4);
 		Border border = BorderFactory.createLineBorder(Color.BLACK);
-	
 		incidentDescription.setLineWrap(true);
 		incidentDescription.setWrapStyleWord(true);
 		incidentDescription.setEditable(false);
+		incidentDescription.setText(incident.getDescription());
+		
 		
 		JScrollPane descriptionScroll = new JScrollPane(incidentDescription, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		descriptionScroll.setPreferredSize(new Dimension(130,70));
 		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(border, 
 	            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
-		 
-		// Second Column
+	
 		reportedName = new JLabel("reporter name");
 		if(incident.getReportingUser() != null)
-			reportedName.setText(incident.getReportingUser().toString());
+			reportedName.setText(incident.getReportingUser().getNameFull().toString());
 
 		reportedName.setFont(timeFont);
 		
@@ -399,6 +399,11 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		else if (e.getSource() == locateOnMap)
 			locateObjectOnMap(getIncident());
 	}
+	
+	public void setReportingUserText(String user)
+	{
+		reportedName.setText(user);
+	}
 
 	// ///////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
@@ -450,7 +455,10 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		// TODO Auto-generated method stub
 	}
 	
-	@Override public void incidentDescriptionChanged(Incident incident) { }
+	@Override public void incidentDescriptionChanged(Incident incident) 
+	{ 
+
+	}
 }
 
 

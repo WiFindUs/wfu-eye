@@ -59,6 +59,7 @@ public class Dispatcher extends EyeApplication
 	private transient ButtonGroup filterButtonGroup;
 	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
 	private transient Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
+	private transient Map<Integer,ArchivedIncidentPanel> archivedIncidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
 	private transient MapRenderer mapRenderer;
 	private transient MapFrame mapFrame;
@@ -315,7 +316,6 @@ public class Dispatcher extends EyeApplication
 	public void incidentArchived(Incident incident)
 	{
 		super.incidentArchived(incident);
-		
 		//remove old panel
 		IncidentPanel oldPanel = incidentPanels.remove(Integer.valueOf(incident.getID()));
 		if (oldPanel != null)
@@ -327,9 +327,19 @@ public class Dispatcher extends EyeApplication
 		
 		//add new panel
 		ArchivedIncidentPanel archivedPanel = new ArchivedIncidentPanel(incident, mapFrame);
+		archivedIncidentPanels.put(Integer.valueOf(incident.getID()), archivedPanel);
 		archivedIncidentPanel.add(archivedPanel);
 		archivedIncidentPanel.revalidate();
-		archivedIncidentPanel.repaint();
+		
+	}
+	
+	
+	@Override
+	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser)
+	{
+		super.incidentReportingUserChanged(incident, oldUser, newUser);
+		if(incident.isArchived() && newUser.getNameFull()!= null)
+			archivedIncidentPanels.get(Integer.valueOf(incident.getID())).setReportingUserText(newUser.getNameFull());
 	}
 	
 	@Override
@@ -356,7 +366,12 @@ public class Dispatcher extends EyeApplication
 			mapRenderer.dispose();
 		super.windowClosing(e);
 	}
-
+	
+	@Override public void incidentDescriptionChanged(Incident incident) 
+	{ 
+		super.incidentDescriptionChanged(incident);
+		incidentPanels.get(incident.getID()).setPanelDescription(incident.getDescription());
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS

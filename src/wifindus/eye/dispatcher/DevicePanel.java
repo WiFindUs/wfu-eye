@@ -175,28 +175,13 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     		
     		//Dispatcher.get().setEnabled(false);
     		
-    		IncidentTypeFrame selectIncidentType = new IncidentTypeFrame();
+    		IncidentTypeFrame selectIncidentType = new IncidentTypeFrame(device);
     		selectIncidentType.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     		selectIncidentType.pack();
     		selectIncidentType.setVisible(true);
     		
-    		Object incidentType = "Security";
-    		if(incidentType != null)
-    		switch(incidentType.toString())
-    		{
-    		case "Medical":
-    			EyeApplication.get().db_createIncident(Type.Medical, device.getLocation());
-    			Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
-    			break;
-    		case "Security":
-    			EyeApplication.get().db_createIncident(Type.Security, device.getLocation());
-    			Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
-    			break;
-    		case "WiFindUs":
-    			EyeApplication.get().db_createIncident(Type.WiFindUs, device.getLocation());
-    			Debugger.i("New incident reported by "+ device.getCurrentUser().getNameFull() +" at "+ device.getLocation());
-    			break;
-    		}
+    		
+    		
     	}
 		else if (e.getSource() == locateOnMapButton)
 			locateObjectOnMap(device);

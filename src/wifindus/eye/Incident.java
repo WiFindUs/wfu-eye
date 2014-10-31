@@ -228,7 +228,7 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	 */
 	public final String getDescription()
 	{
-		return code;
+		return description;
 	}
 	
 	/**
