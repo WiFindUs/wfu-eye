@@ -168,8 +168,4 @@ public class MapPanel extends JPanel
 		public String description;
 		public Rectangle bounds;
 	}
-
-
-
-
 }

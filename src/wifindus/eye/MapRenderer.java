@@ -23,6 +23,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +42,9 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	IncidentEventListener, DeviceEventListener, HighResolutionTimerListener
 {
 	public static final double ZOOM_SPEED = 2.0;
-	public static final double ZOOM_MAX = 5.0;
+	public static final double ZOOM_MAX = 7.0;
 	public static final double ZOOM_MIN = 0.25;
+	public static final int BACKGROUND_LEVELS = 3;
 	private volatile Map<JComponent, ClientSettings> clients = new HashMap<>();
 	private int gridRows = 10;
 	private int gridColumns = 10;
@@ -53,11 +56,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	private MappableObject callout = null;
 	private JComponent lastClient = null;
 	private ClientSettings lastSettings = null;
+	private final MapTile[] backgrounds = new MapTile[BACKGROUND_LEVELS];
 	private final MapTile[][] tiles = new MapTile[][]
 	{
 		new MapTile[1],
 		new MapTile[4],
-		new MapTile[9],
 		new MapTile[16],
 	};
 
@@ -71,8 +74,12 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		this.gridRows = gridRows;
 		this.gridColumns = gridColumns;
 		
+		//background tiles
+		for (int i = 0; i < BACKGROUND_LEVELS; i++)
+			backgrounds[i] = new MapTile(this, latitude, longitude, MapTile.CHUNK_STANDARD_ZOOM-i-1, apiKey);
+		
 		//base level tile
-		tiles[0][0] = new MapTile(this, latitude, longitude, MapTile.CHUNK_MIN_ZOOM, apiKey);
+		tiles[0][0] = new MapTile(this, latitude, longitude, MapTile.CHUNK_STANDARD_ZOOM, apiKey);
 		double longWest = tiles[0][0].getBounds().getNorthWest().getLongitude().doubleValue();
 		double latNorth = tiles[0][0].getBounds().getNorthWest().getLatitude().doubleValue();
 		
@@ -80,18 +87,18 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		for (int zoom = 1; zoom < tiles.length; zoom++)
 		{
 			int row = 0, col = 0;
-			double tileWidth = tiles[0][0].getBounds().getWidth() / ((double)zoom+1.0);
-			double tileHeight = tiles[0][0].getBounds().getHeight() / ((double)zoom+1.0);
+			double tileWidth = tiles[0][0].getBounds().getWidth() / Math.pow(2.0, zoom);
+			double tileHeight = tiles[0][0].getBounds().getHeight() / Math.pow(2.0, zoom);
 			for (int tile = 0; tile < tiles[zoom].length; tile++)
 			{
 				tiles[zoom][tile] = new MapTile(this,
 					latNorth - tileHeight * (0.5 + (1.0 * (double)row)),
 					longWest + tileWidth * (0.5 + (1.0 * (double)col)),
-					MapTile.CHUNK_MIN_ZOOM+zoom,
+					MapTile.CHUNK_STANDARD_ZOOM+zoom,
 					apiKey);
 				
 				col++;
-				if (col > zoom)
+				if (col >= Math.pow(2.0, zoom))
 				{
 					col = 0;
 					row++;
@@ -210,7 +217,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	
 	public final void setZoom(JComponent client, double zoom, boolean interpolated)
 	{
-		getSettings(client).setZoom(zoom, interpolated);
+		getSettings(client).relativeZoom(zoom);
 	}
 	
 	public final void dragZoom(JComponent client, double zoomDelta, boolean interpolated)
@@ -234,6 +241,16 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			(settings.clientArea.width / 2.0) - (settings.mapSize * settings.xPos),
 			(settings.clientArea.height / 2.0) - (settings.mapSize * settings.yPos),
 			settings.mapSize, settings.mapSize);
+		for (int i = 0; i < BACKGROUND_LEVELS; i++)
+		{
+			if (settings.backgroundAreas[i] == null)
+				settings.backgroundAreas[i] = new Rectangle2D.Double();
+			double factor = Math.pow(2.0, i);
+			settings.backgroundAreas[i].setRect(
+				settings.mapArea.x + (settings.mapArea.width / 2.0) - settings.mapArea.width*factor,
+				settings.mapArea.y + (settings.mapArea.height / 2.0) - settings.mapArea.height*factor,
+				settings.mapArea.width*factor*2.0, settings.mapArea.height*factor*2.0);
+		}
 		if (settings.shownArea == null)
 			settings.shownArea = new Rectangle2D.Double();
 		Rectangle2D.Double.intersect(settings.clientArea, settings.mapArea, settings.shownArea);
@@ -248,6 +265,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
         settings.setPoints(nodes);
 	}
 	
+	
+	
 	public final void paintMap(JComponent client, Graphics2D graphics)
 	{
 		//sanity checks
@@ -255,43 +274,25 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			throw new NullPointerException("Parameter 'graphics' cannot be null.");
 		
 		ClientSettings settings = clients.get(client);
-		
-		//draw map image
-		if (settings.drawImage)
+			
+		//draw map images
+		if (settings.drawMapTiles)
 		{
-			int tileZoom = 0;
-			if (settings.zoom >= 1.25)
-				tileZoom++;
-			if (settings.zoom >= 2.5)
-				tileZoom++;
-			if (settings.zoom >= 4.0)
-				tileZoom++;
-			
-			if (tileZoom != 1)
-				tiles[0][0].paintTile(graphics, "satellite", settings.mapArea);
-			
-			if (tileZoom >= 1)
+			//background tile
+			if (settings.drawBackground)
 			{
-				for (int tile = 0; tile < tiles[tileZoom].length; tile++)
-				{
-					tiles[tileZoom][tile].paintTile(graphics, "satellite",
-							tiles[0][0].getBounds().translate(settings.mapArea, tiles[tileZoom][tile].getBounds()));
-				}
+				for (int i = BACKGROUND_LEVELS-1; i >= 0; i--)
+					backgrounds[i].paintTile(graphics, "satellite", settings.backgroundAreas[i], settings.shownArea);
+				graphics.setColor(settings.backgroundOverlayColor);
+				graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
 			}
 			
-			/*
-			graphics.drawImage(
-				//source image
-				mapImage,
-				//destination coords
-				(int)settings.shownArea.x, (int)settings.shownArea.y, //top left
-				(int)(settings.shownArea.x + settings.shownArea.width), (int)(settings.shownArea.y + settings.shownArea.height), //bottom right
-				//source coords
-				(int)((settings.shownArea.x-settings.mapArea.x)/settings.zoom), (int)((settings.shownArea.y-settings.mapArea.y)/settings.zoom), //top left
-				(int)((settings.shownArea.x-settings.mapArea.x+settings.shownArea.width)/settings.zoom), (int)((settings.shownArea.y-settings.mapArea.y+settings.shownArea.height)/settings.zoom), //bottom right
-				//observer
-				null);
-				*/
+			if (settings.zoom >= 1.5)
+				paintTilesAtZoomLevel(graphics, settings, 2);
+			else if (settings.zoom >= 0.75)
+				paintTilesAtZoomLevel(graphics, settings, 1);
+			else
+				paintTilesAtZoomLevel(graphics, settings, 0);
 		}
 		
 		//draw grid
@@ -370,17 +371,16 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	        }
 		}
 		
+		ArrayList<MappableObject> sortedObjects = new ArrayList<>();
 		//draw layers
 		if (settings.drawNodes)
-			paintObjects(graphics, nodes, settings, true);
+			sortedObjects.addAll(nodes);
 		if (settings.drawDevices)
-			paintObjects(graphics, devices, settings, true);
+			sortedObjects.addAll(devices);
 		if (settings.drawIncidents)
-			paintObjects(graphics, incidents, settings, true);
-		if (selected.size() > 0)
-			paintObjects(graphics, selected, settings, false);
-		if (hover.size() > 0)
-			paintObjects(graphics, hover, settings, false);
+			sortedObjects.addAll(incidents);
+		Collections.sort(sortedObjects, MarkerLatitudeComparator);
+			paintObjects(graphics, sortedObjects, settings, false);
 		
 		//draw special "callout"
 		if (callout != null)
@@ -606,6 +606,29 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
+	private static Comparator<MappableObject> MarkerLatitudeComparator = new Comparator<MappableObject>()
+	{
+	    @Override
+	    public int compare(MappableObject o1, MappableObject o2)
+	    {
+	        return Double.compare(o2.getLocation().getLatitude(), o1.getLocation().getLatitude());
+	    }
+	};
+	
+	private void paintTilesAtZoomLevel(Graphics2D graphics, ClientSettings settings, int zoomLevel)
+	{
+		if (zoomLevel == 0)
+			tiles[0][0].paintTile(graphics, "satellite", settings.mapArea, settings.shownArea);
+		else
+		{
+			for (int tile = 0; tile < tiles[zoomLevel].length; tile++)
+			{
+				tiles[zoomLevel][tile].paintTile(graphics, "satellite",
+						tiles[0][0].getBounds().translate(settings.mapArea, tiles[zoomLevel][tile].getBounds()),
+						settings.shownArea);
+			}
+		}
+	}
 	
 	private boolean updateList(List<MappableObject> list, List<MappableObject> input)
 	{
@@ -702,12 +725,14 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public double mapSize;
 		Rectangle2D.Double clientArea;
 		Rectangle2D.Double mapArea;
-		Rectangle2D.Double shownArea;	
+		Rectangle2D.Double shownArea;
+		Rectangle2D.Double[] backgroundAreas = new Rectangle2D.Double[BACKGROUND_LEVELS];
         public double gridStepX;
         public double gridStepY;
         
         //cosmetics
-		public boolean drawImage = true;
+        public boolean drawBackground = true;
+		public boolean drawMapTiles = true;
 		public boolean drawGrid = true;
 		public boolean drawNodes = true;
 		public boolean drawIncidents = true;
@@ -715,6 +740,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Color gridLineColor = new Color(0, 0, 0, 70);
 		public Color gridTextColor = new Color(255, 255, 255, 200);
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
+		public Color backgroundOverlayColor = new Color(0, 0, 0, 50);
 		public Stroke gridStroke = new BasicStroke(1);
 		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public Color calloutOverlayColor = new Color(255, 255, 255, 100);
@@ -780,6 +806,17 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
     			regenerateGeometry(client);
     			client.repaint();
     		}
+        }
+        
+        public void relativeZoom(double target)
+        {
+    		if (MathHelper.equal(zoom, target))
+    			return;
+        	
+    		if (zoomInterp >= 1.0)
+    			setZoom(target, true);
+    		else
+    			zoomTarget = target;
         }
 	}
 

@@ -1,8 +1,10 @@
 package wifindus.eye;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -25,7 +27,7 @@ import wifindus.GPSRectangle;
 
 public class MapTile
 {
-	public static final int CHUNK_MIN_ZOOM = 15;
+	public static final int CHUNK_STANDARD_ZOOM = 15;
 	public static final int CHUNK_IMAGE_SIZE = 640;
 	
 	private static final String IMAGE_FORMAT = "png";
@@ -42,8 +44,10 @@ public class MapTile
 	private volatile boolean abortThread = false;
 	private String apiKey;
 	private volatile MapRenderer renderer;
-	private static final Color LOADING_FILL = new Color(255, 255, 255, 50);
-	private static final Color BORDERS = new Color(0, 0, 0, 50);
+	private static final Color LOADING_FILL = new Color(0, 0, 0, 15);
+	private static final Color LOADING_PROGRESS = new Color(255, 255, 255, 50);
+	private static final Color BORDERS = new Color(255, 102, 0, 155);
+	private static final Stroke BORDER_STROKE = new BasicStroke(3);
 	
 	public MapTile(MapRenderer owner, double latitude, double longitude, int zoom, String apiKey)
 	{
@@ -55,7 +59,7 @@ public class MapTile
 		this.renderer = owner;
 		
 		//create bounds
-		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0,(zoom - (zoom < CHUNK_MIN_ZOOM ? zoom : CHUNK_MIN_ZOOM)));
+		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0,(zoom - CHUNK_STANDARD_ZOOM));
 		bounds = new GPSRectangle(
 				latitude + scaledRadius,
 				longitude - (scaledRadius * CHUNK_LONG_SCALE),
@@ -63,8 +67,12 @@ public class MapTile
 			longitude + (scaledRadius * CHUNK_LONG_SCALE));
 	}
 	
-	public void paintTile(Graphics2D graphics, String type, Rectangle2D.Double tileArea)
+	public void paintTile(Graphics2D graphics, String type, Rectangle2D.Double tileArea, Rectangle2D.Double shownArea)
 	{
+		//check for intersection
+		if (!tileArea.intersects(shownArea))
+			return;
+		
 		//try getting image first
 		Image image = images.get(type); //"satellite", "roadmap", "terrain" and "hybrid"
 		int x = (int)tileArea.x;
@@ -72,12 +80,9 @@ public class MapTile
 		int width = (int)tileArea.width;
 		int height = (int)tileArea.height;
 		
+		//draw placeholder/download progress square
 		if (image == null)
 		{
-			//draw a placeholder square
-			graphics.setColor(BORDERS);
-			graphics.drawRect(x, y, width, height);
-			
 			//not loading currently
 			if (loadThread == null)
 			{
@@ -91,12 +96,40 @@ public class MapTile
 			}
 			else if (loadThread.owner == this) //currently loading this image
 			{
+				graphics.setStroke(BORDER_STROKE);
+				graphics.setColor(BORDERS);
+				graphics.drawRect(x, y, width, height);
 				graphics.setColor(LOADING_FILL);
+				graphics.fillRect(x, y, width, height);
+				graphics.setColor(LOADING_PROGRESS);
 				graphics.fillRect(x, y, (int)(width * loadThread.percentage), height);
 				
 			}
 			return;			
 		}
+		
+		Rectangle2D.Double drawnArea = new Rectangle2D.Double();
+		Rectangle2D.Double.intersect(tileArea, shownArea, drawnArea);
+		double imageWidth = (double)image.getWidth(null);
+		double imageHeight = (double)image.getHeight(null);
+		double imageScaleX = drawnArea.width / tileArea.width;
+		double imageScaleY = drawnArea.height / tileArea.height;
+		int sourceWidth = (int)(imageWidth * imageScaleX);
+		int sourceHeight = (int)(imageHeight * imageScaleY);
+		int sourceX = (int)(drawnArea.x - tileArea.x);
+		int sourceY = (int)(drawnArea.y - tileArea.y);
+		
+		graphics.drawImage(
+			//source image
+				image,
+			//destination coords
+			(int)drawnArea.x, (int)drawnArea.y, //top left
+			(int)(drawnArea.x + drawnArea.width), (int)(drawnArea.y + drawnArea.height), //bottom right
+			//source coords
+			sourceX, sourceX, //top left
+			sourceX+sourceWidth, sourceY+sourceHeight, //bottom right
+			//observer
+			null);
 		
 		graphics.drawImage(
 			//source image
