@@ -78,6 +78,6 @@ CREATE TABLE Nodes (
 ALTER TABLE Devices ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incidents (id);
 ALTER TABLE DeviceUsers ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES Users (id);
 ALTER TABLE DeviceUsers ADD INDEX `In use by user according to` (deviceHash), ADD CONSTRAINT `In use by user according to` FOREIGN KEY (deviceHash) REFERENCES Devices (hash);
-ALTER TABLE Incidents ADD INDEX `Reported by` (reportingUserID), ADD CONSTRAINT `Reported by` FOREIGN KEY (reportingUserID) REFERENCES Incidents (id);
+ALTER TABLE Incidents ADD INDEX `Reported by` (reportingUserID), ADD CONSTRAINT `Reported by` FOREIGN KEY (reportingUserID) REFERENCES Users (id);
 ALTER TABLE PastIncidentResponders ADD INDEX `Responded to an incident` (userID), ADD CONSTRAINT `Responded to an incident` FOREIGN KEY (userID) REFERENCES Users (id);
 ALTER TABLE PastIncidentResponders ADD INDEX `Was reponded to by user` (incidentID), ADD CONSTRAINT `Was reponded to by user` FOREIGN KEY (incidentID) REFERENCES Incidents (id);
