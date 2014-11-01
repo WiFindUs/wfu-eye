@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 
+import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.MathHelper;
 import wifindus.eye.Incident.Type;
@@ -543,6 +544,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
 			entry.getValue().setPoint(device);
 		repaintDevices();
+		Debugger.w("deviceLocationChanged");
 	}
 
 	@Override
@@ -598,6 +600,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		if (devices.contains(device))
 			return;
 		devices.add(device);
+		device.addEventListener(this);
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
 			entry.getValue().setPoint(device);
 		repaintDevices();
@@ -609,6 +612,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		if (incidents.contains(incident))
 			return;
 		incidents.add(incident);
+		incident.addEventListener(this);
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
 			entry.getValue().setPoint(incident);
 		repaintIncidents();
@@ -620,6 +624,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		if (nodes.contains(node))
 			return;
 		nodes.add(node);
+		node.addEventListener(this);
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
 			entry.getValue().setPoint(node);
 		repaintNodes();
