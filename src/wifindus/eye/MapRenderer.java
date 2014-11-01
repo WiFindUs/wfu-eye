@@ -544,7 +544,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
 			entry.getValue().setPoint(device);
 		repaintDevices();
-		Debugger.w("deviceLocationChanged");
 	}
 
 	@Override
