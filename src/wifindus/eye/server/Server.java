@@ -32,6 +32,8 @@ public class Server extends EyeApplication
 	private static final long serialVersionUID = -6202164296309727570L;
 	private volatile DatagramSocket udpListenSocket;
 	private transient volatile boolean abortThreads = false;
+	private volatile Map<String, Long> nodeTimestamps = new HashMap<String, Long>();
+	private volatile Map<String, Long> deviceTimestamps = new HashMap<String, Long>();
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -164,6 +166,10 @@ public class Server extends EyeApplication
 			if (hash == null)
 				return;
 			
+			//check last timestamp
+			if (!isNewerTimestamp(hash, deviceTimestamps, packet))
+				return;
+			
 			//build temporary dataset
 			Map <String, String> tempMap = new HashMap<>(); 
 			tempMap.put("hash", "'" + hash + "'");
@@ -253,6 +259,31 @@ public class Server extends EyeApplication
 			if (hash == null || !Hash.isValid(hash))
 				return null;
 			return hash;
+		}
+		
+		private boolean isNewerTimestamp(final String hash, final Map<String, Long> timestamps, final ParsedUDPPacket packet)
+		{
+			String newTimestampString = packet.getData().get("timestamp");
+			if (newTimestampString == null || (newTimestampString = newTimestampString.trim()).length() == 0)
+				return false;
+			
+			Long newTimestamp = null;
+			try
+			{
+				newTimestamp = Long.valueOf(Long.parseLong(newTimestampString));
+			}
+			catch (NumberFormatException ex)
+			{
+				return false;
+			}
+			
+			Long lastTimeStamp = timestamps.get(hash);
+			if (lastTimeStamp == null || lastTimeStamp.longValue() < newTimestamp.longValue())
+			{
+				timestamps.put(hash, newTimestamp);
+				return true;
+			}
+			return false;
 		}
 	};
 	
