@@ -4,8 +4,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.InetAddress;
 import java.util.Comparator;
 
@@ -168,20 +171,21 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     	//Listener for new incident
     	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
-    		
-    		/*Object incidentType = JOptionPane.showInputDialog(null, "Select incident type", "New Incident",
-    		        JOptionPane.QUESTION_MESSAGE, null, new Object[] { "Medical", "Security",
-    		            "WiFindUs"}, "Medical");*/
-    		
-    		//Dispatcher.get().setEnabled(false);
-    		
+
+    		Dispatcher.get().setEnabled(false);
     		IncidentTypeFrame selectIncidentType = new IncidentTypeFrame(device);
-    		selectIncidentType.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    		
+    		selectIncidentType.addWindowListener( new WindowAdapter() {
+                  @Override
+                  public void windowClosing(WindowEvent we) {
+                	  Dispatcher.get().setEnabled(true);
+                  }
+              } );
+    		
+    		selectIncidentType.setLocationRelativeTo(null);
     		selectIncidentType.pack();
     		selectIncidentType.setVisible(true);
-    		
-    		
-    		
+
     	}
 		else if (e.getSource() == locateOnMapButton)
 			locateObjectOnMap(device);
