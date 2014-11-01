@@ -79,10 +79,11 @@ public abstract class EyeApplication extends JFrame
 	 * </ul>
 	 * @param forceNoConsole Setting this to FALSE prevents the console window from being created, regardless of the
 	 * verbosity level passed at the command-line.
+	 * @param spawnSQLThread Setting this to FALSE prevents the background SQL scraper daemon thread form being launched. 
 	 * @throws NullPointerException if <code>args</code> is null
 	 * @throws IllegalStateException if an existing EyeApplication instance exists.
 	 */
-	public EyeApplication(String[] args, boolean forceNoConsole)
+	public EyeApplication(String[] args, boolean forceNoConsole, boolean spawnSQLThread)
 	{
 		if (args == null)
 			throw new NullPointerException("Parameter 'args' cannot be null.");
@@ -194,8 +195,11 @@ public abstract class EyeApplication extends JFrame
 		addEyeListener(this);
 		
 		//create and launch mysql worker task
-		MySQLUpdateWorker mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
-		mysqlWorker.execute();
+		if (spawnSQLThread)
+		{
+			MySQLUpdateWorker mysqlWorker = new MySQLUpdateWorker(config.getInt("mysql.update_interval"));
+			mysqlWorker.execute();
+		}
 		
 		//start ui timer
 		startTimer();
@@ -207,7 +211,7 @@ public abstract class EyeApplication extends JFrame
 	 */
 	public EyeApplication(String[] args)
 	{
-		this(args,false);
+		this(args,false,true);
 	}
 
 	/////////////////////////////////////////////////////////////////////

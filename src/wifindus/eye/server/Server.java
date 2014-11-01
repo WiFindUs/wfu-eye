@@ -43,7 +43,7 @@ public class Server extends EyeApplication
 	 */
 	public Server(String[] args)
 	{
-		super(args, true);
+		super(args, true, false);
 		
 		//server
 		getConfig().defaultInt("server.udp_port", 33339, 1024, 65535);
