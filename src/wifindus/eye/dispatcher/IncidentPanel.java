@@ -23,6 +23,8 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 
 import wifindus.HighResolutionTimerListener;
 import wifindus.ResourcePool;
@@ -37,11 +39,9 @@ import wifindus.eye.User;
 public class IncidentPanel extends IncidentParentPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
-	private transient  JLabel incidentTime;
-	private transient JLabel idLabel;
-	private transient JLabel onTaskLabel, descriptionLabel;
-	private transient JButton locateOnMap, addRespondent, removeRespondent,
-	removeIncident, codeButton, statusButton, incidentIconButton, archiveIncident, saveDescription;
+	private transient JLabel idLabel, onTaskLabel, descriptionLabel, incidentIconLabel, statusLabel, incidentTime;
+	private transient JButton locateBtn, addRespondentBtn, removeRespondentBtn,
+	deleteBtn, codeBtn, archiveBtn, saveDescriptionBtn;
 	private transient JTextArea incidentDescription;
 
 	private double timerCounter = 0.0;
@@ -52,6 +52,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			new String[] {"Device", "Distance"}
 			);
 	private transient JTable assignedDevicesTable;
+	
 
 	static
 	{
@@ -62,12 +63,16 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		ResourcePool.loadImage("medical", "images/medical.png");
 		ResourcePool.loadImage("security", "images/security.png");
 		ResourcePool.loadImage("wfu", "images/wfu.png");
+		ResourcePool.loadImage("delete", "images/delete.png");
+		ResourcePool.loadImage("archive", "images/archive.png");
+		ResourcePool.loadImage("save", "images/save.png");
 	}
 
 	public IncidentPanel(Incident incident, MapFrame mapFrame)
 	{
 		super(incident, mapFrame);
 
+		
 		//cosmetic properties
 		Color lightBlue = new Color(0xf6f9fc);
 		Color red = new Color(0xfd0b15);
@@ -76,9 +81,10 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		Border emptyBorder = BorderFactory.createEmptyBorder();
 		setMaximumSize(new Dimension(1000,200));
 		setMinimumSize(new Dimension(500,200));
-		Font font, rightColumnFont, idFont;
+		Font font, rightColumnFont, idFont, btnFont;
 		font = getFont().deriveFont(Font.BOLD, 15.0f);
 		idFont = getFont().deriveFont(Font.BOLD, 17.0f);
+		btnFont = getFont().deriveFont(Font.BOLD, 11.0f);
 		rightColumnFont = getFont().deriveFont(Font.BOLD, 16.0f);
 
 		//Layout
@@ -90,9 +96,9 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		layout.setAutoCreateContainerGaps(true);
 
 		(idLabel = new JLabel("Incident #" + incident.getID())).setFont(idFont);
-		incidentIconButton = new JButton();
-		incidentIconButton.setBorder(emptyBorder);
-		incidentIconButton.setBackground(lightBlue);
+		incidentIconLabel = new JLabel();
+		incidentIconLabel.setBorder(emptyBorder);
+		incidentIconLabel.setBackground(lightBlue);
 		updateButtonState();
 
 		
@@ -100,6 +106,9 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		descriptionLabel.setFont(font);
 				
 		incidentDescription = new JTextArea("", 5, 5);
+		incidentDescription.setMinimumSize(new Dimension(270, 110));
+		//incidentDescription.
+		
 		Border border = BorderFactory.createLineBorder(Color.BLACK);
 
 		incidentDescription.setLineWrap(true);
@@ -109,7 +118,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		JScrollPane descriptionScroll = new JScrollPane(incidentDescription, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		descriptionScroll.setPreferredSize(new Dimension(130,70));
+		descriptionScroll.setPreferredSize(new Dimension(270,110));
 		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(border, 
 	            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 		
@@ -126,63 +135,79 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		      
 		      private void descriptionChanged() 
 		      {
-		    	  saveDescription.setText("Save*");
+		    	  saveDescriptionBtn.setText("Save*");
 		      }
 		    };
 		    incidentDescription.getDocument().addDocumentListener(documentListener);
 		
-		saveDescription = new JButton("Save");
-		saveDescription.addActionListener(this);
+		saveDescriptionBtn = new JButton("Save");
+		saveDescriptionBtn.addActionListener(this);
+		saveDescriptionBtn.setBackground(lightBlue);
+		saveDescriptionBtn.setIcon(ResourcePool.getIcon("save"));
+		saveDescriptionBtn.setBorder(emptyBorder);
+		saveDescriptionBtn.setFont(btnFont);
+		saveDescriptionBtn.setHorizontalAlignment(SwingConstants.LEFT);
 		
 		
-		locateOnMap = new JButton("Locate on Map");
-		locateOnMap.setBackground(lightBlue);
-		locateOnMap.setIcon(ResourcePool.getIcon("locate_small"));
-		locateOnMap.setBorder(emptyBorder);
-		locateOnMap.setFont(font);
-		locateOnMap.setHorizontalAlignment(SwingConstants.LEFT);
-		locateOnMap.addActionListener(this);
+		locateBtn = new JButton("Locate");
+		locateBtn.setBackground(lightBlue);
+		locateBtn.setIcon(ResourcePool.getIcon("locate_small"));
+		locateBtn.setBorder(emptyBorder);
+		locateBtn.setFont(btnFont);
+		locateBtn.setMinimumSize(new Dimension(40,50));
+		locateBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+		locateBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		locateBtn.addActionListener(this);
 
-		addRespondent = new JButton("Add Respondent");
-		addRespondent.setBackground(lightBlue);
-		addRespondent.setIcon(ResourcePool.getIcon("plus_small"));
-		addRespondent.setBorder(emptyBorder);
-		addRespondent.setFont(font);
-		addRespondent.setHorizontalAlignment(SwingConstants.LEFT);
-		addRespondent.addActionListener(this);
+		addRespondentBtn = new JButton("Add");
+		addRespondentBtn.setBackground(lightBlue);
+		addRespondentBtn.setIcon(ResourcePool.getIcon("plus_small"));
+		addRespondentBtn.setBorder(emptyBorder);
+		addRespondentBtn.setFont(btnFont);
+		addRespondentBtn.setHorizontalAlignment(SwingConstants.LEFT);
+		addRespondentBtn.addActionListener(this);
 
-		removeRespondent = new JButton("Remove Respondent");
-		removeRespondent.setBackground(lightBlue);
-		removeRespondent.setIcon(ResourcePool.getIcon("plus_small"));
-		removeRespondent.setBorder(emptyBorder);
-		removeRespondent.setFont(font);
-		removeRespondent.setHorizontalAlignment(SwingConstants.LEFT);
-		removeRespondent.addActionListener(this);
+		removeRespondentBtn = new JButton("Remove");
+		removeRespondentBtn.setBackground(lightBlue);
+		removeRespondentBtn.setIcon(ResourcePool.getIcon("minus_small"));
+		removeRespondentBtn.setBorder(emptyBorder);
+		removeRespondentBtn.setFont(btnFont);
+		removeRespondentBtn.setHorizontalAlignment(SwingConstants.LEFT);
+		removeRespondentBtn.addActionListener(this);
 
-		removeIncident = new JButton("Remove Incident");
-		removeIncident.setBackground(lightBlue);
-		removeIncident.setIcon(ResourcePool.getIcon("minus_small"));
-		removeIncident.setBorder(emptyBorder);
-		removeIncident.setFont(font);
-		removeIncident.setHorizontalAlignment(SwingConstants.LEFT);
-		removeIncident.addActionListener(this);
+		deleteBtn = new JButton("Delete");
+		deleteBtn.setBackground(lightBlue);
+		deleteBtn.setIcon(ResourcePool.getIcon("delete"));
+		deleteBtn.setBorder(emptyBorder);
+		deleteBtn.setFont(btnFont);
+		deleteBtn.setMinimumSize(new Dimension(40,50));
+		deleteBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+		deleteBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		deleteBtn.addActionListener(this);
 
-		archiveIncident = new JButton("Archive Incident");
-		archiveIncident.setBackground(lightBlue);
-		archiveIncident.setIcon(ResourcePool.getIcon("minus_small"));
-		archiveIncident.setBorder(emptyBorder);
-		archiveIncident.setFont(font);
-		archiveIncident.setHorizontalAlignment(SwingConstants.LEFT);
-		archiveIncident.addActionListener(this);
+		archiveBtn = new JButton("Archive");
+		archiveBtn.setBackground(lightBlue);
+		archiveBtn.setIcon(ResourcePool.getIcon("archive"));
+		archiveBtn.setBorder(emptyBorder);
+		archiveBtn.setFont(btnFont);
+		archiveBtn.setMinimumSize(new Dimension(40,50));
+		archiveBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+		archiveBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		archiveBtn.addActionListener(this);
 
 		onTaskLabel = new JLabel ("On Task:");
 		onTaskLabel.setFont(font);
 
 		assignedDevicesTable = new JTable(deviceTableModel);
-
+		TableColumn distanceCol = assignedDevicesTable.getColumnModel().getColumn(COLUMN_DISTANCE);
+		distanceCol.setMaxWidth(85);
+		JTableHeader header = assignedDevicesTable.getTableHeader();
+		header.setBackground(new Color(0xc8ddf2));
+		
 		JScrollPane onTaskListScroll = new JScrollPane(assignedDevicesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		onTaskListScroll.setPreferredSize(new Dimension(200,70));
+		onTaskListScroll.setPreferredSize(new Dimension(270,110));
+		onTaskListScroll.getViewport().setBackground(new Color(0xedf4fb));
 
 		//time
 		ImageIcon timeIcon = new ImageIcon("images/time.png");
@@ -195,25 +220,27 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		incidentTime.setFont(idFont);
 		updateTimerLabel(0);
 
-		codeButton = new JButton("code");
-		codeButton.setBackground(Color.gray);
-		codeButton.setForeground(Color.white);
-		codeButton.setFont(rightColumnFont);
-		codeButton.setBorder(emptyBorder);
-		codeButton.setMinimumSize(new Dimension(186,30));
+		codeBtn = new JButton("code");
+		codeBtn.setBackground(Color.gray);
+		codeBtn.setForeground(Color.white);
+		codeBtn.setFont(rightColumnFont);
+		codeBtn.setBorder(emptyBorder);
+		codeBtn.setMinimumSize(new Dimension(186,30));
 
-		statusButton = new JButton("Active");
-		statusButton.setBackground(red);
-		statusButton.setForeground(Color.white);
-		statusButton.setFont(rightColumnFont);
-		statusButton.setBorder(emptyBorder);
-		statusButton.setMinimumSize(new Dimension(186,30));
+		statusLabel = new JLabel("Active");
+		statusLabel.setBackground(red);
+		statusLabel.setOpaque(true);
+		statusLabel.setHorizontalAlignment(SwingConstants.CENTER); 
+		statusLabel.setForeground(Color.white);
+		statusLabel.setFont(rightColumnFont);
+		statusLabel.setBorder(emptyBorder);
+		statusLabel.setMinimumSize(new Dimension(186,30));
 
-		/*
+		/* MODIFY ACCORDING TO CHANGES
           The panel is divided into 4 columns and 2 main rows.
 
           column(1): incident id and incident type icon
-          column(2): locateOnMap, addRespondent, removeIncident buttons
+          column(2): locateBtn, addRespondentBtn, deleteBtn buttons
           column(3): on task label and list
           column(4): time, colour code, status
 
@@ -232,128 +259,105 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
           		incident type icon and 3 sequential groups; column(2)-column(4)
 		 */
 
-		//horizontal
+		
+		//horizontal layout: main columns
 		GroupLayout.ParallelGroup columnLeft = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
-		GroupLayout.ParallelGroup columnButtons = layout.createParallelGroup();
-
-
-		GroupLayout.ParallelGroup columnList = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnDescription = layout.createParallelGroup();
+		GroupLayout.ParallelGroup columnList = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnRight = layout.createParallelGroup();
 		
-		
-		GroupLayout.SequentialGroup timeRowSequential = layout.createSequentialGroup();
+		//horizontal layout: left column
 		GroupLayout.SequentialGroup iconSequential = layout.createSequentialGroup();
-
-		//iconSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 50);
 		iconSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 50);
-		iconSequential.addComponent(incidentIconButton, 0, GroupLayout.DEFAULT_SIZE, 100);
-		//iconSequential.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, 100);
-
-	
-		
-		
+		iconSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
 		columnLeft.addComponent(idLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		columnLeft.addGroup(iconSequential);
-
-
 		
 		
-		//columnButtons.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, 150);
-		columnButtons.addComponent(locateOnMap, 0, GroupLayout.DEFAULT_SIZE, 150);
-		columnButtons.addComponent(addRespondent, 0, GroupLayout.DEFAULT_SIZE, 150);
-		columnButtons.addComponent(removeIncident, 0, GroupLayout.DEFAULT_SIZE, 150);
-
-		columnButtons.addComponent(archiveIncident, 0, GroupLayout.DEFAULT_SIZE, 150);
-		columnButtons.addComponent(removeRespondent, 0, GroupLayout.DEFAULT_SIZE, 150);
-
-		columnList.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		//horizontal layout: description column
+		GroupLayout.SequentialGroup descSequential = layout.createSequentialGroup();
+		descSequential.addComponent(descriptionLabel);
+		descSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 70, 120);
+		descSequential.addComponent(saveDescriptionBtn);
+		columnDescription.addGroup(descSequential);
+		columnDescription.addComponent(descriptionScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		
+		//horizontal layout: on task column
+		GroupLayout.SequentialGroup onTaskSequential = layout.createSequentialGroup();
+		onTaskSequential.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 20, 50);
+		onTaskSequential.addComponent(addRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskSequential.addComponent(removeRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		columnList.addGroup(onTaskSequential);
 		columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-
+		
+		//horizontal layout: right column
+		GroupLayout.SequentialGroup buttonsRowSequential = layout.createSequentialGroup();
+		buttonsRowSequential.addComponent(locateBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonsRowSequential.addComponent(archiveBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonsRowSequential.addComponent(deleteBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		GroupLayout.SequentialGroup timeRowSequential = layout.createSequentialGroup();
 		timeRowSequential.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		timeRowSequential.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-
+		columnRight.addGroup(buttonsRowSequential);
 		columnRight.addGroup(timeRowSequential);
-		columnRight.addComponent(codeButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		columnRight.addComponent(statusButton, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		columnRight.addComponent(codeBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		columnRight.addComponent(statusLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 
+		
 		horizontal.addGroup(columnLeft);
-		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 30, 40);
 		horizontal.addGroup(columnDescription);
-		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 30, 40);
-		horizontal.addGroup(columnButtons);
-		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 40, Short.MAX_VALUE);
+		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 15, Short.MAX_VALUE);
 		horizontal.addGroup(columnList);
 		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 40, Short.MAX_VALUE);
 		horizontal.addGroup(columnRight);
 
 		
-		columnDescription.addComponent(descriptionScroll, 0, GroupLayout.DEFAULT_SIZE, 150);
-		columnDescription.addComponent(saveDescription, 0, GroupLayout.DEFAULT_SIZE, 150);
-		columnDescription.addComponent(descriptionLabel, 0, GroupLayout.DEFAULT_SIZE, 150);
 		
-		
-		//vertical
+		//vertical layout: main rows
+		GroupLayout.ParallelGroup rowTop = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
 		GroupLayout.ParallelGroup rowBottom = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
-		GroupLayout.SequentialGroup buttonGroup = layout.createSequentialGroup();
 		
-		GroupLayout.SequentialGroup onTaskGroup = layout.createSequentialGroup();
-		GroupLayout.SequentialGroup rightGroup = layout.createSequentialGroup();
+		//vertical layout: description column
 		GroupLayout.SequentialGroup descriptionGroup = layout.createSequentialGroup();
-		GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
-
-		//columnDescription.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		//columnDescription.addComponent(saveDescription, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		GroupLayout.ParallelGroup descRowParallel = layout.createParallelGroup();
+		descRowParallel.addComponent(descriptionLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		descRowParallel.addComponent(saveDescriptionBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		descriptionGroup.addGroup(descRowParallel);
+		descriptionGroup.addComponent(descriptionScroll);
 		
-	
-		
-		
-		
-		buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		buttonGroup.addComponent(archiveIncident);
-		buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		buttonGroup.addComponent(locateOnMap);
-		buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		buttonGroup.addComponent(addRespondent);
-		buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		buttonGroup.addComponent(removeRespondent);
-		buttonGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		buttonGroup.addComponent(removeIncident);
-
-		onTaskGroup.addComponent(onTaskLabel);
+		//vertical layout: on task column
+		GroupLayout.SequentialGroup onTaskGroup = layout.createSequentialGroup();
+		GroupLayout.ParallelGroup onTaskRowParallel = layout.createParallelGroup();
+		onTaskRowParallel.addComponent(onTaskLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskRowParallel.addComponent(addRespondentBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskRowParallel.addComponent(removeRespondentBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskGroup.addGroup(onTaskRowParallel);
 		onTaskGroup.addComponent(onTaskListScroll);
-
+		
+		//vertical layout: right column
+		GroupLayout.SequentialGroup rightGroup = layout.createSequentialGroup();
+		GroupLayout.ParallelGroup buttonRowParallel = layout.createParallelGroup();
+		buttonRowParallel.addComponent(locateBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonRowParallel.addComponent(archiveBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonRowParallel.addComponent(deleteBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
 		timeRowParallel.addComponent(timeIconLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		timeRowParallel.addComponent(incidentTime, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-
-		
-		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		descriptionGroup.addComponent(descriptionLabel);
-		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		descriptionGroup.addComponent(descriptionScroll);
-		descriptionGroup.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 10);
-		descriptionGroup.addComponent(saveDescription);
-		
-		
 		rightGroup.addGroup(timeRowParallel);
-		rightGroup.addComponent(codeButton);
-		rightGroup.addComponent(statusButton);
+		rightGroup.addComponent(codeBtn);
+		rightGroup.addComponent(statusLabel);
 
-		
+
+		rowTop.addComponent(idLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
+		rowTop.addGroup(buttonRowParallel);
 	
-		rowBottom.addComponent(incidentIconButton, 0, GroupLayout.DEFAULT_SIZE, 100);
-		///rowBottom.addComponent(incidentDescription, 0, GroupLayout.DEFAULT_SIZE, 100);
-		//rowBottom.addComponent(saveDescription, 0, GroupLayout.DEFAULT_SIZE, 100);
-		
-		
-		
-		rowBottom.addGroup(buttonGroup);
+		rowBottom.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
+		rowBottom.addGroup(descriptionGroup);
 		rowBottom.addGroup(onTaskGroup);
-		
 		rowBottom.addGroup(rightGroup);
 
-		vertical.addComponent(idLabel);
-		rowBottom.addGroup(descriptionGroup);
+		vertical.addGroup(rowTop);
 		vertical.addGroup(rowBottom);
 
 		layout.setHorizontalGroup(horizontal);
@@ -390,7 +394,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		for(int i = 0; i < deviceTableModel.getRowCount(); i++)
 			if (deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
 				return;
-		deviceTableModel.addRow(new Object[] {device, (int)device.getLocation().distanceTo(incident.getLocation()) + " meters"});
+		deviceTableModel.addRow(new Object[] {device, (int)device.getLocation().distanceTo(incident.getLocation()) + " m"});
 	}
 
 	@Override
@@ -415,12 +419,12 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		//once the incident is archived, we should not be able to manipulate it (wouldn't make sense)
 		if (getIncident().isArchived())
 			return;
-		if(e.getSource() == saveDescription)
+		if(e.getSource() == saveDescriptionBtn)
 		{
-			saveDescription.setText("Save");
+			saveDescriptionBtn.setText("Save");
 			EyeApplication.get().db_setIncidentDescription(getIncident(), incidentDescription.getText());
 		}
-		if(e.getSource() == addRespondent)
+		if(e.getSource() == addRespondentBtn)
 		{
 			//start out with no choice, set initial smallest distance to something massive
 			double minDist = Double.MAX_VALUE;
@@ -459,14 +463,14 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			if (closestAvailableDevice != null)
 				EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, getIncident());
 		}
-		else if(e.getSource() == removeRespondent)
+		else if(e.getSource() == removeRespondentBtn)
 		{
 			for (Device device : getSelectedDevices())
 				EyeApplication.get().db_setDeviceIncident(device, null); //null incident for 'unassigning'
 		}
-		else if(e.getSource() == archiveIncident)
+		else if(e.getSource() == archiveBtn)
 			EyeApplication.get().db_archiveIncident(getIncident());
-		else if (e.getSource() == locateOnMap)
+		else if (e.getSource() == locateBtn)
 			locateObjectOnMap(getIncident());
 	}
 
@@ -529,7 +533,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			case WiFindUs: icon = ResourcePool.getIcon("wfu"); break;
 			default: icon = ResourcePool.getIcon("none"); break;
 		}
-		incidentIconButton.setIcon(icon);
+		incidentIconLabel.setIcon(icon);
 	}
 	
 	private void updateTimerLabel(long endTimestamp)
