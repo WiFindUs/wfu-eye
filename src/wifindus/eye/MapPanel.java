@@ -112,8 +112,6 @@ public class MapPanel extends JPanel
 		radialMenuItems[RADIAL_WFU] = new RadialMenuItem(cogImage, "Toggle the display\nof WFU items") {
 			@Override public void onClick() { renderer.setDrawingWiFindUs(MapPanel.this, !renderer.isDrawingWiFindUs(MapPanel.this)); }
 		};
-		
-		EyeApplication.get().addTimerListener(this);
 	}
 	
 	public void setRenderer(MapRenderer renderer)
@@ -134,6 +132,7 @@ public class MapPanel extends JPanel
 			mouseDownLeft = true;
 		else if (e.getButton() == MouseEvent.BUTTON2)
 		{
+			EyeApplication.get().addTimerListener(this);
 			mouseDownMiddle = true;
 			showRadialMenu(mouseLocation.x,mouseLocation.y);
 		}
@@ -163,6 +162,7 @@ public class MapPanel extends JPanel
 				mouseOverItem = null;
 			}
 			mouseDownMiddle = false;
+			EyeApplication.get().removeTimerListener(this);
 			repaint();
 		}
 	}	
