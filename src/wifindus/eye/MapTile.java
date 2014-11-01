@@ -23,19 +23,16 @@ import javax.swing.SwingWorker;
 
 import wifindus.Debugger;
 import wifindus.GPSRectangle;
+import wifindus.ResourcePool;
 
 
 public class MapTile
 {
 	public static final int CHUNK_STANDARD_ZOOM = 15;
 	public static final int CHUNK_IMAGE_SIZE = 640;
-	
+
 	private static volatile int runningLoaderCount = 0;
 	private static final int CONCURRENT_LOADER_LIMIT = 3;
-	private static final Color LOADING_FILL = new Color(0, 0, 0, 15);
-	private static final Color LOADING_PROGRESS = new Color(255, 255, 255, 50);
-	private static final Color BORDERS = new Color(255, 102, 0, 155);
-	private static final Stroke BORDER_STROKE = new BasicStroke(3);
 	private static final String IMAGE_FORMAT = "png";
 	private static final String MAPS_URL_BASE = "https://maps.googleapis.com/maps/api/staticmap?";
 	private static final File MAPS_DIR = new File("maps/");
@@ -50,8 +47,18 @@ public class MapTile
 	private ImageLoadWorker loader = null;
 	private volatile Map<String, Boolean> failedLoads = new HashMap<>();
 	private volatile boolean abortThread = false;
+	private boolean renderLoadingImages;
+	
+	//loading overlay stuff
+	private static final Image loadingImage, loadingBarImage, loadingBarFillImage;
+	static
+	{
+		loadingImage = ResourcePool.loadImage("tile_loading", "images/tile_loading.png" );
+		loadingBarImage = ResourcePool.loadImage("tile_loading_bar", "images/tile_loading_bar.png" );
+		loadingBarFillImage = ResourcePool.loadImage("tile_loading_bar_fill", "images/tile_loading_bar_fill.png" );
+	}
 
-	public MapTile(MapRenderer owner, double latitude, double longitude, int zoom, String apiKey)
+	public MapTile(MapRenderer owner, double latitude, double longitude, int zoom, String apiKey, boolean renderLoadingImages)
 	{
 		//settings 
 		this.latitude = latitude;
@@ -59,6 +66,7 @@ public class MapTile
 		this.zoom = zoom;
 		this.apiKey = apiKey;
 		this.renderer = owner;
+		this.renderLoadingImages = renderLoadingImages;
 		
 		//create bounds
 		double scaledRadius = CHUNK_RADIUS / Math.pow(2.0,(zoom - CHUNK_STANDARD_ZOOM));
@@ -85,19 +93,18 @@ public class MapTile
 		//draw placeholder/download progress square
 		if (image == null)
 		{
-			graphics.setStroke(BORDER_STROKE);
-			graphics.setColor(BORDERS);
-			graphics.drawRect(x, y, width, height);
-			graphics.setColor(LOADING_FILL);
-			graphics.fillRect(x, y, width, height);
+			//failed already for this type (IO error etc)
+			if (failedLoads.get(type) == Boolean.TRUE)
+				return;
+			
+			//print "loading" image
+			//(the loading images are low-memory (small)- don't bother cropping them)
+			if (renderLoadingImages)
+				graphics.drawImage(loadingImage, x, y, width, height, null);
 			
 			//not loading currently
 			if (loader == null)
 			{
-				//failed already
-				if (failedLoads.get(type) == Boolean.TRUE)
-					return;
-				
 				//load it
 				if (runningLoaderCount < CONCURRENT_LOADER_LIMIT)
 				{
@@ -107,10 +114,24 @@ public class MapTile
 				}
 			}
 			
-			if (loader != null) //currently loading this image
+			if (loader != null && renderLoadingImages) //currently loading this image
 			{
-				graphics.setColor(LOADING_PROGRESS);
-				graphics.fillRect(x, y, (int)(width * loader.percentage), height);
+				graphics.drawImage(loadingBarImage,
+						x + (int)(tileArea.width*0.046875),
+						y + (int)(tileArea.height*0.6640625),
+						(int)(tileArea.width*0.90625),
+						(int)(tileArea.height*0.1296875),
+						null);
+				
+				if (loader.percentage > 0.0)
+				{
+					graphics.drawImage(loadingBarFillImage,
+							x + (int)(tileArea.width*0.065625),
+							y + (int)(tileArea.height*0.6828125),
+							(int)(tileArea.width*0.8734375*loader.percentage),
+							(int)(tileArea.height*0.090625),
+							null);
+				}
 			}
 			return;
 		}
@@ -173,7 +194,7 @@ public class MapTile
 			}
 			catch (MalformedURLException e)
 			{
-				Debugger.ex(e);
+				Debugger.e("Malformed image download URL!");
 				url = null;
 			}
 			file = new File("maps/"
