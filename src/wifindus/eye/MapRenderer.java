@@ -37,6 +37,7 @@ import wifindus.Debugger;
 import wifindus.GPSRectangle;
 import wifindus.HighResolutionTimerListener;
 import wifindus.MathHelper;
+import wifindus.eye.Incident.Type;
 
 public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	IncidentEventListener, DeviceEventListener, HighResolutionTimerListener
@@ -244,6 +245,109 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		settings.tileType = type;
 		settings.client.repaint();
 	}
+	
+	public final String getTileType(JComponent client)
+	{
+		return getSettings(client).tileType;
+	}
+	
+	public final boolean isDrawingGrid(JComponent client)
+	{
+		return getSettings(client).drawGrid;
+	}
+	
+	public final void setDrawingGrid(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawGrid == draw)
+			return;
+		settings.drawGrid = draw;
+		settings.client.repaint();
+	}
+	
+	public final boolean isDrawingIncidents(JComponent client)
+	{
+		return getSettings(client).drawIncidents;
+	}
+	
+	public final void setDrawingIncidents(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawIncidents == draw)
+			return;
+		settings.drawIncidents = draw;
+		settings.client.repaint();
+	}
+	
+	public final boolean isDrawingDevices(JComponent client)
+	{
+		return getSettings(client).drawDevices;
+	}
+	
+	public final void setDrawingDevices(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawDevices == draw)
+			return;
+		settings.drawDevices = draw;
+		settings.client.repaint();
+	}
+	
+	public final boolean isDrawingNodes(JComponent client)
+	{
+		return getSettings(client).drawNodes;
+	}
+	
+	public final void setDrawingNodes(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawNodes == draw)
+			return;
+		settings.drawNodes = draw;
+		settings.client.repaint();
+	}
+	
+	public final boolean isDrawingMedical(JComponent client)
+	{
+		return getSettings(client).drawMedical;
+	}
+	
+	public final void setDrawingMedical(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawMedical == draw)
+			return;
+		settings.drawMedical = draw;
+		settings.client.repaint();
+	}
+	
+	public final boolean isDrawingSecurity(JComponent client)
+	{
+		return getSettings(client).drawSecurity;
+	}
+	
+	public final void setDrawingSecurity(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawSecurity == draw)
+			return;
+		settings.drawSecurity = draw;
+		settings.client.repaint();
+	}
+	
+	public final boolean isDrawingWiFindUs(JComponent client)
+	{
+		return getSettings(client).drawWiFindUs;
+	}
+	
+	public final void setDrawingWiFindUs(JComponent client, boolean draw)
+	{
+		ClientSettings settings = getSettings(client);
+		if (settings.drawWiFindUs == draw)
+			return;
+		settings.drawWiFindUs = draw;
+		settings.client.repaint();
+	}
 
 	public final void regenerateGeometry(JComponent client)
 	{
@@ -395,9 +499,28 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		if (settings.drawNodes)
 			sortedObjects.addAll(nodes);
 		if (settings.drawDevices)
-			sortedObjects.addAll(devices);
+		{
+			for (MappableObject object : devices)
+			{
+				Device device = (Device)object;
+				if ((device.getCurrentUserType() == Type.Medical && settings.drawMedical)
+					|| (device.getCurrentUserType() == Type.Security && settings.drawSecurity)
+					|| (device.getCurrentUserType() == Type.WiFindUs && settings.drawWiFindUs)
+					|| (device.getCurrentUserType() == Type.None && settings.drawUnknown))
+					sortedObjects.add(object);
+			}
+		}
 		if (settings.drawIncidents)
-			sortedObjects.addAll(incidents);
+		{
+			for (MappableObject object : incidents)
+			{
+				Incident incident = (Incident)object;
+				if ((incident.getType() == Type.Medical && settings.drawMedical)
+					|| (incident.getType() == Type.Security && settings.drawSecurity)
+					|| (incident.getType() == Type.WiFindUs && settings.drawWiFindUs))
+					sortedObjects.add(object);
+			}
+		}
 		Collections.sort(sortedObjects, MarkerLatitudeComparator);
 			paintObjects(graphics, sortedObjects, settings, false);
 		
@@ -756,6 +879,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public boolean drawNodes = true;
 		public boolean drawIncidents = true;
 		public boolean drawDevices = true;
+		public boolean drawMedical = true;
+		public boolean drawSecurity = true;
+		public boolean drawWiFindUs = true;
+		public boolean drawUnknown = true;
 		public Color gridLineColor = new Color(0, 0, 0, 70);
 		public Color gridTextColor = new Color(255, 255, 255, 200);
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
@@ -763,7 +890,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Stroke gridStroke = new BasicStroke(1);
 		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public Color calloutOverlayColor = new Color(255, 255, 255, 100);
-		public String tileType = TYPE_ROADMAP;
+		public String tileType = TYPE_SATELLITE;
 		
 		public void setPoint(MappableObject object)
         {
