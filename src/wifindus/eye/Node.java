@@ -28,19 +28,13 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	private Timestamp lastUpdate = new Timestamp(0);
 	
 	//marker stuff
-	private static Image nodeImage, nodeHoverImage, nodeSelectedImage, nodeHaloImage, nodeHaloInactiveImage;
+	private static Image nodeImage, nodeInactiveImage, nodeHoverImage, nodeSelectedImage;
 	static
 	{
-		ResourcePool.loadImage("node", "images/node.png" );
-		ResourcePool.loadImage("node_hover", "images/node_hover.png" );
-		ResourcePool.loadImage("node_selected", "images/node_selected.png" );
-		ResourcePool.loadImage("node_halo", "images/node_halo.png" );
-		ResourcePool.loadImage("node_halo_inactive", "images/node_halo_inactive.png" );
-		nodeImage = ResourcePool.getImage("node");
-		nodeHoverImage = ResourcePool.getImage("node_hover");
-		nodeSelectedImage = ResourcePool.getImage("node_selected");
-		nodeHaloImage = ResourcePool.getImage("node_halo");
-		nodeHaloInactiveImage = ResourcePool.getImage("node_halo_inactive");
+		nodeImage = ResourcePool.loadImage("node", "images/node.png" );
+		nodeInactiveImage = ResourcePool.loadImage("node_inactive", "images/node_inactive.png" );
+		nodeHoverImage = ResourcePool.loadImage("node_hover", "images/node_hover.png" );
+		nodeSelectedImage = ResourcePool.loadImage("node_selected", "images/node_selected.png" );
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -195,7 +189,6 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		int left = x-w/2;
 		int top = y-h/2;
 		graphics.drawImage(isSelected ? nodeSelectedImage : nodeImage, left, top, w, h, null);
-		graphics.drawImage(nodeHaloImage, left, top, null);
 		if (isHovering)
 			graphics.drawImage(nodeHoverImage, left, top, null);
 	}
