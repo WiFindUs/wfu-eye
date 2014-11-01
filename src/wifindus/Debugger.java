@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -225,9 +227,17 @@ public final class Debugger
 	 */
 	public static void ex(Exception e)
 	{
-		if (debugger != null)
-			debugger.log(Verbosity.Exception,System.err,
-					e.getClass().getName() + ": " + e.getMessage(), false);
+		if (debugger == null)
+			return;
+		
+		StringWriter writer = new StringWriter();
+		PrintWriter printWriter = new PrintWriter( writer );
+		e.printStackTrace( printWriter );
+		printWriter.flush();
+		
+		debugger.log(Verbosity.Exception,System.err,
+				e.getClass().getName() + ": " + e.getMessage() + "\n" + writer.toString(),
+				false);
 	}
 	
 	/**
