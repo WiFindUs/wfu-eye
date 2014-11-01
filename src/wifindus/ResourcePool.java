@@ -23,24 +23,29 @@ public abstract class ResourcePool
 	
 	/**
 	 * Loads an image from a disk resource, skipping it if an image with the given key already exists.
+	 * Also returns the a reference to the Image for convenience. 
 	 * @param key The key to use for the image. Case insensitive.
 	 * @param file The file to load.
+	 * @return An ImageIcon object if the associated Image has been loaded, or NULL. 
 	 */
-	public static void loadImage(String key, String file)
+	public static Image loadImage(String key, String file)
 	{
 		key = checkKey(key);
 		if (file == null)
 			throw new NullPointerException("Parameter 'file' cannot be null.");
-		if (images.containsKey(key))
-				return;
-		try
+		if (!images.containsKey(key))
 		{
-			images.put(key, new ImageContainer(ImageIO.read(new File(file))));
+			try
+			{
+				ImageContainer container = new ImageContainer(ImageIO.read(new File(file)));
+				images.put(key, container);
+			}
+			catch (IOException e)
+			{
+				Debugger.ex(e);
+			}
 		}
-		catch (IOException e)
-		{
-			Debugger.ex(e);
-		}
+		return getImage(key);
 	}
 	
 	/**
