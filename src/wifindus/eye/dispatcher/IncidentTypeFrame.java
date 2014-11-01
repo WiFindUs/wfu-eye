@@ -19,9 +19,6 @@ import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
-import wifindus.eye.User;
-import wifindus.eye.Incident.Type;
-import wifindus.eye.IncidentEventListener;
 
 
 public class IncidentTypeFrame extends JFrame implements MouseListener

@@ -14,12 +14,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.JPanel;
 
-import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.MathHelper;
 import wifindus.ResourcePool;

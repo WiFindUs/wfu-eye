@@ -19,14 +19,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
-import wifindus.Debugger;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.Incident;

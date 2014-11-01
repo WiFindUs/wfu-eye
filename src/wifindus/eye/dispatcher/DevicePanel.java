@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -15,23 +14,17 @@ import java.util.Comparator;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
-import wifindus.Debugger;
 import wifindus.ResourcePool;
 import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.DeviceEventListener;
-import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
-import wifindus.eye.MapFrame;
-import wifindus.eye.Incident.Type;
 import wifindus.eye.Location;
+import wifindus.eye.MapFrame;
 import wifindus.eye.User;
 
 public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, DeviceEventListener

@@ -2,7 +2,6 @@ package wifindus.eye.dispatcher;
 
 import javax.swing.JPanel;
 
-import wifindus.eye.Device;
 import wifindus.eye.MapFrame;
 import wifindus.eye.MappableObject;
 

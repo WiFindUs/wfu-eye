@@ -14,7 +14,6 @@ import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -24,9 +23,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.Document;
 
-import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
@@ -35,7 +32,6 @@ import wifindus.eye.Incident;
 import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
 import wifindus.eye.MapFrame;
-import wifindus.eye.MapPanel;
 import wifindus.eye.User;
 
 public class IncidentPanel extends IncidentParentPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
