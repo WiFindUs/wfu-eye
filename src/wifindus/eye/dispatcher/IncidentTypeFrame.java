@@ -96,6 +96,8 @@ public class IncidentTypeFrame extends JFrame implements MouseListener
 		add(wfu);
 		add(cancel);
 		
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
 
 	}
 	
