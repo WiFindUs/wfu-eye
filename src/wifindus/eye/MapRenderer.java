@@ -41,6 +41,10 @@ import wifindus.MathHelper;
 public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	IncidentEventListener, DeviceEventListener, HighResolutionTimerListener
 {
+	public static final String TYPE_SATELLITE = "satellite";
+	public static final String TYPE_ROADMAP = "roadmap";
+	public static final String TYPE_TERRAIN = "terrain";
+	public static final String TYPE_HYBRID = "hybrid";
 	public static final double ZOOM_SPEED = 2.0;
 	public static final double ZOOM_MAX = 7.0;
 	public static final double ZOOM_MIN = 0.25;
@@ -76,10 +80,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		
 		//background tiles
 		for (int i = 0; i < BACKGROUND_LEVELS; i++)
-			backgrounds[i] = new MapTile(this, latitude, longitude, MapTile.CHUNK_STANDARD_ZOOM-i-1, apiKey);
+			backgrounds[i] = new MapTile(this, latitude, longitude, MapTile.CHUNK_STANDARD_ZOOM-i-1, apiKey, false);
 		
 		//base level tile
-		tiles[0][0] = new MapTile(this, latitude, longitude, MapTile.CHUNK_STANDARD_ZOOM, apiKey);
+		tiles[0][0] = new MapTile(this, latitude, longitude, MapTile.CHUNK_STANDARD_ZOOM, apiKey, true);
 		double longWest = tiles[0][0].getBounds().getNorthWest().getLongitude().doubleValue();
 		double latNorth = tiles[0][0].getBounds().getNorthWest().getLatitude().doubleValue();
 		
@@ -95,7 +99,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 					latNorth - tileHeight * (0.5 + (1.0 * (double)row)),
 					longWest + tileWidth * (0.5 + (1.0 * (double)col)),
 					MapTile.CHUNK_STANDARD_ZOOM+zoom,
-					apiKey);
+					apiKey, true);
 				
 				col++;
 				if (col >= Math.pow(2.0, zoom))
@@ -225,6 +229,21 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		ClientSettings settings = getSettings(client);
 		settings.setZoom(settings.zoomTarget - zoomDelta, interpolated);
 	}
+	
+	public final void setTileType(JComponent client, String type)
+	{
+		ClientSettings settings = getSettings(client);
+		if (type == null)
+			return;
+		
+		type = type.toLowerCase();
+		if (type.equals(settings.tileType)
+			|| (!type.equals(TYPE_SATELLITE) && !type.equals(TYPE_ROADMAP)
+				&& !type.equals(TYPE_TERRAIN) && !type.equals(TYPE_HYBRID)))
+			return;
+		settings.tileType = type;
+		settings.client.repaint();
+	}
 
 	public final void regenerateGeometry(JComponent client)
 	{
@@ -282,7 +301,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			if (settings.drawBackground)
 			{
 				for (int i = BACKGROUND_LEVELS-1; i >= 0; i--)
-					backgrounds[i].paintTile(graphics, "satellite", settings.backgroundAreas[i], settings.clientArea);
+					backgrounds[i].paintTile(graphics, settings.tileType, settings.backgroundAreas[i], settings.clientArea);
 				graphics.setColor(settings.backgroundOverlayColor);
 				graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
 			}
@@ -618,12 +637,12 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	private void paintTilesAtZoomLevel(Graphics2D graphics, ClientSettings settings, int zoomLevel)
 	{
 		if (zoomLevel == 0)
-			tiles[0][0].paintTile(graphics, "satellite", settings.mapArea, settings.shownArea);
+			tiles[0][0].paintTile(graphics, settings.tileType, settings.mapArea, settings.shownArea);
 		else
 		{
 			for (int tile = 0; tile < tiles[zoomLevel].length; tile++)
 			{
-				tiles[zoomLevel][tile].paintTile(graphics, "satellite",
+				tiles[zoomLevel][tile].paintTile(graphics, settings.tileType,
 						tiles[0][0].getBounds().translate(settings.mapArea, tiles[zoomLevel][tile].getBounds()),
 						settings.shownArea);
 			}
@@ -740,10 +759,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Color gridLineColor = new Color(0, 0, 0, 70);
 		public Color gridTextColor = new Color(255, 255, 255, 200);
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
-		public Color backgroundOverlayColor = new Color(0, 0, 0, 50);
+		public Color backgroundOverlayColor = new Color(255, 255, 255, 25);
 		public Stroke gridStroke = new BasicStroke(1);
 		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public Color calloutOverlayColor = new Color(255, 255, 255, 100);
+		public String tileType = TYPE_ROADMAP;
 		
 		public void setPoint(MappableObject object)
         {
