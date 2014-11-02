@@ -79,8 +79,8 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		setBackground(lightBlue);
 		setBorder(BorderFactory.createMatteBorder(0,1,1,0,new Color(0x618197)));
 		Border emptyBorder = BorderFactory.createEmptyBorder();
-		setMaximumSize(new Dimension(1000,200));
-		setMinimumSize(new Dimension(500,200));
+		setMaximumSize(new Dimension(1000,230));
+		setMinimumSize(new Dimension(600,230));
 		Font font, rightColumnFont, idFont, btnFont;
 		font = getFont().deriveFont(Font.BOLD, 15.0f);
 		idFont = getFont().deriveFont(Font.BOLD, 17.0f);
@@ -107,7 +107,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 				
 		incidentDescription = new JTextArea("", 5, 5);
 		incidentDescription.setMinimumSize(new Dimension(270, 110));
-		//incidentDescription.
 		
 		Border border = BorderFactory.createLineBorder(Color.BLACK);
 
@@ -267,43 +266,49 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		//horizontal layout: incident type column (top row)
 		GroupLayout.SequentialGroup IncidentTypeRowSequential = layout.createSequentialGroup();
-		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
-		IncidentTypeRowSequential.addComponent(codeBtn, 0, GroupLayout.DEFAULT_SIZE, 100);
+		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 50);
+		IncidentTypeRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0);
+		IncidentTypeRowSequential.addComponent(codeBtn, 115, GroupLayout.DEFAULT_SIZE, 115);
 		columnIncidentType.addGroup(IncidentTypeRowSequential);
 		
 		//horizontal layout: timer column (top row)
 		GroupLayout.SequentialGroup timerRowSequential = layout.createSequentialGroup();
-		timerRowSequential.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		timerRowSequential.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, 50);
+		timerRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0);
 		timerRowSequential.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		columnTimer.addGroup(timerRowSequential);
 		
 		//horizontal layout: buttons column (top row)
 		GroupLayout.SequentialGroup buttonsRowSequential = layout.createSequentialGroup();
-		buttonsRowSequential.addComponent(locateBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		buttonsRowSequential.addComponent(archiveBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		buttonsRowSequential.addComponent(deleteBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonsRowSequential.addComponent(locateBtn, 0, GroupLayout.DEFAULT_SIZE, 45);
+		buttonsRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0);
+		buttonsRowSequential.addComponent(archiveBtn, 0, GroupLayout.DEFAULT_SIZE, 45);
+		buttonsRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0);
+		buttonsRowSequential.addComponent(deleteBtn, 0, GroupLayout.DEFAULT_SIZE, 45);
 		columnButtons.addGroup(buttonsRowSequential);
 		
 		//horizontal layout: description column (bottom row)
 		GroupLayout.SequentialGroup descSequential = layout.createSequentialGroup();
 		descSequential.addComponent(idLabel);
-		descSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 70, 120);
-		descSequential.addComponent(saveDescriptionBtn);
+		descSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 70, Short.MAX_VALUE);
+		descSequential.addComponent(saveDescriptionBtn,  0, GroupLayout.DEFAULT_SIZE, 70);
 		columnDescription.addGroup(descSequential);
 		columnDescription.addComponent(descriptionScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		
 		//horizontal layout: on task column (bottom row)
 		GroupLayout.SequentialGroup onTaskSequential = layout.createSequentialGroup();
 		onTaskSequential.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		onTaskSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 20, 50);
-		onTaskSequential.addComponent(addRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		onTaskSequential.addComponent(removeRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE);
+		onTaskSequential.addComponent(addRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, 50);
+		onTaskSequential.addComponent(removeRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, 80);
 		columnList.addGroup(onTaskSequential);
 		columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		
 		
 		topRowSequential.addGroup(columnIncidentType);
+		topRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 80, Short.MAX_VALUE);
 		topRowSequential.addGroup(columnTimer);
+		topRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 80, Short.MAX_VALUE);
 		topRowSequential.addGroup(columnButtons);
 		
 		bottomRowSequential.addGroup(columnDescription);
@@ -325,8 +330,8 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		//vertical layout: incident type column (top row)
 		GroupLayout.ParallelGroup incidentTypeParallel = layout.createParallelGroup();
-		incidentTypeParallel.addComponent(incidentIconLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		incidentTypeParallel.addComponent(codeBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		incidentTypeParallel.addComponent(incidentIconLabel, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		incidentTypeParallel.addComponent(codeBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		
 		//vertical layout: timer column (top row)
 		GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
@@ -367,6 +372,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		rowBottom.addGroup(onTaskGroup);
 		
 		vertical.addGroup(rowTop);
+		vertical.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 50, 50);
 		vertical.addGroup(rowBottom);
 
 		layout.setHorizontalGroup(horizontal);
