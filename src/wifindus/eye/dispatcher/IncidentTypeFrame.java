@@ -1,17 +1,28 @@
 package wifindus.eye.dispatcher;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
 import wifindus.Debugger;
@@ -21,80 +32,119 @@ import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
 
 
-public class IncidentTypeFrame extends JFrame implements MouseListener
+public class IncidentTypeFrame extends JFrame implements MouseListener, ActionListener, WindowFocusListener
 {
 	Device device;
 	String type;
 	JLabel medical, security, wfu;
-	JButton cancel;
+	JButton medicalBtn, securityBtn, wfuBtn;
+	JPanel panel, buttonsPanel;
 	Color hover;
 	
 	public IncidentTypeFrame(Device device)
 	{
 		this.device = device;
 		
-		setPreferredSize(new Dimension(400, 300));
+		setPreferredSize(new Dimension(250, 110));
 		setResizable(false);
 		
+		panel = new JPanel();
+		panel.setBackground(Color.white);
+		panel.setBorder(BorderFactory.createLineBorder(Color.black));
+		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+		
 		hover = new Color(0xCCFFFF);
+		Border emptyBorder = BorderFactory.createEmptyBorder();
 		
-		Font titleFont = new Font("Arial", Font.BOLD, 25);
-		Font font = new Font("Arial", Font.BOLD, 15);
+		Font titleFont = new Font("Arial", Font.BOLD, 15);
+		Font font = new Font("Arial", Font.BOLD, 12);
 		
-		GridLayout typelayout = new GridLayout(5,0);
-		setLayout(typelayout);
+		
+		
+		buttonsPanel = new JPanel();
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.LINE_AXIS));
+		buttonsPanel.setBackground(Color.white);
+		buttonsPanel.setMinimumSize(new Dimension(230, 70));
 		
 		JLabel title = new JLabel("Select Incident Type");
 		title.setHorizontalAlignment(SwingConstants.CENTER);
 		title.setFont(titleFont);
 		title.setOpaque(true);
 		title.setBackground(Color.WHITE);
-		add(title);
 
-		ResourcePool.loadImage("medical", "images/medical.png");
-		ResourcePool.loadImage("security", "images/security.png");
-		ResourcePool.loadImage("wfu", "images/wfu.png");
-	      
-		medical = new JLabel("  Medical");
-		security = new JLabel("  Security");
-		wfu = new JLabel("  WiFindUs");
+		ResourcePool.loadImage("medical", "images/medical_medium.png");
+		ResourcePool.loadImage("security", "images/security_medium.png");
+		ResourcePool.loadImage("wfu", "images/wfu_medium.png");
+	    
+		medicalBtn = new JButton("Medical");
+		medicalBtn.setBackground(Color.white);
+		medicalBtn.setIcon(ResourcePool.getIcon("medical"));
+		medicalBtn.setBorder(emptyBorder);
+		medicalBtn.setFont(font);
+		medicalBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+		medicalBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		medicalBtn.addActionListener(this);
+		medicalBtn.addMouseListener(this);
 		
-		cancel = new JButton("Cancel");
-		cancel.setFocusPainted(false);
-		Border emptyBorder = BorderFactory.createEmptyBorder();
-		cancel.setBorder(emptyBorder);
+		securityBtn = new JButton("Security");
+		securityBtn.setBackground(Color.white);
+		securityBtn.setIcon(ResourcePool.getIcon("security"));
+		securityBtn.setBorder(emptyBorder);
+		securityBtn.setFont(font);
+		securityBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+		securityBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		securityBtn.addActionListener(this);
+		securityBtn.addMouseListener(this);
 		
-		medical.setFont(font);
-		security.setFont(font);
-		wfu.setFont(font);
-		cancel.setFont(font);
+		wfuBtn = new JButton("WiFindUs");
+		wfuBtn.setBackground(Color.white);
+		wfuBtn.setIcon(ResourcePool.getIcon("wfu"));
+		wfuBtn.setBorder(emptyBorder);
+		wfuBtn.setFont(font);
+		wfuBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+		wfuBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		wfuBtn.addActionListener(this);
+		wfuBtn.addMouseListener(this);
 		
-		medical.setIcon(ResourcePool.getIcon("medical"));
-		security.setIcon(ResourcePool.getIcon("security"));
-		wfu.setIcon(ResourcePool.getIcon("wfu"));
+		buttonsPanel.add(Box.createHorizontalGlue());
+		buttonsPanel.add(medicalBtn);
+		buttonsPanel.add(Box.createHorizontalGlue());
+		buttonsPanel.add(securityBtn);
+		buttonsPanel.add(Box.createHorizontalGlue());
+		buttonsPanel.add(wfuBtn);
+		buttonsPanel.add(Box.createHorizontalGlue());
 		
-		medical.addMouseListener(this);
-		security.addMouseListener(this);
-		wfu.addMouseListener(this);
-		cancel.addMouseListener(this);
+		panel.add(title);
+		panel.add(Box.createVerticalGlue());
+		panel.add(buttonsPanel);
+		panel.add(Box.createVerticalGlue());
 		
-		medical.setOpaque(true);
-		security.setOpaque(true);
-		wfu.setOpaque(true);
-		cancel.setOpaque(true);
+		title.setAlignmentX(Component.CENTER_ALIGNMENT);
+		buttonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
-		medical.setBackground(Color.WHITE);
-		security.setBackground(Color.WHITE);
-		wfu.setBackground(Color.WHITE);
-		cancel.setBackground(Color.WHITE);
+		add(panel);
 		
-		add(medical);
-		add(security);
-		add(wfu);
-		add(cancel);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		//setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
+		setUndecorated(true);
+		pack();
+		setVisible(true);
+		addWindowFocusListener(this);
 		
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		
+		/*addFocusListener( new FocusListener() {
+		      private boolean gained = false;
+		      @Override
+		      public void focusGained( FocusEvent e ) {
+		        gained = true;
+		      }
+
+		      @Override
+		      public void focusLost( FocusEvent e ) {
+		        if ( gained ){
+		          dispose();
+		        }
+		      }
+		    } );*/
 
 	}
 	
@@ -105,10 +155,10 @@ public class IncidentTypeFrame extends JFrame implements MouseListener
 		return type;
 	}
 	
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		if(e.getSource() == medical)
+	
+	public void actionPerformed(ActionEvent e) 
+	{
+		if(e.getSource() == medicalBtn)
 		{
 			Incident i= EyeApplication.get().db_createIncident(Incident.Type.Medical, device.getLocation());
 			EyeApplication.get().db_setIncidentReportingUser(i, device.getCurrentUser());
@@ -116,7 +166,7 @@ public class IncidentTypeFrame extends JFrame implements MouseListener
     		Dispatcher.get().setEnabled(true);
 			dispose();
 		}
-		else if(e.getSource() == security)
+		else if(e.getSource() == securityBtn)
 		{
 			Incident i= EyeApplication.get().db_createIncident(Incident.Type.Security, device.getLocation());
 			EyeApplication.get().db_setIncidentReportingUser(i, device.getCurrentUser());
@@ -124,7 +174,7 @@ public class IncidentTypeFrame extends JFrame implements MouseListener
     		Dispatcher.get().setEnabled(true);
 			dispose();
 		}
-		else if(e.getSource() == wfu)
+		else if(e.getSource() == wfuBtn)
 		{
 			Incident i= EyeApplication.get().db_createIncident(Incident.Type.WiFindUs, device.getLocation());
 			EyeApplication.get().db_setIncidentReportingUser(i, device.getCurrentUser());
@@ -132,54 +182,47 @@ public class IncidentTypeFrame extends JFrame implements MouseListener
     		Dispatcher.get().setEnabled(true);
 			dispose();
 		}
-		else if(e.getSource() == cancel)
-		{
-			Dispatcher.get().setEnabled(true);
-			 dispose();
-		}
+		
+	}
+	
+	
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
-	
-		if(e.getSource() == medical)
+		if(e.getSource() == medicalBtn)
 		{
-			medical.setBackground(hover);
+			medicalBtn.setBackground(hover);
 		}
-		else if(e.getSource() == security)
+		else if(e.getSource() == securityBtn)
 		{
-			security.setBackground(hover);
+			securityBtn.setBackground(hover);
 		}
-		else if(e.getSource() == wfu)
+		else if(e.getSource() == wfuBtn)
 		{
-			wfu.setBackground(hover);
-		}
-		else if(e.getSource() == cancel)
-		{
-			cancel.setBackground(hover);
+			wfuBtn.setBackground(hover);
 		}
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
-		if(e.getSource() == medical)
+		if(e.getSource() == medicalBtn)
 		{
-			medical.setBackground(Color.WHITE);
+			medicalBtn.setBackground(Color.WHITE);
 		}
-		else if(e.getSource() == security)
+		else if(e.getSource() == securityBtn)
 		{
-			security.setBackground(Color.WHITE);
+			securityBtn.setBackground(Color.WHITE);
 		}
-		else if(e.getSource() == wfu)
+		else if(e.getSource() == wfuBtn)
 		{
-			wfu.setBackground(Color.WHITE);
-		}
-		else if(e.getSource() == cancel)
-		{
-			cancel.setBackground(Color.WHITE);
+			wfuBtn.setBackground(Color.WHITE);
 		}
 		
 	}
@@ -194,5 +237,25 @@ public class IncidentTypeFrame extends JFrame implements MouseListener
 	public void mouseReleased(MouseEvent arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public void windowFocusListener (FocusEvent e) 
+	{
+	
+	}
+
+	@Override
+	public void windowGainedFocus(WindowEvent  we) {
+		// TODO Auto-generated method stub
+	}
+
+
+
+	@Override
+	public void windowLostFocus(WindowEvent  we) 
+	{
+		// TODO Auto-generated method stub
+		Dispatcher.get().setEnabled(true);  
+		dispose();
 	}
 }

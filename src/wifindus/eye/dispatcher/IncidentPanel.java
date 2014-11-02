@@ -62,9 +62,9 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		ResourcePool.loadImage("minus_small",  "images/minus_small.png");
 		ResourcePool.loadImage("locate_small", "images/locate_small.png");
 		ResourcePool.loadImage("none", "images/none.png");
-		ResourcePool.loadImage("medical", "images/medical.png");
-		ResourcePool.loadImage("security", "images/security.png");
-		ResourcePool.loadImage("wfu", "images/wfu.png");
+		ResourcePool.loadImage("medical", "images/medical_medium.png");
+		ResourcePool.loadImage("security", "images/security_medium.png");
+		ResourcePool.loadImage("wfu", "images/wfu_medium.png");
 		ResourcePool.loadImage("delete", "images/delete.png");
 		ResourcePool.loadImage("archive", "images/archive.png");
 		ResourcePool.loadImage("save", "images/save.png");
@@ -226,7 +226,8 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		codeBtn.setForeground(Color.white);
 		codeBtn.setFont(rightColumnFont);
 		codeBtn.setBorder(emptyBorder);
-		codeBtn.setMinimumSize(new Dimension(186,30));
+		codeBtn.setMinimumSize(new Dimension(115,35));
+		codeBtn.setMaximumSize(new Dimension(115,35));
 		codeBtn.addActionListener(this);
 
 
@@ -269,7 +270,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		//horizontal layout: incident type column (top row)
 		GroupLayout.SequentialGroup IncidentTypeRowSequential = layout.createSequentialGroup();
-		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 50);
+		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 40);
 		IncidentTypeRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0);
 		IncidentTypeRowSequential.addComponent(codeBtn, 115, GroupLayout.DEFAULT_SIZE, 115);
 		columnIncidentType.addGroup(IncidentTypeRowSequential);
@@ -334,7 +335,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		//vertical layout: incident type column (top row)
 		GroupLayout.ParallelGroup incidentTypeParallel = layout.createParallelGroup();
 		incidentTypeParallel.addComponent(incidentIconLabel, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		incidentTypeParallel.addComponent(codeBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		incidentTypeParallel.addComponent(codeBtn, 35, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		
 		//vertical layout: timer column (top row)
 		GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();

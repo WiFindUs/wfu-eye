@@ -165,7 +165,7 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
 
-    		Dispatcher.get().setEnabled(false);
+    		//Dispatcher.get().setEnabled(false);
     		IncidentTypeFrame selectIncidentType = new IncidentTypeFrame(device);
     		
     		selectIncidentType.addWindowListener( new WindowAdapter() {
@@ -176,8 +176,8 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
               } );
     		
     		selectIncidentType.setLocationRelativeTo(null);
-    		selectIncidentType.pack();
-    		selectIncidentType.setVisible(true);
+    		selectIncidentType.setLocation(newIncidentButton.getLocationOnScreen());
+    		selectIncidentType.setLocation(selectIncidentType.getX()+20, selectIncidentType.getY()+20);
 
     	}
 		else if (e.getSource() == locateOnMapButton)
