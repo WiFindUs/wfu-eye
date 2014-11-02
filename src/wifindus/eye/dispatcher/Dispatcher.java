@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,7 +29,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import wifindus.Debugger;
 import wifindus.ResourcePool;
+import wifindus.eye.Atmosphere;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
@@ -47,12 +50,13 @@ public class Dispatcher extends EyeApplication
 {
 	private static final long serialVersionUID = 12094147960785467L;
 	private static final String[] sortModes = {
-		"ID",
-		"First Name",
-		"Last Name",
-		"Available First",
-		"Currently Responding First",
-		"Unused Devices First"
+		"User's type",
+		"User's ID",
+		"User's First Name",
+		"User's Last Name",
+		"Available for assignment",
+		"Currently on assignment",
+		"Devices without a user"
 	};
 	private transient JPanel menuPanel, queryPanel, incidentPanel, archivedIncidentPanel, devicePanel;
 	private transient JComboBox<String> sortComboBox;
@@ -297,6 +301,7 @@ public class Dispatcher extends EyeApplication
 		super.deviceCreated(device);
 		DevicePanel newPanel = new DevicePanel(device, mapFrame);
 		devicePanels.add(newPanel);
+		
 		updateDeviceSort();
 		updateDeviceFilter();
 		devicePanel.revalidate();
@@ -369,10 +374,43 @@ public class Dispatcher extends EyeApplication
 		super.windowClosing(e);
 	}
 	
-	@Override public void incidentDescriptionChanged(Incident incident) 
+	@Override
+	public void incidentDescriptionChanged(Incident incident) 
 	{ 
 		super.incidentDescriptionChanged(incident);
 		incidentPanels.get(incident.getID()).setPanelDescription(incident.getDescription());
+	}
+	
+	@Override
+	public void deviceInUse(Device device, User user)
+	{
+		updateDeviceSort();
+		updateDeviceFilter();
+		revalidate();
+	}
+	
+	@Override
+	public void deviceNotInUse(Device device, User oldUser)
+	{
+		updateDeviceSort();
+		updateDeviceFilter();
+		revalidate();
+	}
+	
+	@Override
+	public void deviceAssignedIncident(Device device, Incident incident)
+	{
+		updateDeviceSort();
+		updateDeviceFilter();
+		revalidate();
+	}
+	
+	@Override
+	public void deviceUnassignedIncident(Device device, Incident incident)
+	{
+		updateDeviceSort();
+		updateDeviceFilter();
+		revalidate();
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -389,12 +427,13 @@ public class Dispatcher extends EyeApplication
 		boolean reverse = false;
 		switch (selectionIndex)
 		{
-			case 0: comparator = DevicePanel.COMPARATOR_USER_ID; break;
-			case 1: comparator = DevicePanel.COMPARATOR_USER_NAME_FIRST; break;
-			case 2: comparator = DevicePanel.COMPARATOR_USER_NAME_LAST; break;
-			case 3: comparator = DevicePanel.COMPARATOR_UNASSIGNED_FIRST; break;
-			case 4: comparator = DevicePanel.COMPARATOR_ASSIGNED_FIRST; break;
-			case 5: comparator = DevicePanel.COMPARATOR_USER_ID; reverse = true; break;
+			case 0: comparator = DevicePanel.COMPARATOR_DEVICE_TYPE; break;	
+			case 1: comparator = DevicePanel.COMPARATOR_USER_ID; break;
+			case 2: comparator = DevicePanel.COMPARATOR_USER_NAME_FIRST; break;
+			case 3: comparator = DevicePanel.COMPARATOR_USER_NAME_LAST; break;
+			case 4: comparator = DevicePanel.COMPARATOR_UNASSIGNED_FIRST; break;
+			case 5: comparator = DevicePanel.COMPARATOR_ASSIGNED_FIRST; break;
+			case 6: comparator = DevicePanel.COMPARATOR_USER_ID; reverse = true; break;
 		}
 		Collections.sort(devicePanels, comparator);
 		devicePanel.removeAll();
