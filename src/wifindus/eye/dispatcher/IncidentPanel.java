@@ -39,7 +39,7 @@ import wifindus.eye.User;
 public class IncidentPanel extends IncidentParentPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
-	private transient JLabel idLabel, onTaskLabel, descriptionLabel, incidentIconLabel, statusLabel, incidentTime;
+	private transient JLabel idLabel, onTaskLabel, descriptionLabel, incidentIconLabel, incidentTime;
 	private transient JButton locateBtn, addRespondentBtn, removeRespondentBtn,
 	deleteBtn, codeBtn, archiveBtn, saveDescriptionBtn;
 	private transient JTextArea incidentDescription;
@@ -227,14 +227,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		codeBtn.setBorder(emptyBorder);
 		codeBtn.setMinimumSize(new Dimension(186,30));
 
-		statusLabel = new JLabel("Active");
-		statusLabel.setBackground(red);
-		statusLabel.setOpaque(true);
-		statusLabel.setHorizontalAlignment(SwingConstants.CENTER); 
-		statusLabel.setForeground(Color.white);
-		statusLabel.setFont(rightColumnFont);
-		statusLabel.setBorder(emptyBorder);
-		statusLabel.setMinimumSize(new Dimension(186,30));
 
 		/* MODIFY ACCORDING TO CHANGES
           The panel is divided into 4 columns and 2 main rows.
@@ -260,29 +252,47 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		 */
 
 		
-		//horizontal layout: main columns
-		GroupLayout.ParallelGroup columnLeft = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		//horizontal layout
+		//horizontal layout: top row
+		GroupLayout.SequentialGroup topRowSequential = layout.createSequentialGroup();
+		GroupLayout.ParallelGroup columnIncidentType = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		GroupLayout.ParallelGroup columnTimer = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		GroupLayout.ParallelGroup columnButtons = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		
+		//horizontal layout: bottom row
+		GroupLayout.SequentialGroup bottomRowSequential = layout.createSequentialGroup();
 		GroupLayout.ParallelGroup columnDescription = layout.createParallelGroup();
 		GroupLayout.ParallelGroup columnList = layout.createParallelGroup();
-		GroupLayout.ParallelGroup columnRight = layout.createParallelGroup();
-		
-		//horizontal layout: left column
-		GroupLayout.SequentialGroup iconSequential = layout.createSequentialGroup();
-		iconSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, 50);
-		iconSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
-		columnLeft.addComponent(idLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		columnLeft.addGroup(iconSequential);
 		
 		
-		//horizontal layout: description column
+		//horizontal layout: incident type column (top row)
+		GroupLayout.SequentialGroup IncidentTypeRowSequential = layout.createSequentialGroup();
+		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
+		IncidentTypeRowSequential.addComponent(codeBtn, 0, GroupLayout.DEFAULT_SIZE, 100);
+		columnIncidentType.addGroup(IncidentTypeRowSequential);
+		
+		//horizontal layout: timer column (top row)
+		GroupLayout.SequentialGroup timerRowSequential = layout.createSequentialGroup();
+		timerRowSequential.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		timerRowSequential.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		columnTimer.addGroup(timerRowSequential);
+		
+		//horizontal layout: buttons column (top row)
+		GroupLayout.SequentialGroup buttonsRowSequential = layout.createSequentialGroup();
+		buttonsRowSequential.addComponent(locateBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonsRowSequential.addComponent(archiveBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonsRowSequential.addComponent(deleteBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		columnButtons.addGroup(buttonsRowSequential);
+		
+		//horizontal layout: description column (bottom row)
 		GroupLayout.SequentialGroup descSequential = layout.createSequentialGroup();
-		descSequential.addComponent(descriptionLabel);
+		descSequential.addComponent(idLabel);
 		descSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 70, 120);
 		descSequential.addComponent(saveDescriptionBtn);
 		columnDescription.addGroup(descSequential);
 		columnDescription.addComponent(descriptionScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		
-		//horizontal layout: on task column
+		//horizontal layout: on task column (bottom row)
 		GroupLayout.SequentialGroup onTaskSequential = layout.createSequentialGroup();
 		onTaskSequential.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		onTaskSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 20, 50);
@@ -291,42 +301,59 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		columnList.addGroup(onTaskSequential);
 		columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		
-		//horizontal layout: right column
-		GroupLayout.SequentialGroup buttonsRowSequential = layout.createSequentialGroup();
-		buttonsRowSequential.addComponent(locateBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		buttonsRowSequential.addComponent(archiveBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		buttonsRowSequential.addComponent(deleteBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		GroupLayout.SequentialGroup timeRowSequential = layout.createSequentialGroup();
-		timeRowSequential.addComponent(timeIconLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		timeRowSequential.addComponent(incidentTime, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		columnRight.addGroup(buttonsRowSequential);
-		columnRight.addGroup(timeRowSequential);
-		columnRight.addComponent(codeBtn, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		columnRight.addComponent(statusLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-
 		
-		horizontal.addGroup(columnLeft);
-		horizontal.addGroup(columnDescription);
-		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 15, Short.MAX_VALUE);
-		horizontal.addGroup(columnList);
-		horizontal.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 40, Short.MAX_VALUE);
-		horizontal.addGroup(columnRight);
-
+		topRowSequential.addGroup(columnIncidentType);
+		topRowSequential.addGroup(columnTimer);
+		topRowSequential.addGroup(columnButtons);
+		
+		bottomRowSequential.addGroup(columnDescription);
+		bottomRowSequential.addGroup(columnList);
+		
+		GroupLayout.ParallelGroup horizontalParallel = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		horizontalParallel.addGroup(topRowSequential);
+		horizontalParallel.addGroup(bottomRowSequential);
+		
+		horizontal.addGroup(horizontalParallel);
+		
+		
+		
 		
 		
 		//vertical layout: main rows
 		GroupLayout.ParallelGroup rowTop = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
 		GroupLayout.ParallelGroup rowBottom = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
 		
-		//vertical layout: description column
+		//vertical layout: incident type column (top row)
+		GroupLayout.ParallelGroup incidentTypeParallel = layout.createParallelGroup();
+		incidentTypeParallel.addComponent(incidentIconLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		incidentTypeParallel.addComponent(codeBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		
+		//vertical layout: timer column (top row)
+		GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
+		timeRowParallel.addComponent(timeIconLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		timeRowParallel.addComponent(incidentTime, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		
+		//vertical layout: buttons column (top row)
+		GroupLayout.ParallelGroup buttonRowParallel = layout.createParallelGroup();
+		buttonRowParallel.addComponent(locateBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonRowParallel.addComponent(archiveBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		buttonRowParallel.addComponent(deleteBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		
+		rowTop.addGroup(incidentTypeParallel);
+		rowTop.addGroup(timeRowParallel);
+		rowTop.addGroup(buttonRowParallel);
+	
+		
+		
+		//vertical layout: description column (bottom row)
 		GroupLayout.SequentialGroup descriptionGroup = layout.createSequentialGroup();
 		GroupLayout.ParallelGroup descRowParallel = layout.createParallelGroup();
-		descRowParallel.addComponent(descriptionLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		descRowParallel.addComponent(idLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		descRowParallel.addComponent(saveDescriptionBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		descriptionGroup.addGroup(descRowParallel);
 		descriptionGroup.addComponent(descriptionScroll);
-		
-		//vertical layout: on task column
+				
+		//vertical layout: on task column (bottom row)
 		GroupLayout.SequentialGroup onTaskGroup = layout.createSequentialGroup();
 		GroupLayout.ParallelGroup onTaskRowParallel = layout.createParallelGroup();
 		onTaskRowParallel.addComponent(onTaskLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
@@ -335,28 +362,10 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		onTaskGroup.addGroup(onTaskRowParallel);
 		onTaskGroup.addComponent(onTaskListScroll);
 		
-		//vertical layout: right column
-		GroupLayout.SequentialGroup rightGroup = layout.createSequentialGroup();
-		GroupLayout.ParallelGroup buttonRowParallel = layout.createParallelGroup();
-		buttonRowParallel.addComponent(locateBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		buttonRowParallel.addComponent(archiveBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		buttonRowParallel.addComponent(deleteBtn, 40, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		GroupLayout.ParallelGroup timeRowParallel = layout.createParallelGroup();
-		timeRowParallel.addComponent(timeIconLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		timeRowParallel.addComponent(incidentTime, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-		rightGroup.addGroup(timeRowParallel);
-		rightGroup.addComponent(codeBtn);
-		rightGroup.addComponent(statusLabel);
-
-
-		rowTop.addComponent(idLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
-		rowTop.addGroup(buttonRowParallel);
-	
-		rowBottom.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 100);
+		//vertical: bottom row
 		rowBottom.addGroup(descriptionGroup);
 		rowBottom.addGroup(onTaskGroup);
-		rowBottom.addGroup(rightGroup);
-
+		
 		vertical.addGroup(rowTop);
 		vertical.addGroup(rowBottom);
 
