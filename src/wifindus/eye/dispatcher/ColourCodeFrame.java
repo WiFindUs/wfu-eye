@@ -2,7 +2,10 @@ package wifindus.eye.dispatcher;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -13,7 +16,7 @@ import javax.swing.JPanel;
 
 import wifindus.eye.Incident;
 
-public class ColourCodeFrame extends JFrame{
+public class ColourCodeFrame extends JFrame implements ActionListener, WindowFocusListener{
 
 	private Incident incident;
 	private Color red, orange, blue, yellow, brown, purple, black, green, grey; 
@@ -47,38 +50,47 @@ public class ColourCodeFrame extends JFrame{
 		redBtn = new JButton ("Red");
 		redLbl = new JLabel ("Fire/Smoke");
 		redBtn.setBackground(red);
+		redBtn.addActionListener(this);
 		
 		orangeBtn = new JButton ("Orange");
 		orangeLbl = new JLabel ("Evacuate");
 		orangeBtn.setBackground(orange);
+		orangeBtn.addActionListener(this);
 		
 		blueBtn = new JButton ("Blue");
 		blueLbl = new JLabel ("Medical Emergency");
 		blueBtn.setBackground(blue);
+		blueBtn.addActionListener(this);
 		
 		yellowBtn = new JButton ("Yellow");
 		yellowLbl = new JLabel ("Failure/threat of failure to essential services");
 		yellowBtn.setBackground(yellow);
+		yellowBtn.addActionListener(this);
 		
 		brownBtn = new JButton ("Green");
 		brownLbl = new JLabel ("External Emergencies");
 		brownBtn.setBackground(brown);
+		brownBtn.addActionListener(this);
 		
 		purpleBtn = new JButton ("Purple");
 		purpleLbl = new JLabel ("Bomb Threat");
 		purpleBtn.setBackground(purple);
+		purpleBtn.addActionListener(this);
 		
 		blackBtn = new JButton ("Black");
 		blackLbl = new JLabel ("Personal Threat to others or self");
 		blackBtn.setBackground(black);
+		blackBtn.addActionListener(this);
 		
 		greenBtn = new JButton ("Green");
 		greenLbl = new JLabel ("Correctional Health Services Emergency");
 		greenBtn.setBackground(green);
+		greenBtn.addActionListener(this);
 		
 		greyBtn = new JButton ("Grey");
 		greyLbl = new JLabel ("Unarmed Threat");
 		greyBtn.setBackground(grey);
+		greyBtn.addActionListener(this);
 		
 		
 		//horizontal layout
@@ -164,7 +176,23 @@ public class ColourCodeFrame extends JFrame{
 		setUndecorated(true);
 		pack();
 		setVisible(true);
+		addWindowFocusListener(this);
 		
 		
+	}
+	@Override
+	public void windowGainedFocus(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowLostFocus(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		dispose();
+	}
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+		dispose();
 	}
 }
