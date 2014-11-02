@@ -36,10 +36,16 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 {
 	Device device;
 	String type;
-	JLabel medical, security, wfu;
 	JButton medicalBtn, securityBtn, wfuBtn;
 	JPanel panel, buttonsPanel;
 	Color hover;
+	
+	static
+	{
+		ResourcePool.loadImage("medical", "images/medical_medium.png");
+		ResourcePool.loadImage("security", "images/security_medium.png");
+		ResourcePool.loadImage("wfu", "images/wfu_medium.png");
+	}
 	
 	public IncidentTypeFrame(Device device)
 	{
@@ -55,27 +61,20 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 		
 		hover = new Color(0xCCFFFF);
 		Border emptyBorder = BorderFactory.createEmptyBorder();
-		
 		Font titleFont = new Font("Arial", Font.BOLD, 15);
 		Font font = new Font("Arial", Font.BOLD, 12);
-		
-		
-		
-		buttonsPanel = new JPanel();
-		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.LINE_AXIS));
-		buttonsPanel.setBackground(Color.white);
-		buttonsPanel.setMinimumSize(new Dimension(230, 70));
 		
 		JLabel title = new JLabel("Select Incident Type");
 		title.setHorizontalAlignment(SwingConstants.CENTER);
 		title.setFont(titleFont);
 		title.setOpaque(true);
 		title.setBackground(Color.WHITE);
-
-		ResourcePool.loadImage("medical", "images/medical_medium.png");
-		ResourcePool.loadImage("security", "images/security_medium.png");
-		ResourcePool.loadImage("wfu", "images/wfu_medium.png");
 	    
+		buttonsPanel = new JPanel();
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.LINE_AXIS));
+		buttonsPanel.setBackground(Color.white);
+		buttonsPanel.setMinimumSize(new Dimension(230, 70));
+		
 		medicalBtn = new JButton("Medical");
 		medicalBtn.setBackground(Color.white);
 		medicalBtn.setIcon(ResourcePool.getIcon("medical"));
@@ -118,34 +117,17 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 		panel.add(Box.createVerticalGlue());
 		panel.add(buttonsPanel);
 		panel.add(Box.createVerticalGlue());
-		
 		title.setAlignmentX(Component.CENTER_ALIGNMENT);
 		buttonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
 		add(panel);
 		
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		//setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
 		setUndecorated(true);
 		pack();
 		setVisible(true);
 		addWindowFocusListener(this);
 		
-		/*addFocusListener( new FocusListener() {
-		      private boolean gained = false;
-		      @Override
-		      public void focusGained( FocusEvent e ) {
-		        gained = true;
-		      }
-
-		      @Override
-		      public void focusLost( FocusEvent e ) {
-		        if ( gained ){
-		          dispose();
-		        }
-		      }
-		    } );*/
-
 	}
 	
 	
