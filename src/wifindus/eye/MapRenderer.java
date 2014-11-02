@@ -742,7 +742,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	    @Override
 	    public int compare(MappableObject o1, MappableObject o2)
 	    {
-	        return Double.compare(o2.getLocation().getLatitude(), o1.getLocation().getLatitude());
+	    	if (o1.getLocation().getLatitude() == null && o2.getLocation().getLatitude() == null)
+	    		return 0;
+	    	if (o1.getLocation().getLatitude() != null && o2.getLocation().getLatitude() != null)
+	        	return Double.compare(o2.getLocation().getLatitude(), o1.getLocation().getLatitude());
+	        return o1.getLocation().getLatitude() != null ? 1 : -1;
 	    }
 	};
 	
