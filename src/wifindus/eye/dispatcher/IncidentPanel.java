@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -225,6 +227,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		codeBtn.setFont(rightColumnFont);
 		codeBtn.setBorder(emptyBorder);
 		codeBtn.setMinimumSize(new Dimension(186,30));
+		codeBtn.addActionListener(this);
 
 
 		/* MODIFY ACCORDING TO CHANGES
@@ -487,6 +490,13 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			EyeApplication.get().db_archiveIncident(getIncident());
 		else if (e.getSource() == locateBtn)
 			locateObjectOnMap(getIncident());
+		
+		if (e.getSource() == codeBtn)
+    	{
+    		ColourCodeFrame colourCodeFrame = new ColourCodeFrame();
+    		colourCodeFrame.setLocation(codeBtn.getLocationOnScreen());
+    		colourCodeFrame.setLocation(colourCodeFrame.getX()+40, colourCodeFrame.getY()+40);
+    	}
 	}
 
 	/**
