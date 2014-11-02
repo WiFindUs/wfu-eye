@@ -494,7 +494,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		if (e.getSource() == codeBtn)
     	{
-    		ColourCodeFrame colourCodeFrame = new ColourCodeFrame();
+    		ColourCodeFrame colourCodeFrame = new ColourCodeFrame(this);
     		colourCodeFrame.setLocation(codeBtn.getLocationOnScreen());
     		colourCodeFrame.setLocation(colourCodeFrame.getX()+40, colourCodeFrame.getY()+40);
     	}
@@ -572,6 +572,19 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		long hours = minutes / 60;
 		
 		incidentTime.setText(String.format("%02d : %02d : %02d", hours % 24, minutes % 60, seconds % 60));
+	}
+	
+	public void setCode(String code, Color color){
+		codeBtn.setText(code);
+		codeBtn.setBackground(color);
+		if(code.equals("Yellow") || code.equals("Green"))
+		{
+			codeBtn.setForeground(Color.black);
+		}
+		else
+		{
+			codeBtn.setForeground(Color.white);
+		}
 	}
 }
 

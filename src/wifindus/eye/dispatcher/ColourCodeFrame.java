@@ -19,12 +19,16 @@ import wifindus.eye.Incident;
 public class ColourCodeFrame extends JFrame implements ActionListener, WindowFocusListener{
 
 	private Incident incident;
+	private IncidentPanel incidentPanel;
+	private String colour;
 	private Color red, orange, blue, yellow, brown, purple, black, green, grey; 
 	private JButton redBtn, orangeBtn, blueBtn, yellowBtn, brownBtn, purpleBtn, blackBtn, greenBtn, greyBtn;
 	private JLabel redLbl, orangeLbl, blueLbl, yellowLbl, brownLbl, purpleLbl, blackLbl, greenLbl, greyLbl;
 	private JPanel panel;
-	public ColourCodeFrame()
+	
+	public ColourCodeFrame(IncidentPanel incidentPanel)
 	{
+		this.incidentPanel = incidentPanel;
 		setPreferredSize(new Dimension(400, 300));
 		setResizable(false);
 		panel = new JPanel();
@@ -36,7 +40,7 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
-		
+		colour = "red";
 		red = new Color(0xfd0b15);
 		orange = new Color (0xff9c00);
 		blue = new Color(0x004eff);
@@ -198,8 +202,46 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		dispose();
 	}
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
+	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
+		if (e.getSource() == redBtn)
+		{
+			incidentPanel.setCode("Red", red);
+		}
+		if (e.getSource() == orangeBtn)
+		{
+			incidentPanel.setCode("Orange", orange);
+		}
+		if (e.getSource() == blueBtn)
+		{
+			incidentPanel.setCode("Blue", blue);
+		}
+		if (e.getSource() == yellowBtn)
+		{
+			incidentPanel.setCode("Yellow", yellow);
+		}
+		if (e.getSource() == brownBtn)
+		{
+			incidentPanel.setCode("Brown", brown);
+		}
+		if (e.getSource() == purpleBtn)
+		{
+			incidentPanel.setCode("Purple", purple);
+		}
+		if (e.getSource() == blackBtn)
+		{
+			incidentPanel.setCode("Black", black);
+		}
+		if (e.getSource() == greenBtn)
+		{
+			incidentPanel.setCode("Green", green);
+		}
+		if (e.getSource() == greyBtn)
+		{
+			incidentPanel.setCode("Grey", grey);
+		}
+
 		dispose();
 	}
+	
 }
