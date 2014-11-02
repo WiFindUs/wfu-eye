@@ -33,7 +33,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	public static final String TYPE_TERRAIN = "terrain";
 	public static final String TYPE_HYBRID = "hybrid";
 	public static final double ZOOM_SPEED = 2.0;
-	public static final double ZOOM_MAX = 7.0;
+	public static final double ZOOM_MAX = 10.0;
 	public static final double ZOOM_MIN = 0.25;
 	public static final int BACKGROUND_LEVELS = 3;
 	private volatile Map<JComponent, ClientSettings> clients = new HashMap<>();
@@ -52,6 +52,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		new MapTile[1],
 		new MapTile[4],
 		new MapTile[16],
+		new MapTile[64],
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -213,7 +214,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	public final void dragZoom(JComponent client, double zoomDelta, boolean interpolated)
 	{
 		ClientSettings settings = getSettings(client);
-		settings.setZoom(settings.zoomTarget - zoomDelta, interpolated);
+		//settings.setZoom(settings.zoomTarget - zoomDelta, interpolated);
+		settings.relativeZoom(settings.zoomTarget - zoomDelta);
 	}
 	
 	public final void setTileType(JComponent client, String type)
@@ -396,7 +398,9 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 				graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
 			}
 			
-			if (settings.zoom >= 1.5)
+			if (settings.zoom >= 5)
+				paintTilesAtZoomLevel(graphics, settings, 3);
+			else if (settings.zoom >= 1.5)
 				paintTilesAtZoomLevel(graphics, settings, 2);
 			else if (settings.zoom >= 0.75)
 				paintTilesAtZoomLevel(graphics, settings, 1);
@@ -862,7 +866,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Color gridTextColor = new Color(255, 255, 255, 200);
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
 		public Color backgroundOverlayColor = new Color(255, 255, 255, 25);
-		public Stroke gridStroke = new BasicStroke(1);
+		public Stroke gridStroke = new BasicStroke(3);
 		public Font font = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public String tileType = TYPE_SATELLITE;
 		
@@ -937,7 +941,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
     		if (zoomInterp >= 1.0)
     			setZoom(target, true);
     		else
-    			zoomTarget = target;
+    			zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN,target));
         }
 	}
 
