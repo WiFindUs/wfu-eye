@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.InetAddress;
@@ -27,12 +29,13 @@ import wifindus.eye.Location;
 import wifindus.eye.MapFrame;
 import wifindus.eye.User;
 
-public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, DeviceEventListener
+public class DevicePanel extends MapFrameLinkedPanel
+	implements ActionListener, DeviceEventListener
 {
 	private static final long serialVersionUID = -953467312117311967L;
     private transient volatile Device device = null;
     private transient JButton newIncidentButton, locateOnMapButton;
-    private transient JLabel logo, name, location, status;
+    private transient JLabel logo, name, location, status, deviceHash;
     
     static
     {
@@ -59,35 +62,41 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     	if (device == null)
 			throw new NullPointerException("Parameter 'device' cannot be null.");
 		this.device = device;
+		boolean opaqueControls = true;
+		Color opaqueColour = Color.white;
 		
-		//cosmetic properties
+		//panel properties
+		setLayout(null);
+		setPreferredSize(new Dimension(380,90));
         setBorder(BorderFactory.createMatteBorder(1,0,1,0 , new Color(0x618197)));
-        setBackground(Color.white);
         setMaximumSize(new Dimension(380,95));
         setMinimumSize(new Dimension(380,95));
-        
-        Font font, nameFont;
-        nameFont = getFont().deriveFont(Font.BOLD, 15.0f);
-        font = getFont().deriveFont(Font.BOLD, 13.0f);
-        
         setBackground(Color.white);
-        setLayout(null);
-        setPreferredSize(new Dimension(380,90));
         
-        //user number&name OR device ID
+        //user name
         name = new JLabel();
-        name.setFont(nameFont);
-        name.setOpaque(true);
-        name.setBackground(Color.white);
+        name.setFont(getFont().deriveFont(Font.BOLD, 15.0f));
+        name.setOpaque(opaqueControls);
+        name.setBackground(opaqueColour);
+        
+        //device hash
+        deviceHash = new JLabel();
+        deviceHash.setHorizontalAlignment(SwingConstants.RIGHT);
+        deviceHash.setFont(new Font(Font.MONOSPACED, Font.ITALIC, 12));
+        deviceHash.setForeground(Color.DARK_GRAY);
+        deviceHash.setOpaque(opaqueControls);
+        deviceHash.setBackground(opaqueColour);
+        deviceHash.setText(device.getHash());
         
         //logo
         (logo = new JLabel()).setBackground(Color.white);
                
         //create a new incident button
+        Font font = getFont().deriveFont(Font.BOLD, 13.0f);
         Border emptyBorder = BorderFactory.createEmptyBorder();
         newIncidentButton = new JButton("New Incident");
         newIncidentButton.setIcon(ResourcePool.getIcon("plus_small"));
-        newIncidentButton.setBackground(Color.white);
+        newIncidentButton.setBackground(opaqueColour);
         newIncidentButton.addActionListener(this);
         newIncidentButton.setHorizontalAlignment(SwingConstants.LEFT);
         newIncidentButton.setMargin(new Insets(0,0,0,0));
@@ -97,7 +106,7 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
         //locate a device/user on the map button
         locateOnMapButton = new JButton("Locate on map");
         locateOnMapButton.setIcon(ResourcePool.getIcon("locate_small"));
-        locateOnMapButton.setBackground(Color.white);
+        locateOnMapButton.setBackground(opaqueColour);
         locateOnMapButton.addActionListener(this);
         locateOnMapButton.setHorizontalAlignment(SwingConstants.LEFT);
         locateOnMapButton.setMargin(new Insets(0,0,0,0));
@@ -111,10 +120,9 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
         status = new JLabel();
         status.setFont(font);
         status.setPreferredSize(new Dimension(116,30));
-        status.setForeground(Color.white);
-        status.setOpaque(true);
-        Border paddingBorder = BorderFactory.createEmptyBorder(0,15,0,15);
-        status.setBorder(paddingBorder);
+        status.setForeground(opaqueColour);
+        status.setOpaque(opaqueControls);
+        status.setBorder(BorderFactory.createEmptyBorder(0,15,0,15));
         
         //add controls
         add(name);
@@ -122,13 +130,15 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
         add(newIncidentButton);
         add(locateOnMapButton);
         add(status);
+        add(deviceHash);
         
         //set control bounds
-        name.setBounds(20, 3, 300, 20);
+        name.setBounds(20, 3, 270, 20);
         logo.setBounds(20,30,60,60);
         newIncidentButton.setBounds(90,37,120,20);
         locateOnMapButton.setBounds(90,60,120,20);
         status.setBounds(250,45,100,25);
+        deviceHash.setBounds(297,3,80,20);
         
         //fire usage event to set the initial state
         if (device.getCurrentUser() == null)
@@ -164,8 +174,6 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
     	//Listener for new incident
     	if (e.getSource() == newIncidentButton && device.getCurrentUser() != null)
     	{
-
-    		//Dispatcher.get().setEnabled(false);
     		IncidentTypeFrame selectIncidentType = new IncidentTypeFrame(device);
     		
     		selectIncidentType.addWindowListener( new WindowAdapter() {
@@ -232,6 +240,18 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
 	@Override public void deviceAddressChanged(Device device, InetAddress oldAddress,
 			InetAddress newAddress) { }
 	@Override public void deviceUpdated(Device device) { }
+	
+	public static final Comparator<DevicePanel> COMPARATOR_DEVICE_TYPE = new Comparator<DevicePanel>()
+	{
+		@Override
+		public int compare(DevicePanel o1, DevicePanel o2)
+		{
+			int comparison = userComparatorCheck(o1,o2);
+			if (comparison >= -1)
+				return comparison;
+			return o1.getDevice().getCurrentUserType().compareTo(o2.getDevice().getCurrentUserType());
+		}
+	};
 	
 	public static final Comparator<DevicePanel> COMPARATOR_USER_ID = new Comparator<DevicePanel>()
 	{
@@ -342,8 +362,9 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
 		
 		if (device.getCurrentUser() != null)
 		{
+			User user = device.getCurrentUser();
 			ImageIcon icon = null;
-			switch (device.getCurrentUser().getType())
+			switch (user.getType())
 			{
 				case Medical: icon = ResourcePool.getIcon("medical"); break;
 				case Security: icon = ResourcePool.getIcon("security"); break;
@@ -352,7 +373,8 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
 			}
 			logo.setIcon(icon);
 			
-			name.setText(device.getCurrentUser().toString() + ": " + device.getCurrentUser().getNameFull());
+			name.setText("[" + user.getID() + "] " + user.getNameFull());
+			status.setVisible(true);
 			if (device.getCurrentIncident() != null)
 			{
 				status.setText(device.getCurrentIncident().toString());
@@ -367,10 +389,10 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
 		}
 		else
 		{
+			
 			logo.setIcon(ResourcePool.getIcon("none"));
-			name.setText(device.toString());
-			status.setText("No user.");
-			status.setBackground(Color.gray);
+			name.setText("Unused device");
+			status.setVisible(false);
 			location.setText("");
 		}
 		repaint();
@@ -382,9 +404,7 @@ public class DevicePanel extends MapFrameLinkedPanel implements ActionListener, 
 		//it's not currently responding to an event,
 		//and it has lat/long components
 		boolean latlong = device.getLocation().hasLatLong();
-		newIncidentButton.setEnabled(device.getCurrentUser() != null && latlong);
-		locateOnMapButton.setEnabled(latlong);
+		newIncidentButton.setVisible(device.getCurrentUser() != null && latlong);
+		locateOnMapButton.setVisible(latlong);
 	}
-
-	
 }
