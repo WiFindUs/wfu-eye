@@ -275,12 +275,14 @@ public class Dispatcher extends EyeApplication
 		
 		//create map renderer
 		mapRenderer = new MapRenderer(
-			getConfig().getDouble("map.center_latitude"),
-			getConfig().getDouble("map.center_longitude"),
+			getConfig().getDouble("map.center_latitude", Location.GPS_MARKS_HOUSE.getLatitude().doubleValue()),
+			getConfig().getDouble("map.center_longitude", Location.GPS_MARKS_HOUSE.getLongitude().doubleValue()),
 			getConfig().getString("map.api_key"),
-			getConfig().getInt("map.grid_rows"),
-			getConfig().getInt("map.grid_columns"));
-		
+			getConfig().getInt("map.grid_rows", 10),
+			getConfig().getInt("map.grid_columns", 10),
+			getConfig().getDouble("map.grid_scale_x", 1.0),
+			getConfig().getDouble("map.grid_scale_y", 1.0));
+
 		//spawn map window
 		(mapFrame = new MapFrame(mapRenderer)).setVisible(true);
 	}

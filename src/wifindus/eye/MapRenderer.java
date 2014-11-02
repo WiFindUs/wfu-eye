@@ -47,6 +47,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	private JComponent lastClient = null;
 	private ClientSettings lastSettings = null;
 	private final MapTile[] backgrounds = new MapTile[BACKGROUND_LEVELS];
+	private final double gridScaleX;
+	private final double gridScaleY;
 	private final MapTile[][] tiles = new MapTile[][]
 	{
 		new MapTile[1],
@@ -59,11 +61,13 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	// CONSTRUCTORS
 	/////////////////////////////////////////////////////////////////////
 	
-	public MapRenderer(double latitude, double longitude, String apiKey, int gridRows, int gridColumns)
+	public MapRenderer(double latitude, double longitude, String apiKey, int gridRows, int gridColumns, double gridScaleX, double gridScaleY)
 	{
 		//properties
 		this.gridRows = gridRows;
 		this.gridColumns = gridColumns;
+		this.gridScaleX = gridScaleX;
+		this.gridScaleY = gridScaleY;
 		
 		//background tiles
 		for (int i = 0; i < BACKGROUND_LEVELS; i++)
@@ -366,8 +370,14 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		Rectangle2D.Double.intersect(settings.clientArea, settings.mapArea, settings.shownArea);
 		
 		//grid stuff
-        settings.gridStepX = settings.mapSize / (double)gridColumns;
-        settings.gridStepY = settings.mapSize / (double)gridRows;
+		if (settings.gridArea == null)
+			settings.gridArea = new Rectangle2D.Double();
+		settings.gridArea.width = settings.mapSize * gridScaleX;
+		settings.gridArea.height = settings.mapSize * gridScaleY;
+		settings.gridArea.x = settings.mapArea.x + (settings.mapArea.width / 2.0) - (settings.gridArea.width / 2.0);
+		settings.gridArea.y = settings.mapArea.y + (settings.mapArea.height / 2.0) - (settings.gridArea.height / 2.0);
+        settings.gridStepX = settings.gridArea.width / (double)gridColumns;
+        settings.gridStepY = settings.gridArea.height / (double)gridRows;
         
         //object locations
         settings.setPoints(devices);
@@ -411,14 +421,20 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		//draw grid
 		if (settings.drawGrid)
 		{
-	        //metrics etc
+	        //bounding box
 	        graphics.setStroke(settings.gridStroke);
-	        FontMetrics metrics = graphics.getFontMetrics();
+	        graphics.setColor(settings.gridLineColor);
+	        graphics.drawRect((int)settings.gridArea.x,
+	        		(int)settings.gridArea.y,
+	        		(int)settings.gridArea.width,
+	        		(int)settings.gridArea.height);
 	        
+	        //metrics etc
+	        FontMetrics metrics = graphics.getFontMetrics();
 	        //rows
 	        for (int i = 0; i < gridRows; i++)
 	        {
-	        	int lineY = (int)(settings.mapArea.y + settings.gridStepY * (double)(i + 1));
+	        	int lineY = (int)(settings.gridArea.y + settings.gridStepY * (double)(i + 1));
 	        	if (lineY < settings.shownArea.y)
 	        		continue;
 	        	if (lineY > (settings.shownArea.y+settings.shownArea.height))
@@ -428,7 +444,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 				int stringW = metrics.stringWidth(label);
 				int stringH = metrics.getAscent() + metrics.getDescent();
 				int labelSize = (int)(Math.max(stringW,stringH) * 1.2);
-				int labelX = settings.shownArea.x > labelSize ? (int)(settings.shownArea.x-labelSize) : 0;
+				int labelX = settings.gridArea.x > labelSize ? (int)(settings.gridArea.x-labelSize) : 0;
 				int labelY = lineY - (int)(settings.gridStepY/2.0);
 	        	
 	        	//text shadow
@@ -438,9 +454,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		        		labelSize, labelSize);
 	        	
 	        	//line
-	        	graphics.setColor(settings.gridLineColor);
-	        	if (i < gridRows-1)
-	        		graphics.drawLine((int)settings.mapArea.x, lineY, (int)(settings.mapArea.x+settings.mapArea.width), lineY);
+		        if (i < gridRows-1)
+		        {
+		        	graphics.setColor(settings.gridLineColor);
+	        		graphics.drawLine((int)settings.gridArea.x, lineY, (int)(settings.gridArea.x+settings.gridArea.width), lineY);
+		        }
 	        	
 	        	//text
 	        	graphics.setColor(settings.gridTextColor);
@@ -452,7 +470,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	        //columns
 	        for (int i = 0; i < gridColumns; i++)
 	        {
-	        	int lineX = (int)(settings.mapArea.x + settings.gridStepX * (double)(i + 1));
+	        	int lineX = (int)(settings.gridArea.x + settings.gridStepX * (double)(i + 1));
 	        	if (lineX < settings.shownArea.x)
 	        		continue;
 	        	if (lineX > (settings.shownArea.x+settings.shownArea.width))
@@ -462,7 +480,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 				int stringH = metrics.getAscent() + metrics.getDescent();
 				int labelSize = Math.max(stringW,stringH);
 				int labelX = lineX - (int)(settings.gridStepX/2.0);
-				int labelY = settings.shownArea.y > labelSize ? (int)(settings.shownArea.y-labelSize) : 0;
+				int labelY = settings.gridArea.y > labelSize ? (int)(settings.gridArea.y-labelSize) : 0;
 	        	
 	        	//text shadow
 		        graphics.setColor(settings.gridShadingColor);
@@ -471,9 +489,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		        		labelSize, labelSize);
 	        	
 	        	//line
-	        	graphics.setColor(settings.gridLineColor);
-	        	if (i < gridColumns-1)
-	        		graphics.drawLine(lineX,(int)settings.mapArea.y,lineX,(int)(settings.mapArea.y+settings.mapArea.height));
+		        if (i < gridColumns - 1)
+		        {
+		        	graphics.setColor(settings.gridLineColor);
+		        	graphics.drawLine(lineX,(int)settings.gridArea.y,lineX,(int)(settings.gridArea.y+settings.gridArea.height));
+		        }
 
 	        	//text
 	        	graphics.setColor(settings.gridTextColor);
@@ -847,6 +867,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		Rectangle2D.Double clientArea;
 		Rectangle2D.Double mapArea;
 		Rectangle2D.Double shownArea;
+		Rectangle2D.Double gridArea;
 		Rectangle2D.Double[] backgroundAreas = new Rectangle2D.Double[BACKGROUND_LEVELS];
         public double gridStepX;
         public double gridStepY;
@@ -866,7 +887,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Color gridTextColor = new Color(255, 255, 255, 200);
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
 		public Color backgroundOverlayColor = new Color(255, 255, 255, 25);
-		public Stroke gridStroke = new BasicStroke(3);
+		public Stroke gridStroke = new BasicStroke(2);
 		public Font font = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public String tileType = TYPE_SATELLITE;
 		

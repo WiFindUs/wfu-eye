@@ -158,16 +158,6 @@ public abstract class EyeApplication extends JFrame
 		config.defaultInt("mysql.port", 3306, 1024, 65535);
 		config.defaultString("mysql.database", "wfu_eye_db");
 		config.defaultInt("mysql.update_interval", 1000, 100, 30000);
-		//map
-		config.defaultInt("map.grid_rows", 10);
-		config.defaultInt("map.grid_columns", 10);
-		config.defaultDouble("map.center_latitude", Location.GPS_MARKS_HOUSE.getLatitude().doubleValue(), -90.0, 90.0);
-		config.defaultDouble("map.center_longitude", Location.GPS_MARKS_HOUSE.getLongitude().doubleValue(), -180.0, 180.0);
-		config.defaultBoolean("map.high_res", true);
-		config.defaultInt("map.zoom", 16, 15, 21);
-		config.defaultString("map.type", new String[]{"satellite","roadmap","terrain","hybrid"});
-		
-		
 		//ui stuff
 		config.defaultInt("ui.update_fps", 60);
 		//output config
