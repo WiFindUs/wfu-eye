@@ -38,11 +38,11 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		layout.setAutoCreateContainerGaps(true);
 		
 		red = new Color(0xfd0b15);
-		orange = Color.orange;
-		blue = Color.blue;
+		orange = new Color (0xff9c00);
+		blue = new Color(0x004eff);
 		yellow = Color.yellow;
-		brown = Color.orange;
-		purple = Color.pink;
+		brown = new Color(0xa28725);
+		purple = new Color(0xbf1de8);
 		black = Color.black;
 		green = Color.green;
 		grey = Color.gray;
@@ -50,16 +50,19 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		redBtn = new JButton ("Red");
 		redLbl = new JLabel ("Fire/Smoke");
 		redBtn.setBackground(red);
+		redBtn.setForeground(Color.white);
 		redBtn.addActionListener(this);
 		
 		orangeBtn = new JButton ("Orange");
 		orangeLbl = new JLabel ("Evacuate");
 		orangeBtn.setBackground(orange);
+		orangeBtn.setForeground(Color.white);
 		orangeBtn.addActionListener(this);
 		
 		blueBtn = new JButton ("Blue");
 		blueLbl = new JLabel ("Medical Emergency");
 		blueBtn.setBackground(blue);
+		blueBtn.setForeground(Color.white);
 		blueBtn.addActionListener(this);
 		
 		yellowBtn = new JButton ("Yellow");
@@ -67,19 +70,22 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		yellowBtn.setBackground(yellow);
 		yellowBtn.addActionListener(this);
 		
-		brownBtn = new JButton ("Green");
+		brownBtn = new JButton ("Brown");
 		brownLbl = new JLabel ("External Emergencies");
 		brownBtn.setBackground(brown);
+		brownBtn.setForeground(Color.white);
 		brownBtn.addActionListener(this);
 		
 		purpleBtn = new JButton ("Purple");
 		purpleLbl = new JLabel ("Bomb Threat");
 		purpleBtn.setBackground(purple);
+		purpleBtn.setForeground(Color.white);
 		purpleBtn.addActionListener(this);
 		
 		blackBtn = new JButton ("Black");
 		blackLbl = new JLabel ("Personal Threat to others or self");
 		blackBtn.setBackground(black);
+		blackBtn.setForeground(Color.white);
 		blackBtn.addActionListener(this);
 		
 		greenBtn = new JButton ("Green");
@@ -90,6 +96,7 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		greyBtn = new JButton ("Grey");
 		greyLbl = new JLabel ("Unarmed Threat");
 		greyBtn.setBackground(grey);
+		greyBtn.setForeground(Color.white);
 		greyBtn.addActionListener(this);
 		
 		
