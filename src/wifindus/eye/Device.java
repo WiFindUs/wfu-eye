@@ -1,6 +1,7 @@
 package wifindus.eye;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Polygon;
@@ -372,6 +373,17 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		graphics.drawImage(adornment, left+8, top+8, null);
 		if (isHovering)
 			graphics.drawImage(pinHoverImage, left, top, null);
+		if (isHovering || isSelected)
+		{
+			String s = currentUser == null ? hash : currentUser.getNameFull();
+        	FontMetrics metrics = graphics.getFontMetrics();
+        	int stringH =  metrics.getDescent();
+        	int stringX = x-metrics.stringWidth(s)/2;
+        	graphics.setColor(Color.BLACK);
+        	graphics.fillRect(stringX-2, top-metrics.getAscent()-4+metrics.getLeading(), metrics.stringWidth(s)+4, metrics.getAscent()+2);
+        	graphics.setColor(Color.WHITE);
+			graphics.drawString(s, stringX, top-stringH);
+		}
 	}
 	
 	@Override
