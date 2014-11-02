@@ -44,7 +44,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	private final ArrayList<MappableObject> nodes = new ArrayList<>();
 	private final ArrayList<MappableObject> hover = new ArrayList<>();
 	private final ArrayList<MappableObject> selected = new ArrayList<>();
-	private MappableObject callout = null;
 	private JComponent lastClient = null;
 	private ClientSettings lastSettings = null;
 	private final MapTile[] backgrounds = new MapTile[BACKGROUND_LEVELS];
@@ -383,6 +382,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			throw new NullPointerException("Parameter 'graphics' cannot be null.");
 		
 		ClientSettings settings = clients.get(client);
+		graphics.setFont(settings.font);
 			
 		//draw map images
 		if (settings.drawMapTiles)
@@ -408,7 +408,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		if (settings.drawGrid)
 		{
 	        //metrics etc
-	        graphics.setFont(settings.gridFont);
 	        graphics.setStroke(settings.gridStroke);
 	        FontMetrics metrics = graphics.getFontMetrics();
 	        
@@ -424,7 +423,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 				String label = "" + letter;
 				int stringW = metrics.stringWidth(label);
 				int stringH = metrics.getAscent() + metrics.getDescent();
-				int labelSize = Math.max(stringW,stringH);
+				int labelSize = (int)(Math.max(stringW,stringH) * 1.2);
 				int labelX = settings.shownArea.x > labelSize ? (int)(settings.shownArea.x-labelSize) : 0;
 				int labelY = lineY - (int)(settings.gridStepY/2.0);
 	        	
@@ -509,14 +508,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		}
 		Collections.sort(sortedObjects, MarkerLatitudeComparator);
 			paintObjects(graphics, sortedObjects, settings, false);
-		
-		//draw special "callout"
-		if (callout != null)
-		{
-			graphics.setColor(settings.calloutOverlayColor);
-			graphics.fillRect(0, 0, (int)settings.clientArea.width,  (int)settings.clientArea.height);
-			paintObject(graphics, callout, settings);
-		}		
+	
 	}
 	
 	@Override
@@ -666,14 +658,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		return (List<MappableObject>)hover.clone();
 	}
 	
-	public void setCallout(MappableObject object)
-	{
-		if (object == callout)
-			return;
-		callout = object;
-		repaintClients();
-	}
-	
 	public List<MappableObject> getObjectsAtPoint(JComponent client, int x, int y)
 	{
 		ClientSettings settings = getSettings(client);
@@ -797,8 +781,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		nodes.remove(object);
 		hover.remove(object);
 		selected.remove(object);
-		if (callout == object)
-			callout = null;
 	}
 	
 	private ClientSettings getSettings(JComponent client)
@@ -823,7 +805,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
     {
 		for (MappableObject object : objects)
 		{
-			if (skipInteractives && (hover.contains(object) || selected.contains(object) || object == callout))
+			if (skipInteractives && (hover.contains(object) || selected.contains(object)))
 				continue;
 			paintObject(graphics,object,settings);
 		}
@@ -881,8 +863,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Color gridShadingColor = new Color(0, 0, 0, 150);
 		public Color backgroundOverlayColor = new Color(255, 255, 255, 25);
 		public Stroke gridStroke = new BasicStroke(1);
-		public Font gridFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
-		public Color calloutOverlayColor = new Color(255, 255, 255, 100);
+		public Font font = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public String tileType = TYPE_SATELLITE;
 		
 		public void setPoint(MappableObject object)
