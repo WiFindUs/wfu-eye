@@ -21,6 +21,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -109,38 +110,38 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 				
 		incidentDescription = new JTextArea("", 5, 5);
 		incidentDescription.setMinimumSize(new Dimension(270, 110));
-		
-		Border border = BorderFactory.createLineBorder(Color.BLACK);
-
 		incidentDescription.setLineWrap(true);
 		incidentDescription.setWrapStyleWord(true);
-		
 		incidentDescription.setText(incident.getDescription());
 		
+		incidentDescription.getDocument()
+    	.addDocumentListener(new DocumentListener() 
+		{
+			@Override
+			public void changedUpdate(DocumentEvent arg0)
+			{
+
+			}
+			@Override
+			public void insertUpdate(DocumentEvent arg0)
+			{
+				saveDescriptionBtn.setEnabled(true);
+			}
+			@Override
+			public void removeUpdate(DocumentEvent arg0)
+			{
+				saveDescriptionBtn.setEnabled(true);
+			}
+		});
+		
+
 		JScrollPane descriptionScroll = new JScrollPane(incidentDescription, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		descriptionScroll.setPreferredSize(new Dimension(270,110));
-		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(border, 
+		descriptionScroll.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.BLACK), 
 	            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
-		
-		 DocumentListener documentListener = new DocumentListener() {
-		      public void changedUpdate(DocumentEvent documentEvent) {
-		        descriptionChanged();
-		      }
-		      public void insertUpdate(DocumentEvent documentEvent) {
-		    	  descriptionChanged();
-		      }
-		      public void removeUpdate(DocumentEvent documentEvent) {
-		    	  descriptionChanged();
-		      }
-		      
-		      private void descriptionChanged() 
-		      {
-		    	  saveDescriptionBtn.setText("Save*");
-		      }
-		    };
-		    incidentDescription.getDocument().addDocumentListener(documentListener);
-		
+
 		saveDescriptionBtn = new JButton("Save");
 		saveDescriptionBtn.addActionListener(this);
 		saveDescriptionBtn.setBackground(lightBlue);
@@ -148,8 +149,8 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		saveDescriptionBtn.setBorder(emptyBorder);
 		saveDescriptionBtn.setFont(btnFont);
 		saveDescriptionBtn.setHorizontalAlignment(SwingConstants.LEFT);
-		
-		
+		saveDescriptionBtn.setEnabled(false);
+			
 		locateBtn = new JButton("Locate");
 		locateBtn.setBackground(lightBlue);
 		locateBtn.setIcon(ResourcePool.getIcon("locate_small"));
@@ -393,11 +394,9 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		incidentDescription.setText(description);
 	}
 	
-
-	
 	@Override
 	public void incidentArchived(Incident incident)
-	{
+	{		
 		incident.removeEventListener(this);
 		deviceTableModel.setNumRows(0);
 		EyeApplication.get().removeTimerListener(this);
@@ -421,7 +420,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 	{
 		if (device == null)
 			return;
-
 		for(int i = 0; i < deviceTableModel.getRowCount(); i++)
 		{
 			if (device != null && deviceTableModel.getValueAt(i,COLUMN_DEVICE) == device)
@@ -440,10 +438,10 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			return;
 		if(e.getSource() == saveDescriptionBtn)
 		{
-			saveDescriptionBtn.setText("Save");
-			EyeApplication.get().db_setIncidentDescription(getIncident(), incidentDescription.getText());
+			if (EyeApplication.get().db_setIncidentDescription(getIncident(), incidentDescription.getText()))
+				saveDescriptionBtn.setEnabled(false);
 		}
-		if(e.getSource() == addRespondentBtn)
+		else if(e.getSource() == addRespondentBtn)
 		{
 			//start out with no choice, set initial smallest distance to something massive
 			double minDist = Double.MAX_VALUE;
@@ -491,8 +489,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			EyeApplication.get().db_archiveIncident(getIncident());
 		else if (e.getSource() == locateBtn)
 			locateObjectOnMap(getIncident());
-		
-		if (e.getSource() == codeBtn)
+		else if (e.getSource() == codeBtn)
     	{
     		ColourCodeFrame colourCodeFrame = new ColourCodeFrame(this);
     		colourCodeFrame.setLocation(codeBtn.getLocationOnScreen());
