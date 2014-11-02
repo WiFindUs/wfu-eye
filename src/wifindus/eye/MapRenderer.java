@@ -20,7 +20,6 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 
-import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.MathHelper;
 import wifindus.eye.Incident.Type;
