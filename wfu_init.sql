@@ -7,7 +7,6 @@ USE wfu_eye_db;
 
 SET foreign_key_checks = 0;
 DROP TABLE IF EXISTS PastIncidentResponders;
-DROP TABLE IF EXISTS DeviceUsers;
 DROP TABLE IF EXISTS Incidents;
 DROP TABLE IF EXISTS Devices;
 DROP TABLE IF EXISTS Users;
@@ -27,7 +26,8 @@ CREATE TABLE Devices (
   temperature          decimal(9, 2), 
   lightLevel           decimal(9, 2), 
   lastUpdate           datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
-  respondingIncidentID int(10), 
+  respondingIncidentID int(10),
+  userID 			   int(10),
   PRIMARY KEY (hash)) ENGINE=InnoDB;
   
 CREATE TABLE Users (
@@ -58,12 +58,7 @@ CREATE TABLE PastIncidentResponders (
   userID     int(10) NOT NULL, 
   incidentID int(10) NOT NULL, 
   PRIMARY KEY (userID, incidentID)) ENGINE=InnoDB;
-  
-CREATE TABLE DeviceUsers (
-  userID     int(10) NOT NULL, 
-  deviceHash char(8) NOT NULL, 
-  PRIMARY KEY (userID, deviceHash)) ENGINE=InnoDB;
-  
+ 
 CREATE TABLE Nodes (
   hash       char(8) NOT NULL, 
   address    varchar(255) NOT NULL DEFAULT '', 
@@ -75,9 +70,19 @@ CREATE TABLE Nodes (
   lastUpdate datetime DEFAULT '1970-01-01 00:00:00' NOT NULL, 
   PRIMARY KEY (hash)) ENGINE=InnoDB;
   
-ALTER TABLE Devices ADD INDEX `Responded to by` (respondingIncidentID), ADD CONSTRAINT `Responded to by` FOREIGN KEY (respondingIncidentID) REFERENCES Incidents (id);
-ALTER TABLE DeviceUsers ADD INDEX `Uses a Device according to` (userID), ADD CONSTRAINT `Uses a Device according to` FOREIGN KEY (userID) REFERENCES Users (id);
-ALTER TABLE DeviceUsers ADD INDEX `In use by user according to` (deviceHash), ADD CONSTRAINT `In use by user according to` FOREIGN KEY (deviceHash) REFERENCES Devices (hash);
-ALTER TABLE Incidents ADD INDEX `Reported by` (reportingUserID), ADD CONSTRAINT `Reported by` FOREIGN KEY (reportingUserID) REFERENCES Users (id);
-ALTER TABLE PastIncidentResponders ADD INDEX `Responded to an incident` (userID), ADD CONSTRAINT `Responded to an incident` FOREIGN KEY (userID) REFERENCES Users (id);
-ALTER TABLE PastIncidentResponders ADD INDEX `Was reponded to by user` (incidentID), ADD CONSTRAINT `Was reponded to by user` FOREIGN KEY (incidentID) REFERENCES Incidents (id);
+ALTER TABLE Devices
+	ADD INDEX `Responded to by` (respondingIncidentID),
+	ADD CONSTRAINT `Responded to by`
+	FOREIGN KEY (respondingIncidentID) REFERENCES Incidents (id);
+ALTER TABLE Incidents
+	ADD INDEX `Reported by` (reportingUserID),
+	ADD CONSTRAINT `Reported by`
+	FOREIGN KEY (reportingUserID) REFERENCES Users (id);
+ALTER TABLE PastIncidentResponders
+	ADD INDEX `Responded to an incident` (userID),
+	ADD CONSTRAINT `Responded to an incident`
+	FOREIGN KEY (userID) REFERENCES Users (id);
+ALTER TABLE PastIncidentResponders
+	ADD INDEX `Was reponded to by user` (incidentID),
+	ADD CONSTRAINT `Was reponded to by user`
+	FOREIGN KEY (incidentID) REFERENCES Incidents (id);
