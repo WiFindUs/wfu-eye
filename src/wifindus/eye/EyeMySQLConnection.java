@@ -125,24 +125,6 @@ public class EyeMySQLConnection extends MySQLConnection
 		return results.get(hash);
 	}
 
-	public MySQLResultSet fetchDeviceUsers() throws SQLException
-	{
-		PreparedStatement statement = prepareStatement("SELECT * FROM DeviceUsers ORDER BY userID ASC");
-		ResultSet resultSet = statement.executeQuery();
-		MySQLResultSet results = new MySQLResultSet();
-		int i = 0;
-		while (resultSet.next())
-		{
-			results.put(i++,
-				"userID", Integer.valueOf(resultSet.getInt("userID")),
-				"deviceHash", resultSet.getString("deviceHash")
-				);
-		}
-		release(resultSet);
-		release(statement);
-		return results;	
-	}
-	
 	public MySQLResultSet fetchPastIncidentResponders() throws SQLException
 	{
 		PreparedStatement statement = prepareStatement("SELECT * FROM PastIncidentResponders ORDER BY incidentID ASC");
@@ -181,7 +163,7 @@ public class EyeMySQLConnection extends MySQLConnection
 			"temperature", getNullableDouble(resultSet, "temperature"),
 			"lightLevel", getNullableDouble(resultSet, "lightLevel"),
 			"lastUpdate", resultSet.getTimestamp("lastUpdate"),
-			"respondingIncidentID", getNullableInt(resultSet, "respondingIncidentID")
-			);
+			"respondingIncidentID", getNullableInt(resultSet, "respondingIncidentID"),
+			"userID", getNullableInt(resultSet, "userID"));
 	}
 }

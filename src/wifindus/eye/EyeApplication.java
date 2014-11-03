@@ -914,19 +914,6 @@ public abstract class EyeApplication extends JFrame
 				if (abortThreads)
 					break;
 				
-				//device users
-				try
-				{
-					publish(new Object[] { "DeviceUsers", mysql.fetchDeviceUsers() });
-					Thread.sleep(50);
-				}
-				catch (SQLException e)
-				{
-					Debugger.ex(e);
-				}
-				if (abortThreads)
-					break;
-				
 				//nodes
 				try
 				{
@@ -964,7 +951,6 @@ public abstract class EyeApplication extends JFrame
 				{
 					case "Users": processUsers(results); break;
 					case "Devices": processDevices(results); break;
-					case "DeviceUsers": processDeviceUsers(results); break;
 					case "Nodes": processNodes(results); break;
 					case "Incidents": processIncidents(results); break;
 					case "PastIncidentResponders": processPastIncidentResponders(results); break;
@@ -1030,34 +1016,16 @@ public abstract class EyeApplication extends JFrame
 			Device device = devices.get(hash);
 			if (device == null)
 				addNewDevice(hash, device = new Device(hash, (Device.Type)(entry.getValue().get("deviceType")), this));
-			device.updateFromMySQL(entry.getValue());	
+			device.updateFromMySQL(entry.getValue());
+			
+			//linked user
+			Integer userKey = (Integer)(entry.getValue().get("userID"));
+			device.updateUser(userKey == null ? null : users.get(userKey));
 			
 			//linked incident
 			Integer incidentKey = (Integer)(entry.getValue().get("respondingIncidentID"));
 			device.updateIncident(incidentKey == null ? null : incidents.get(incidentKey));
 		}
-	}
-
-	private void processDeviceUsers(MySQLResultSet results)
-	{
-		//create a list of all the devices
-		ArrayList<Device> userlessDevices = new ArrayList<Device>(
-			devices.values());
-		
-		//process entries from database (logins)
-		for (Map.Entry< Object, MySQLResultRow > entry : results.entrySet())
-		{
-			Device device = devices.get((String)entry.getValue().get("deviceHash"));
-			if (device != null)
-			{
-				userlessDevices.remove(device);
-				device.updateUser(users.get((Integer)entry.getValue().get("userID")));
-			}
-		}
-		
-		//handle unused devices (logouts)
-		for (Device d : userlessDevices)
-			d.updateUser(null);
 	}
 	
 	private void processNodes(MySQLResultSet results)

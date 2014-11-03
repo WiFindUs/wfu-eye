@@ -131,9 +131,9 @@ public class Server extends EyeApplication
 				}
 				
 				//parse data out into packets
-				Debugger.v("UDP message received: " + new String(buffer).trim());
+				Debugger.v("Update: " + new String(buffer).trim());
 				ParsedUDPPacket parsedPacket = new ParsedUDPPacket(receivePacket);
-				String messageType = parsedPacket.getData().get("type");
+				String messageType = parsedPacket.getData().get("ty");
 				if (messageType == null)
 					continue;
 				messageType = messageType.toLowerCase();
@@ -173,24 +173,37 @@ public class Server extends EyeApplication
 			//build temporary dataset
 			Map <String, String> tempMap = new HashMap<>(); 
 			tempMap.put("hash", "'" + hash + "'");
-			if (packet.getData().containsKey("devicetype"))
-				tempMap.put("deviceType", "'" + packet.getData().get("devicetype").toUpperCase() + "'");
-			if (packet.getData().containsKey("latitude"))
-				tempMap.put("latitude", packet.getData().get("latitude"));
-			if (packet.getData().containsKey("longitude"))
-				tempMap.put("longitude", packet.getData().get("longitude"));
-			if (packet.getData().containsKey("altitude"))
-				tempMap.put("altitude", packet.getData().get("altitude"));
-			if (packet.getData().containsKey("accuracy"))
-				tempMap.put("accuracy", packet.getData().get("accuracy"));
-			if (packet.getData().containsKey("humidity"))
-				tempMap.put("humidity", packet.getData().get("humidity"));
-			if (packet.getData().containsKey("airpressure"))
-				tempMap.put("airPressure", packet.getData().get("airpressure"));
-			if (packet.getData().containsKey("temperature"))
-				tempMap.put("temperature", packet.getData().get("temperature"));
-			if (packet.getData().containsKey("lightlevel"))
-				tempMap.put("lightLevel", packet.getData().get("lightLevel"));
+			if (packet.getData().containsKey("dt"))
+				tempMap.put("deviceType", "'" + packet.getData().get("dt").toUpperCase() + "'");
+			if (packet.getData().containsKey("user"))
+			{
+				int userID = -1;
+				try
+				{
+					userID = Integer.parseInt(packet.getData().get("user"));
+				}
+				catch(NumberFormatException ex)
+				{
+					userID = -1;
+				}
+				tempMap.put("userID", userID >= 0 ? Integer.toString(userID) : "NULL");
+			}
+			if (packet.getData().containsKey("lat"))
+				tempMap.put("latitude", packet.getData().get("lat"));
+			if (packet.getData().containsKey("long"))
+				tempMap.put("longitude", packet.getData().get("long"));
+			if (packet.getData().containsKey("alt"))
+				tempMap.put("altitude", packet.getData().get("alt"));
+			if (packet.getData().containsKey("acc"))
+				tempMap.put("accuracy", packet.getData().get("acc"));
+			if (packet.getData().containsKey("hum"))
+				tempMap.put("humidity", packet.getData().get("hum"));
+			if (packet.getData().containsKey("pres"))
+				tempMap.put("airPressure", packet.getData().get("pres"));
+			if (packet.getData().containsKey("temp"))
+				tempMap.put("temperature", packet.getData().get("temp"));
+			if (packet.getData().containsKey("lux"))
+				tempMap.put("lightLevel", packet.getData().get("lux"));
 			tempMap.put("address", "'" + packet.getSourceAddress().getHostAddress() + "'");
 			tempMap.put("lastUpdate", "NOW()");
 			
@@ -263,7 +276,7 @@ public class Server extends EyeApplication
 		
 		private boolean isNewerTimestamp(final String hash, final Map<String, Long> timestamps, final ParsedUDPPacket packet)
 		{
-			String newTimestampString = packet.getData().get("timestamp");
+			String newTimestampString = packet.getData().get("ts");
 			if (newTimestampString == null || (newTimestampString = newTimestampString.trim()).length() == 0)
 				return false;
 			
