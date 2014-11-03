@@ -10,6 +10,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -17,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -55,21 +57,27 @@ public class Dispatcher extends EyeApplication
 		"Currently on assignment",
 		"Devices without a user"
 	};
-	private transient JPanel menuPanel, queryPanel, incidentPanel, archivedIncidentPanel, devicePanel;
+	private transient JPanel queryPanel, incidentPanel, archivedIncidentPanel, devicePanel;
 	private transient JComboBox<String> sortComboBox;
-	private transient ButtonGroup filterButtonGroup;
-	private transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
-	private transient Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
-	private transient Map<Integer,ArchivedIncidentPanel> archivedIncidentPanels = new TreeMap<>();
+	private final transient ArrayList<DevicePanel> devicePanels = new ArrayList<>();
+	private final transient Map<Integer,IncidentPanel> incidentPanels = new TreeMap<>();
+	private final transient Map<Integer,ArchivedIncidentPanel> archivedIncidentPanels = new TreeMap<>();
 	private transient JTextField searchTextField;
 	private transient MapRenderer mapRenderer;
 	private transient MapFrame mapFrame;
+	private final transient List<Incident.Type> filteredTypes = new ArrayList<Incident.Type>();
+	private final transient JToggleButton unusedFilterButton, medicalFilterButton, securityFilterButton, techFilterButton;
 	
     static
     {
-    	ResourcePool.loadImage("medical_small", "images/medical_small.png");
-    	ResourcePool.loadImage("security_small", "images/security_small.png");
-    	ResourcePool.loadImage("wfu_small", "images/wfu_small.png");
+    	ResourcePool.loadImage("cog_inverted", "images/cog_inverted.png");
+    	ResourcePool.loadImage("cross_inverted", "images/cross_inverted.png");
+    	ResourcePool.loadImage("shield_inverted", "images/shield_inverted.png");
+    	ResourcePool.loadImage("question_inverted", "images/question_inverted.png");
+    	ResourcePool.loadImage("cog_inverted_themed", "images/cog_inverted_themed.png");
+    	ResourcePool.loadImage("cross_inverted_themed", "images/cross_inverted_themed.png");
+    	ResourcePool.loadImage("shield_inverted_themed", "images/shield_inverted_themed.png");
+    	ResourcePool.loadImage("question_inverted_themed", "images/question_inverted_themed.png");
     }
 
 	/////////////////////////////////////////////////////////////////////
@@ -85,15 +93,11 @@ public class Dispatcher extends EyeApplication
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
 		contentPane.setBackground(Color.white);
-		
-		(menuPanel = new JPanel()).setBackground(Color.white);
-		menuPanel.setPreferredSize(new Dimension(800, 70));
-		menuPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0 , new Color(0x618197)));
-		
+	
 		// query Panel
 		(queryPanel = new JPanel()).setBackground(new Color(0xedf4fb));
-		queryPanel.setMinimumSize(new Dimension(397, 125));
-		queryPanel.setMaximumSize(new Dimension(397, 125));
+		queryPanel.setMinimumSize(new Dimension(397, 150));
+		queryPanel.setMaximumSize(new Dimension(397, 150));
 		GroupLayout queryPanelLayout = new GroupLayout(queryPanel);
 		queryPanel.setLayout(queryPanelLayout);
         GroupLayout.SequentialGroup queryPanelLayoutHorizontal = queryPanelLayout.createSequentialGroup();
@@ -101,36 +105,57 @@ public class Dispatcher extends EyeApplication
         queryPanelLayout.setAutoCreateGaps(true);
         queryPanelLayout.setAutoCreateContainerGaps(true);
 		
-        filterButtonGroup = new ButtonGroup();
-        JToggleButton allFilterButton = new JToggleButton("All");
-        JToggleButton medicalFilterButton = new JToggleButton(ResourcePool.getIcon("medical_small"));
-        JToggleButton securityFilterButton = new JToggleButton(ResourcePool.getIcon("security_small"));
-        JToggleButton techFilterButton = new JToggleButton(ResourcePool.getIcon("wfu_small"));
-        
-        allFilterButton.setActionCommand("All");
-        medicalFilterButton.setActionCommand("Medical");
-        securityFilterButton.setActionCommand("Security");
-        techFilterButton.setActionCommand("WiFindUs");
+        unusedFilterButton = new JToggleButton(ResourcePool.getIcon("question_inverted"));
+        medicalFilterButton = new JToggleButton(ResourcePool.getIcon("cross_inverted"));
+        securityFilterButton = new JToggleButton(ResourcePool.getIcon("shield_inverted"));
+        techFilterButton = new JToggleButton(ResourcePool.getIcon("cog_inverted"));
         
         ItemListener filterButtonListener = new ItemListener()
 		{
 			@Override
 			public void itemStateChanged(ItemEvent e)
 			{
+				JToggleButton source = (JToggleButton)e.getSource();
+				boolean add = source.isSelected();
+				Incident.Type type = Incident.Type.None;
+				if (source == medicalFilterButton)
+				{
+					type = Incident.Type.Medical;
+					medicalFilterButton.setIcon(ResourcePool.getIcon("cross_inverted" + (add ? "_themed" : "")));
+				}
+				else if (source == securityFilterButton)
+				{
+					type = Incident.Type.Security;
+					securityFilterButton.setIcon(ResourcePool.getIcon("shield_inverted" + (add ? "_themed" : "")));
+				}
+				else if (source == techFilterButton)
+				{
+					type = Incident.Type.WiFindUs;
+					techFilterButton.setIcon(ResourcePool.getIcon("cog_inverted" + (add ? "_themed" : "")));
+				}
+				else if (source == unusedFilterButton)
+				{
+					type = Incident.Type.None;
+					unusedFilterButton.setIcon(ResourcePool.getIcon("question_inverted" + (add ? "_themed" : "")));
+				}
+				
+				if (add)
+				{
+					if (!filteredTypes.contains(type))
+						filteredTypes.add(type);
+				}
+				else
+					filteredTypes.remove(type);
+				
 				updateDeviceFilter();
 			}
 		};
-        allFilterButton.addItemListener(filterButtonListener);
+		unusedFilterButton.addItemListener(filterButtonListener);
         medicalFilterButton.addItemListener(filterButtonListener);
         securityFilterButton.addItemListener(filterButtonListener);
         techFilterButton.addItemListener(filterButtonListener);
         
-        filterButtonGroup.add(allFilterButton);
-        filterButtonGroup.add(medicalFilterButton);
-        filterButtonGroup.add(securityFilterButton);
-        filterButtonGroup.add(techFilterButton);
-        filterButtonGroup.getSelection();
-        allFilterButton.setSelected(true);
+        medicalFilterButton.setSelected(true);
         
 		// search
         JLabel searchLabel = new JLabel("Search:");
@@ -183,10 +208,10 @@ public class Dispatcher extends EyeApplication
         GroupLayout.ParallelGroup columnLabels = queryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING);
         GroupLayout.ParallelGroup columnSortSearch = queryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING);
         
-        rowButtons.addComponent(allFilterButton);
         rowButtons.addComponent(medicalFilterButton);
         rowButtons.addComponent(securityFilterButton);
         rowButtons.addComponent(techFilterButton);
+        rowButtons.addComponent(unusedFilterButton);
         
         columnLabels.addComponent(sortLabel);
         columnLabels.addComponent(searchLabel);
@@ -206,7 +231,7 @@ public class Dispatcher extends EyeApplication
         GroupLayout.ParallelGroup rowSortParallel = queryPanelLayout.createParallelGroup();
         GroupLayout.ParallelGroup rowSearchParallel = queryPanelLayout.createParallelGroup();
         
-        rowButtonsParallel.addComponent(allFilterButton);
+        rowButtonsParallel.addComponent(unusedFilterButton);
         rowButtonsParallel.addComponent(medicalFilterButton);
         rowButtonsParallel.addComponent(securityFilterButton);
         rowButtonsParallel.addComponent(techFilterButton);
@@ -267,7 +292,6 @@ public class Dispatcher extends EyeApplication
         incidentTabs.add("Active Incidents", incidentPanelScroll);
         incidentTabs.add("Archived Incidents", archivedIncidentPanelScroll);
         
-        contentPane.add(menuPanel, BorderLayout.NORTH);
         contentPane.add(deviceControlPanel, BorderLayout.WEST);
         contentPane.add(incidentTabs, BorderLayout.CENTER);
 
@@ -454,14 +478,14 @@ public class Dispatcher extends EyeApplication
 		{
 			search = "";
 		}
-		String groupFilter = filterButtonGroup.getSelection().getActionCommand();
+
 		for (int i = 0; i < devicePanels.size(); i++)
 		{
 			DevicePanel panel = devicePanels.get(i);
 			Device device = panel.getDevice();
 			User user = device.getCurrentUser();
-			boolean visible = (groupFilter.equalsIgnoreCase("All") || (user != null && user.getType().toString().equalsIgnoreCase(groupFilter)))
-				&& (search.isEmpty() || (user != null && user.getNameFull().toLowerCase().contains(search)));
+			boolean visible = (filteredTypes.contains(device.getCurrentUserType())
+				&& (search.isEmpty() || (user != null && user.getNameFull().toLowerCase().contains(search))));
 			if (panel.isVisible() != visible)
 				panel.setVisible(visible);
 		}

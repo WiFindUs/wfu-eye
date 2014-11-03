@@ -217,7 +217,6 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	public final void dragZoom(JComponent client, double zoomDelta, boolean interpolated)
 	{
 		ClientSettings settings = getSettings(client);
-		//settings.setZoom(settings.zoomTarget - zoomDelta, interpolated);
 		settings.relativeZoom(settings.zoomTarget - zoomDelta);
 	}
 	
@@ -511,6 +510,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			for (MappableObject object : devices)
 			{
 				Device device = (Device)object;
+				if (device.isTimedOut())
+					continue;
 				if ((device.getCurrentUserType() == Type.Medical && settings.drawMedical)
 					|| (device.getCurrentUserType() == Type.Security && settings.drawSecurity)
 					|| (device.getCurrentUserType() == Type.WiFindUs && settings.drawWiFindUs)
@@ -840,7 +841,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			return;
 		
     	Point2D.Double point = settings.objectData.get(object).point;
-		if (point == null || !settings.shownArea.contains(point))
+		if (point == null || !settings.clientArea.contains(point))
 			return;
 		
 		object.paintMarker(graphics, (int)point.x, (int)point.y, hover.contains(object), selected.contains(object));

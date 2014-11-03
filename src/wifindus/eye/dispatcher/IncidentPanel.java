@@ -62,10 +62,11 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		ResourcePool.loadImage("plus_small",  "images/plus_small.png");
 		ResourcePool.loadImage("minus_small",  "images/minus_small.png");
 		ResourcePool.loadImage("locate_small", "images/locate_small.png");
-		ResourcePool.loadImage("none", "images/none.png");
-		ResourcePool.loadImage("medical", "images/medical_medium.png");
-		ResourcePool.loadImage("security", "images/security_medium.png");
-		ResourcePool.loadImage("wfu", "images/wfu_medium.png");
+		
+    	ResourcePool.loadImage("cog_inverted_themed", "images/cog_inverted_themed.png");
+    	ResourcePool.loadImage("cross_inverted_themed", "images/cross_inverted_themed.png");
+    	ResourcePool.loadImage("shield_inverted_themed", "images/shield_inverted_themed.png");
+		
 		ResourcePool.loadImage("delete", "images/delete.png");
 		ResourcePool.loadImage("archive", "images/archive.png");
 		ResourcePool.loadImage("save", "images/save.png");
@@ -551,10 +552,10 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		ImageIcon icon = null;
 		switch (getIncident().getType())
 		{
-			case Medical: icon = ResourcePool.getIcon("medical"); break;
-			case Security: icon = ResourcePool.getIcon("security"); break;
-			case WiFindUs: icon = ResourcePool.getIcon("wfu"); break;
-			default: icon = ResourcePool.getIcon("none"); break;
+			case Medical: icon = ResourcePool.getIcon("cross_inverted_themed"); break;
+			case Security: icon = ResourcePool.getIcon("shield_inverted_themed"); break;
+			case WiFindUs: icon = ResourcePool.getIcon("cog_inverted_themed"); break;
+			default: icon = ResourcePool.getIcon("question_inverted_themed"); break;
 		}
 		incidentIconLabel.setIcon(icon);
 	}

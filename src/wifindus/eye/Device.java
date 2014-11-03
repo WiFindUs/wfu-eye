@@ -23,6 +23,8 @@ import wifindus.ResourcePool;
  */
 public class Device extends EventObject<DeviceEventListener> implements MySQLUpdateTarget, MappableObject
 {
+	public long TIMEOUT_THRESHOLD = 1000 * 60 * 5;
+	
 	/**
 	 * A description of a client device's 'type'.
 	 * @author Mark 'marzer' Gillard
@@ -211,6 +213,15 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	}
 	
 	/**
+	 * Checks if a device is considered timed out based on a long period of inactivity;
+	 * @return
+	 */
+	public final boolean isTimedOut()
+	{
+		return (System.currentTimeMillis() - lastUpdate.getTime()) >= TIMEOUT_THRESHOLD;
+	}
+	
+	/**
 	 * Gets a Type from a database type key.
 	 * @param key The key to match with an Device.Type.
 	 * @return The Device.Type enum value matching the given key.
@@ -367,7 +378,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		Image adornment = adornmentImages.get(getCurrentUserType());
 		int left = x-16;
 		int top = y-51;
-		graphics.setColor(Color.white);
+		graphics.setColor(Incident.getColorFromType(getCurrentUserType()));
 		graphics.fillOval(left+3, top+3, 28, 28);
 		graphics.drawImage(isSelected ? pinSelectedImage : pinImage, left, top, null);
 		graphics.drawImage(adornment, left+8, top+8, null);

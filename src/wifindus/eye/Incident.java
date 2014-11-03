@@ -48,10 +48,10 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		None
 	}
 	
-	public static final Color COLOR_NONE = new Color(192,192,192);
+	public static final Color COLOR_NONE = new Color(205,205,205);
 	public static final Color COLOR_MEDICAL = new Color(255,102,102);
 	public static final Color COLOR_SECURITY = new Color(102,178,255);
-	public static final Color COLOR_WIFINDUS= new Color(178,255,102);
+	public static final Color COLOR_WIFINDUS= new Color(255,178,102);
 	
 	//properties
 	private int id;
@@ -74,19 +74,15 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 	private static final Map<Incident.Type, Image> adornmentImages = new HashMap<>();
 	static
 	{
-		ResourcePool.loadImage("tag", "images/tag.png" );
-		ResourcePool.loadImage("tag_hover", "images/tag_hover.png" );
-		ResourcePool.loadImage("tag_selected", "images/tag_selected.png" );
-		ResourcePool.loadImage("cog_white", "images/cog_white.png" );
-		ResourcePool.loadImage("cross_white", "images/cross_white.png" );
-		ResourcePool.loadImage("shield_white", "images/shield_white.png" );
-		
-		tagImage = ResourcePool.getImage("tag");
-		tagHoverImage = ResourcePool.getImage("tag_hover");
-		tagSelectedImage = ResourcePool.getImage("tag_selected");
-		adornmentImages.put(Incident.Type.Medical, ResourcePool.getImage("cross_white"));
-		adornmentImages.put(Incident.Type.Security, ResourcePool.getImage("shield_white"));
-		adornmentImages.put(Incident.Type.WiFindUs, ResourcePool.getImage("cog_white"));
+		tagImage = ResourcePool.loadImage("tag", "images/tag.png" );
+		tagHoverImage = ResourcePool.loadImage("tag_hover", "images/tag_hover.png" );
+		tagSelectedImage = ResourcePool.loadImage("tag_selected", "images/tag_selected.png" );
+		adornmentImages.put(Incident.Type.WiFindUs,
+				ResourcePool.loadImage("cog_themed", "images/cog_themed.png" ));
+		adornmentImages.put(Incident.Type.Medical,
+				ResourcePool.loadImage("cross_themed", "images/cross_themed.png" ));
+		adornmentImages.put(Incident.Type.Security,
+				ResourcePool.loadImage("shield_themed", "images/shield_themed.png" ));
 	}
 	
 	
@@ -292,6 +288,24 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 		}
 	}
 	
+	/**
+	 * Gets a color from a Type.
+	 * @param type The type to convert to it's corresponding key.
+	 * @return A Color object
+	 * @throws IllegalArgumentException If you pass an invalid type (e.g. None).
+	 */
+	public static final Color getColorFromType(Type type)
+	{
+		switch (type)
+		{
+			case Medical: return COLOR_MEDICAL;
+			case Security: return COLOR_SECURITY;
+			case WiFindUs: return COLOR_WIFINDUS;
+			default:
+				return COLOR_NONE;
+		}
+	}
+
 	@Override
 	public String toString()
 	{

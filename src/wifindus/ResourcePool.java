@@ -42,7 +42,7 @@ public abstract class ResourcePool
 			}
 			catch (IOException e)
 			{
-				Debugger.ex(e);
+				Debugger.e("Exception reading file [%s] %s", key, file);
 			}
 		}
 		return getImage(key);

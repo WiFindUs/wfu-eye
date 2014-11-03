@@ -39,10 +39,11 @@ public class DevicePanel extends MapFrameLinkedPanel
     {
     	ResourcePool.loadImage("plus_small",  "images/plus_small.png");
     	ResourcePool.loadImage("locate_small", "images/locate_small.png");
-    	ResourcePool.loadImage("none", "images/none.png");
-    	ResourcePool.loadImage("medical", "images/medical.png");
-    	ResourcePool.loadImage("security", "images/security.png");
-    	ResourcePool.loadImage("wfu", "images/wfu.png");
+    	
+    	ResourcePool.loadImage("cog_inverted_themed", "images/cog_inverted_themed.png");
+    	ResourcePool.loadImage("cross_inverted_themed", "images/cross_inverted_themed.png");
+    	ResourcePool.loadImage("shield_inverted_themed", "images/shield_inverted_themed.png");
+    	ResourcePool.loadImage("question_inverted_themed", "images/question_inverted_themed.png");
     }
 
 	/////////////////////////////////////////////////////////////////////
@@ -364,10 +365,10 @@ public class DevicePanel extends MapFrameLinkedPanel
 			ImageIcon icon = null;
 			switch (user.getType())
 			{
-				case Medical: icon = ResourcePool.getIcon("medical"); break;
-				case Security: icon = ResourcePool.getIcon("security"); break;
-				case WiFindUs: icon = ResourcePool.getIcon("wfu"); break;
-				default: icon = ResourcePool.getIcon("none"); break;
+				case Medical: icon = ResourcePool.getIcon("cross_inverted_themed"); break;
+				case Security: icon = ResourcePool.getIcon("shield_inverted_themed"); break;
+				case WiFindUs: icon = ResourcePool.getIcon("cog_inverted_themed"); break;
+				default: icon = ResourcePool.getIcon("question_inverted_themed"); break;
 			}
 			logo.setIcon(icon);
 			
@@ -388,7 +389,7 @@ public class DevicePanel extends MapFrameLinkedPanel
 		else
 		{
 			
-			logo.setIcon(ResourcePool.getIcon("none"));
+			logo.setIcon(ResourcePool.getIcon("question_inverted_themed"));
 			name.setText("Unused device");
 			status.setVisible(false);
 			location.setText("");

@@ -42,9 +42,9 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 	
 	static
 	{
-		ResourcePool.loadImage("medical", "images/medical_medium.png");
-		ResourcePool.loadImage("security", "images/security_medium.png");
-		ResourcePool.loadImage("wfu", "images/wfu_medium.png");
+    	ResourcePool.loadImage("cog_inverted_themed", "images/cog_inverted_themed.png");
+    	ResourcePool.loadImage("cross_inverted_themed", "images/cross_inverted_themed.png");
+    	ResourcePool.loadImage("shield_inverted_themed", "images/shield_inverted_themed.png");
 	}
 	
 	public IncidentTypeFrame(Device device)
@@ -77,7 +77,7 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 		
 		medicalBtn = new JButton("Medical");
 		medicalBtn.setBackground(Color.white);
-		medicalBtn.setIcon(ResourcePool.getIcon("medical"));
+		medicalBtn.setIcon(ResourcePool.getIcon("cross_inverted_themed"));
 		medicalBtn.setBorder(emptyBorder);
 		medicalBtn.setFont(font);
 		medicalBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -87,7 +87,7 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 		
 		securityBtn = new JButton("Security");
 		securityBtn.setBackground(Color.white);
-		securityBtn.setIcon(ResourcePool.getIcon("security"));
+		securityBtn.setIcon(ResourcePool.getIcon("shield_inverted_themed"));
 		securityBtn.setBorder(emptyBorder);
 		securityBtn.setFont(font);
 		securityBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -97,7 +97,7 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 		
 		wfuBtn = new JButton("WiFindUs");
 		wfuBtn.setBackground(Color.white);
-		wfuBtn.setIcon(ResourcePool.getIcon("wfu"));
+		wfuBtn.setIcon(ResourcePool.getIcon("cog_inverted_themed"));
 		wfuBtn.setBorder(emptyBorder);
 		wfuBtn.setFont(font);
 		wfuBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
