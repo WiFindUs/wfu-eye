@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -263,6 +264,12 @@ public class MapTile
 			    baos.flush();
 			    imageBytes = baos.toByteArray();
 			    
+			}
+			catch (UnknownHostException e)
+			{
+				Debugger.e("Error connecting to map server.");
+				failedLoads.put(type, Boolean.TRUE);
+				return null;
 			}
 			catch (Exception e)
 			{
