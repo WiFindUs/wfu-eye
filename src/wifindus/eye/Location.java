@@ -1,6 +1,8 @@
 package wifindus.eye;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
+import java.text.Format;
 
 import wifindus.MathHelper;
 
@@ -33,6 +35,7 @@ public class Location implements Serializable
 	private Double altitude = null;
 	private Double accuracy = null;
 	private static final long serialVersionUID = -8132425175759103068L;
+	public static final DecimalFormat FORMAT = new DecimalFormat("#.######");
 	
 	/////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -213,8 +216,8 @@ public class Location implements Serializable
 	public String toShortString()
 	{
 		return 
-			((latitude == null ? "" : Math.abs(latitude) + "°" + (latitude >= 0 ? "N" : "S"))
-			+(longitude == null ? "" : " " + Math.abs(longitude) + "°" + (longitude >= 0 ? "E" : "W"))
+			((latitude == null ? "" : FORMAT.format(Math.abs(latitude)) + "°" + (latitude >= 0 ? "N" : "S"))
+			+(longitude == null ? "" : " " + FORMAT.format(Math.abs(longitude)) + "°" + (longitude >= 0 ? "E" : "W"))
 			).trim();
 	}
 	

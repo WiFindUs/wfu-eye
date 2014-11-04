@@ -25,6 +25,7 @@ public class MapPanel extends JPanel
 	implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener, HighResolutionTimerListener
 {
 	private static final Color OVERLAY_COLOR = new Color(255,255,255,175);
+	private static final Color CROSSHAIR_COLOR = new Color(255,255,255,125);
 	
 	private static final int RADIAL_INCIDENTS = 0;
 	private static final int RADIAL_DEVICES = 1;
@@ -178,6 +179,8 @@ public class MapPanel extends JPanel
 	public void mouseExited(MouseEvent e)
 	{
 		mouseEntered = false;
+		if (!mouseDownMiddle)
+			repaint();
 		updateMouseLocation(e);
 	}
 	
@@ -219,7 +222,12 @@ public class MapPanel extends JPanel
 	{
 		updateMouseLocation(e);
 		if (mouseEntered && !mouseDownMiddle)
+		{
 			renderer.setHoverObjects(renderer.getObjectsAtPoint(this, e.getX(), e.getY()));
+			
+			if (getBounds().contains(mouseLocation))
+				repaint();
+		}
 	}
 	
 	public void setPan(MappableObject object, boolean interpolated)
@@ -255,6 +263,19 @@ public class MapPanel extends JPanel
     		g.setColor(OVERLAY_COLOR);
     		g.fillRect(0,0,this.getWidth(),this.getHeight());
     		paintRadialMenu(g);
+    	}
+    	else
+    	{
+    		if (mouseEntered && getBounds().contains(mouseLocation))
+    		{
+    			g.setColor(CROSSHAIR_COLOR);
+    			g.drawLine(0, mouseLocation.y, getWidth(), mouseLocation.y);
+    			g.drawLine(mouseLocation.x, 0, mouseLocation.x, getHeight());
+    			
+    			//Rectangle2D.Double pos = new Rectangle2D.Double(mouseLocation.x/getWidth(), mouseLocation.y/getHeight());
+    			MapRenderer.paintMarkerText((Graphics2D)g, getWidth()/2, getHeight()-20, renderer.screenToLocation(this, mouseLocation).toShortString());
+    			
+    		}
     	}
     }
 	

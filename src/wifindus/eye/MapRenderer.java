@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 
+import wifindus.GPSRectangle;
 import wifindus.HighResolutionTimerListener;
 import wifindus.MathHelper;
 import wifindus.eye.Incident.Type;
@@ -367,6 +369,13 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			settings.shownArea = new Rectangle2D.Double();
 		Rectangle2D.Double.intersect(settings.clientArea, settings.mapArea, settings.shownArea);
 		
+		GPSRectangle bounds = tiles[0][0].getBounds();
+		settings.clientAreaGPS  = new GPSRectangle(
+				bounds.getNorthWest().getLatitude() + (-settings.mapArea.y / settings.mapSize) * bounds.getHeight(),
+				bounds.getNorthWest().getLongitude() + (-settings.mapArea.x / settings.mapSize) * bounds.getWidth(),
+				bounds.getSouthEast().getLatitude() + (-settings.mapArea.y / settings.mapSize) * bounds.getHeight(),
+				bounds.getSouthEast().getLongitude() + (-settings.mapArea.x / settings.mapSize) * bounds.getWidth());
+		
 		//grid stuff
 		if (settings.gridArea == null)
 			settings.gridArea = new Rectangle2D.Double();
@@ -503,7 +512,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		
 		ArrayList<MappableObject> sortedObjects = new ArrayList<>();
 		//draw layers
-		if (settings.drawNodes)
+		if (settings.drawNodes && settings.drawWiFindUs)
 			sortedObjects.addAll(nodes);
 		if (settings.drawDevices)
 		{
@@ -533,6 +542,17 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		Collections.sort(sortedObjects, MarkerLatitudeComparator);
 			paintObjects(graphics, sortedObjects, settings, false);
 	
+	}
+	
+	public static void paintMarkerText(Graphics2D graphics, int x, int y, final String s)
+	{
+    	FontMetrics metrics = graphics.getFontMetrics();
+    	int stringH =  metrics.getDescent();
+    	int stringX = x-metrics.stringWidth(s)/2;
+    	graphics.setColor(Color.BLACK);
+    	graphics.fillRect(stringX-2, y-metrics.getAscent()-4+metrics.getLeading(), metrics.stringWidth(s)+4, metrics.getAscent()+2);
+    	graphics.setColor(Color.WHITE);
+		graphics.drawString(s, stringX, y-stringH);
 	}
 	
 	@Override
@@ -742,6 +762,29 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			entry.getKey().repaint();
 	}
 	
+	public Location screenToLocation(JComponent client, int left, int top)
+	{
+		return screenToLocation(client, (double)left, (double)top);
+	}
+	
+	public Location screenToLocation(JComponent client, Point point)
+	{
+		return screenToLocation(client, (double)point.x, (double)point.y);
+	}
+	
+	public Location screenToLocation(JComponent client, Point2D.Double point)
+	{
+		return screenToLocation(client, point.x, point.y);
+	}
+	
+	public Location screenToLocation(JComponent client, double left, double top)
+	{
+		ClientSettings settings = getSettings(client);
+		return new Location(settings.clientAreaGPS.getNorthWest().getLatitude() + settings.clientAreaGPS.getHeight() * (top/client.getHeight()),
+				settings.clientAreaGPS.getNorthWest().getLongitude() + settings.clientAreaGPS.getWidth() * (left/client.getWidth())
+				);
+	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	/////////////////////////////////////////////////////////////////////
@@ -871,6 +914,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		Rectangle2D.Double[] backgroundAreas = new Rectangle2D.Double[BACKGROUND_LEVELS];
         public double gridStepX;
         public double gridStepY;
+        public GPSRectangle clientAreaGPS;
         
         //cosmetics
         public boolean drawBackground = true;

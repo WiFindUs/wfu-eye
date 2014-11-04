@@ -23,7 +23,7 @@ import wifindus.ResourcePool;
  */
 public class Device extends EventObject<DeviceEventListener> implements MySQLUpdateTarget, MappableObject
 {
-	public long TIMEOUT_THRESHOLD = 1000 * 60 * 5;
+	public long TIMEOUT_THRESHOLD = 1000 * 30;
 	
 	/**
 	 * A description of a client device's 'type'.
@@ -403,16 +403,7 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 		if (isHovering)
 			graphics.drawImage(pinHoverImage, left, top, null);
 		if (isHovering || isSelected)
-		{
-			String s = currentUser == null ? hash : currentUser.getNameFull();
-        	FontMetrics metrics = graphics.getFontMetrics();
-        	int stringH =  metrics.getDescent();
-        	int stringX = x-metrics.stringWidth(s)/2;
-        	graphics.setColor(Color.BLACK);
-        	graphics.fillRect(stringX-2, top-metrics.getAscent()-4+metrics.getLeading(), metrics.stringWidth(s)+4, metrics.getAscent()+2);
-        	graphics.setColor(Color.WHITE);
-			graphics.drawString(s, stringX, top-stringH);
-		}
+			MapRenderer.paintMarkerText(graphics,x,top,currentUser == null ? hash : currentUser.getNameFull());
 	}
 	
 	@Override

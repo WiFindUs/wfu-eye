@@ -440,6 +440,8 @@ public class Incident extends EventObject<IncidentEventListener> implements MySQ
 			graphics.drawImage(adornment, left+8, top+8, 48, 48, null);
 		if (isHovering)
 			graphics.drawImage(tagHoverImage, left, top, null);
+		if (isHovering || isSelected)
+			MapRenderer.paintMarkerText(graphics,x,top,"Incident #"+getID());
 	}
 	
 	@Override

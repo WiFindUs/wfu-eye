@@ -1,5 +1,7 @@
 package wifindus.eye;
 
+import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Polygon;
@@ -188,9 +190,22 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 		int h = nodeImage.getHeight(null);
 		int left = x-w/2;
 		int top = y-h/2;
+		graphics.setColor(Incident.COLOR_WIFINDUS);
+		graphics.fillOval(left+2, top+2, 27, 27);
 		graphics.drawImage(isSelected ? nodeSelectedImage : nodeImage, left, top, w, h, null);
 		if (isHovering)
 			graphics.drawImage(nodeHoverImage, left, top, null);
+		if (isHovering || isSelected)
+			MapRenderer.paintMarkerText(graphics,x,top,getHash());
+		
+		{
+	    	String s = "1";
+			FontMetrics metrics = graphics.getFontMetrics();
+	    	int stringH =  metrics.getDescent();
+	    	int stringX = x-metrics.stringWidth(s)/2;
+	    	graphics.setColor(Color.BLACK);
+			graphics.drawString(s, stringX, y+stringH/2+h/6);
+		}
 	}
 	
 	@Override
