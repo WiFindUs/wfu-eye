@@ -386,6 +386,12 @@ public abstract class EyeApplication extends JFrame
 	{
 		Debugger.v(node + " address changed: " + newAddress);
 	}
+	
+	@Override	
+	public void deviceSelectionChanged(Device device)
+	{
+		Debugger.v(device + " selection changed");		
+	}
 
 	/**
 	 * Creates a new incident in the MySQL database, handling errors and firing events accordingly.
@@ -530,8 +536,8 @@ public abstract class EyeApplication extends JFrame
 				return true;
 			if (device.getCurrentUser() == null)
 				throw new IllegalArgumentException("The given Device does not currently have an assigned User.");
-			if (device.getCurrentUser().getType().compareTo(incident.getType()) != 0)
-				throw new IllegalArgumentException("User assigned to the given device does not respond to Incidents of the given type.");
+			//if (device.getCurrentUser().getType().compareTo(incident.getType()) != 0)
+				//throw new IllegalArgumentException("User assigned to the given device does not respond to Incidents of the given type.");
 			if (incident.isArchived())
 				throw new IllegalArgumentException("You cannot assign a Device to an archived incident.");
 		}

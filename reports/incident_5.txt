@@ -1,0 +1,20 @@
+Incident #5
+
+Type: WiFindUs
+
+Reported By: Mitchell Templeton
+
+Responded to By:
+	Hussein Al Hammad
+	Mark S Gillard
+	Mitchell Templeton
+
+
+Times:
+	Time Taken to Resolve: 0 days, 0 hours, 0 minutes, 12 seconds
+	Reported At: 2014-11-04 13:03:22.0
+	Resolved At: 2014-11-04 13:03:34.0
+
+Code: 
+
+Location: 34.918109°S 138.582713°E

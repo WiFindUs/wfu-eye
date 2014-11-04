@@ -17,6 +17,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
@@ -44,7 +45,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	private transient JButton locateOnMap, codeButton, saveButton,
 			incidentIconButton, saveIconButton;
 	private transient JTextArea incidentDescription;
-	
+	 JComboBox<String> fileTypeSelect;
 	ImageIcon timeIcon, saveIcon;
 
 	String timeDifferenceReport; 
@@ -214,7 +215,11 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		saveButton.setFont(font);
 		saveButton.setHorizontalAlignment(SwingConstants.LEFT);
 		saveButton.addActionListener(this);
-
+		
+		 String[] fileTypes = {"Plain Text","HTML"};
+		    fileTypeSelect = new JComboBox<String>(fileTypes);
+		    fileTypeSelect.setMaximumSize(new Dimension(30, 10));
+		
 		// horizontal
 		GroupLayout.ParallelGroup columnLeft = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 		GroupLayout.ParallelGroup columnButtons = layout.createParallelGroup();
@@ -242,6 +247,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 
 		columnRight.addComponent(codeButton, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 		columnRight.addComponent(locateOnMap, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
+		columnRight.addComponent(fileTypeSelect, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 		columnRight.addComponent(saveButton, 0, GroupLayout.DEFAULT_SIZE,Short.MAX_VALUE);
 
 		horizontal.addGroup(columnLeft);
@@ -292,7 +298,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 
 		rightGroup.addComponent(codeButton);
 		rightGroup.addComponent(locateOnMap);
-
+		rightGroup.addComponent(fileTypeSelect);
 		rightGroup.addComponent(saveButton);
 
 		rowBottom.addComponent(incidentIconButton, 0, GroupLayout.DEFAULT_SIZE,
@@ -339,46 +345,89 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	        BufferedWriter writer = null;
 	        try 
 	        {
-	            String path = "reports/incident_"+incident.getID()+".txt";
+	        	String fileType = ".txt";
+
+	        	if (fileTypeSelect.getSelectedItem().toString() == "HTML")
+	        		fileType =  ".html";
+	        	
+	            String path = "reports/incident_"+incident.getID()+fileType;
 	            
 	            writer = new BufferedWriter(new FileWriter(path));
-	            writer.write("Incident #" + incident.getID());
-	            writer.newLine();
-	            writer.newLine();
 	            
-	            writer.write("Type: " + incident.getType());
-	            writer.newLine();
-	            writer.newLine();
+	            if(fileType == ".txt")
+	            {
+	            	writer.write("Incident #" + incident.getID());
+	            	writer.newLine();
+	            	writer.newLine();
 	            
-	            writer.write("Reported By:" + incident.getReportingUser());
-	            writer.newLine();
-	            writer.newLine();
+	            	writer.write("Type: " + incident.getType());
+	            	writer.newLine();
+	            	writer.newLine();
 	            
-	            writer.write("Responded to By:");
-	            writer.newLine();
-	        	for (User user : incident.getArchivedResponders()) {
-	        		writer.write(user.getNameFull().toString());
-	        		writer.newLine();
-	    		}
-	            writer.newLine();
-	            writer.newLine();
-	           
-	            writer.write("Times:");
-	            writer.newLine();
-	            writer.write("\tTime Taken to Resolve: "+ timeDifferenceReport);
-	            writer.newLine();
-	            writer.write("\tReported At: "+incident.getCreated());
-	            writer.newLine();
-	            writer.write("\tResolved At: "+incident.getArchivedTime());
-	            writer.newLine();
-	            writer.newLine();
-	       	            
-	            if(incident.getCode() != null)
-	            writer.write("Code: " + incident.getCode());
-	            writer.newLine();
-	            writer.newLine();
+	            	writer.write("Reported By: " + incident.getReportingUser().getNameFull());
+	            	writer.newLine();
+	            	writer.newLine();
 	            
-	            writer.write("Location: " + incident.getLocation());
+	            	writer.write("Responded to By:");
+	            	writer.newLine();
+	            	
+	            	for (User user : incident.getArchivedResponders()) 
+	            	{
+	            		writer.write("\t"+user.getNameFull().toString());
+	            		writer.newLine();
+	            	}
+	            
+	            	writer.newLine();
+		            writer.newLine();
+		           
+		            writer.write("Times:");
+		            writer.newLine();
+		            writer.write("\tTime Taken to Resolve: "+ timeDifferenceReport);
+		            writer.newLine();
+		            writer.write("\tReported At: "+incident.getCreated());
+		            writer.newLine();
+		            writer.write("\tResolved At: "+incident.getArchivedTime());
+		            writer.newLine();
+		            writer.newLine();
+		       	            
+		            if(incident.getCode() != null)
+		            writer.write("Code: " + incident.getCode());
+		            writer.newLine();
+		            writer.newLine();
+		            
+		            writer.write("Location: " + incident.getLocation());
+	            }
+	            
+	            else if (fileType == ".html")
+	            {
+	            	writer.write("<h1>Incident #" + incident.getID()+"</h1>");
+	            
+	            	writer.write("<h2>Type: " + incident.getType()+" </h2>");
+	            
+	            	writer.write("<h2>Reported By: " + incident.getReportingUser().getNameFull()+" </h2>");
+	            
+	            	writer.write("<h2>Responded to By:</h2>");
+	            	
+	            	for (User user : incident.getArchivedResponders()) 
+	            	{
+	            		writer.write("<h3 style=\" text-indent: 5em\">"+user.getNameFull().toString()+"</h3>");
+	            	}
+
+		           
+		            writer.write("<h2>Times:</h2>");
+
+		            writer.write("<h3 style=\" text-indent: 5em\">Time Taken to Resolve: "+ timeDifferenceReport+"</h3>");
+
+		            writer.write("<h3 style=\" text-indent: 5em\">Reported At: "+incident.getCreated()+"</h3>");
+
+		            writer.write("<h3 style=\" text-indent: 5em\">Resolved At: "+incident.getArchivedTime()+"</h3>");
+
+		       	            
+		            if(incident.getCode() != null)
+		            	writer.write("<h2>Code: " + incident.getCode()+"</h2>");
+
+		            writer.write("<h2>Location: " + incident.getLocation()+"</h2>");
+	            }
 	        } 
 	        catch (Exception ex) 
 	        {

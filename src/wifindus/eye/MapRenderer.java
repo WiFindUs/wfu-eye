@@ -983,4 +983,10 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
     	if (clients.size() > 0 && devices.size() > 0)
     		repaintClients();
     }
+
+	@Override
+	public void deviceSelectionChanged(Device device) {
+		// TODO Auto-generated method stub
+		
+	}
 }

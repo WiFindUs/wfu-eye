@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.InetAddress;
@@ -28,12 +30,13 @@ import wifindus.eye.MapFrame;
 import wifindus.eye.User;
 
 public class DevicePanel extends MapFrameLinkedPanel
-	implements ActionListener, DeviceEventListener
+	implements ActionListener, DeviceEventListener, MouseListener 
 {
 	private static final long serialVersionUID = -953467312117311967L;
     private transient volatile Device device = null;
     private transient JButton newIncidentButton, locateOnMapButton;
     private transient JLabel logo, name, location, status, deviceHash;
+    private transient Color hover, selected;
     
     static
     {
@@ -61,8 +64,10 @@ public class DevicePanel extends MapFrameLinkedPanel
     	if (device == null)
 			throw new NullPointerException("Parameter 'device' cannot be null.");
 		this.device = device;
-		boolean opaqueControls = true;
+		boolean opaqueControls = false;
 		Color opaqueColour = Color.white;
+		hover = new Color(0xCCFFFF);
+		selected = new Color(0x78becf);
 		
 		//panel properties
 		setLayout(null);
@@ -101,6 +106,7 @@ public class DevicePanel extends MapFrameLinkedPanel
         newIncidentButton.setMargin(new Insets(0,0,0,0));
         newIncidentButton.setBorder(emptyBorder);
         newIncidentButton.setFont(font);
+        newIncidentButton.setOpaque(opaqueControls);
         
         //locate a device/user on the map button
         locateOnMapButton = new JButton("Locate on map");
@@ -111,6 +117,7 @@ public class DevicePanel extends MapFrameLinkedPanel
         locateOnMapButton.setMargin(new Insets(0,0,0,0));
         locateOnMapButton.setBorder(emptyBorder);
         locateOnMapButton.setFont(font);
+        locateOnMapButton.setOpaque(opaqueControls);
         
         //user coordinates - DO NOT DELETE: data is not retrieved if not declared!
         location = new JLabel();
@@ -120,7 +127,7 @@ public class DevicePanel extends MapFrameLinkedPanel
         status.setFont(font);
         status.setPreferredSize(new Dimension(116,30));
         status.setForeground(opaqueColour);
-        status.setOpaque(opaqueControls);
+        status.setOpaque(true);
         status.setBorder(BorderFactory.createEmptyBorder(0,15,0,15));
         
         //add controls
@@ -130,6 +137,8 @@ public class DevicePanel extends MapFrameLinkedPanel
         add(locateOnMapButton);
         add(status);
         add(deviceHash);
+        
+        addMouseListener(this);
         
         //set control bounds
         name.setBounds(20, 3, 270, 20);
@@ -405,5 +414,49 @@ public class DevicePanel extends MapFrameLinkedPanel
 		boolean latlong = device.getLocation().hasLatLong();
 		newIncidentButton.setVisible(device.getCurrentUser() != null && latlong);
 		locateOnMapButton.setVisible(latlong);
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		device.toggleSelected();
+		if(device.getSelected() == true)
+			setBackground(selected);
+		else
+			setBackground(Color.WHITE);
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		if(device.getSelected() == false)
+			setBackground(hover);
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		if(device.getSelected() == false)
+			setBackground(Color.WHITE);
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deviceSelectionChanged(Device device) {
+		// TODO Auto-generated method stub
+		
 	}
 }

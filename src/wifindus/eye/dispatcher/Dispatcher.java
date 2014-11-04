@@ -403,6 +403,12 @@ public class Dispatcher extends EyeApplication
 	}
 	
 	@Override
+	public void deviceSelectionChanged(Device device) {
+		// TODO Auto-generated method stub
+		super.deviceSelectionChanged(device);
+	}
+	
+	@Override
 	public void deviceInUse(Device device, User user)
 	{
 		updateDeviceSort();
@@ -433,6 +439,8 @@ public class Dispatcher extends EyeApplication
 		updateDeviceFilter();
 		revalidate();
 	}
+	
+
 
 	/////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
@@ -504,6 +512,8 @@ public class Dispatcher extends EyeApplication
 		    }
 		});
 	}
+
+
 
 
 }

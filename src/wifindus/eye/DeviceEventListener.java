@@ -81,4 +81,7 @@ public interface DeviceEventListener
 	 * @param incident The incident the device was previously assigned to.
 	 */
 	public void deviceUnassignedIncident(Device device, Incident incident);
+
+	
+	public void deviceSelectionChanged(Device device);
 }

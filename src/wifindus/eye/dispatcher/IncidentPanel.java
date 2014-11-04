@@ -43,7 +43,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 {
 	private static final long serialVersionUID = -7397843910420550797L;
 	private transient JLabel idLabel, onTaskLabel, descriptionLabel, incidentIconLabel, incidentTime;
-	private transient JButton locateBtn, addRespondentBtn, removeRespondentBtn,
+	private transient JButton locateBtn, addRespondentBtn, addSelectedRespondentBtn, removeRespondentBtn,
 	deleteBtn, codeBtn, archiveBtn, saveDescriptionBtn;
 	private transient JTextArea incidentDescription;
 
@@ -162,7 +162,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		locateBtn.setHorizontalTextPosition(SwingConstants.CENTER);
 		locateBtn.addActionListener(this);
 
-		addRespondentBtn = new JButton("Add");
+		addRespondentBtn = new JButton("Add Nearest User");
 		addRespondentBtn.setBackground(lightBlue);
 		addRespondentBtn.setIcon(ResourcePool.getIcon("plus_small"));
 		addRespondentBtn.setBorder(emptyBorder);
@@ -170,6 +170,14 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		addRespondentBtn.setHorizontalAlignment(SwingConstants.LEFT);
 		addRespondentBtn.addActionListener(this);
 
+		addSelectedRespondentBtn = new JButton("Add Selected Users");
+		addSelectedRespondentBtn.setBackground(lightBlue);
+		addSelectedRespondentBtn.setIcon(ResourcePool.getIcon("plus_small"));
+		addSelectedRespondentBtn.setBorder(emptyBorder);
+		addSelectedRespondentBtn.setFont(btnFont);
+		addSelectedRespondentBtn.setHorizontalAlignment(SwingConstants.LEFT);
+		addSelectedRespondentBtn.addActionListener(this);
+		
 		removeRespondentBtn = new JButton("Remove");
 		removeRespondentBtn.setBackground(lightBlue);
 		removeRespondentBtn.setIcon(ResourcePool.getIcon("minus_small"));
@@ -305,7 +313,8 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		GroupLayout.SequentialGroup onTaskSequential = layout.createSequentialGroup();
 		onTaskSequential.addComponent(onTaskLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		onTaskSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE);
-		onTaskSequential.addComponent(addRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, 50);
+		onTaskSequential.addComponent(addRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, 120);
+		onTaskSequential.addComponent(addSelectedRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, 130);
 		onTaskSequential.addComponent(removeRespondentBtn, 0, GroupLayout.DEFAULT_SIZE, 80);
 		columnList.addGroup(onTaskSequential);
 		columnList.addComponent(onTaskListScroll, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
@@ -369,6 +378,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		GroupLayout.ParallelGroup onTaskRowParallel = layout.createParallelGroup();
 		onTaskRowParallel.addComponent(onTaskLabel, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		onTaskRowParallel.addComponent(addRespondentBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+		onTaskRowParallel.addComponent(addSelectedRespondentBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		onTaskRowParallel.addComponent(removeRespondentBtn, 25, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
 		onTaskGroup.addGroup(onTaskRowParallel);
 		onTaskGroup.addComponent(onTaskListScroll);
@@ -481,13 +491,30 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 			if (closestAvailableDevice != null)
 				EyeApplication.get().db_setDeviceIncident(closestAvailableDevice, getIncident());
 		}
+		else if(e.getSource() == addSelectedRespondentBtn)
+		{
+			for (Device device : EyeApplication.get().getDevices())
+			{
+				//skip invalid options
+				if (device.getCurrentIncident() != null
+						|| !device.getLocation().hasLatLong()
+						|| device.getCurrentUser() == null
+						/*|| device.getCurrentUser().getType() != getIncident().getType()*/)
+					continue;
+				if (device.getSelected() == true)
+					EyeApplication.get().db_setDeviceIncident(device, getIncident());
+			}
+		}
 		else if(e.getSource() == removeRespondentBtn)
 		{
 			for (Device device : getSelectedDevices())
 				EyeApplication.get().db_setDeviceIncident(device, null); //null incident for 'unassigning'
 		}
 		else if(e.getSource() == archiveBtn)
+		{
+			EyeApplication.get().db_setIncidentDescription(getIncident(), incidentDescription.getText());
 			EyeApplication.get().db_archiveIncident(getIncident());
+		}
 		else if (e.getSource() == locateBtn)
 			locateObjectOnMap(getIncident());
 		else if (e.getSource() == codeBtn)

@@ -70,7 +70,8 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	private Location location = Location.EMPTY;
 	private Atmosphere atmosphere = Atmosphere.EMPTY;
 	private Timestamp lastUpdate = new Timestamp(0);
-
+	private boolean selected = false;
+	
 	//database relationships
 	private transient User currentUser = null;
 	private transient Incident currentIncident = null;
@@ -129,6 +130,23 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 	// PUBLIC METHODS
 	/////////////////////////////////////////////////////////////////////
 
+	public void toggleSelected()
+	{
+		fireEvent("selectionChanged");
+		if (selected == true)
+		{
+				selected = false;
+				
+		}
+		else
+			selected = true;
+	}
+	
+	public boolean getSelected()
+	{
+		return selected;
+	}
+	
 	/**
 	 * Gets this Device's Hash.
 	 * @return An 8-character String containing this Device's unique Hash ID.
@@ -446,6 +464,10 @@ public class Device extends EventObject<DeviceEventListener> implements MySQLUpd
 			case "unassigned":
 				listener.deviceUnassignedIncident(this, (Incident)data[0]);
 				break;
+			case "selectionChanged":
+				listener.deviceSelectionChanged(this);
+				break;
+				
 		}
 	}
 
