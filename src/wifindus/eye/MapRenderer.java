@@ -100,6 +100,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 					row++;
 				}
 			}
+			
 		}
 		
 		//initialise lists with all current nodes, incidents and devices
@@ -386,9 +387,9 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
         settings.gridStepY = settings.gridArea.height / (double)gridRows;
         
         //object locations
-        settings.setPoints(nodes,false);
-        settings.setPoints(incidents,false);
-        settings.setPointsNonInterp(devices);
+        settings.setPoints(devices);
+        settings.setPoints(incidents);
+        settings.setPoints(nodes);
 	}
 	
 	
@@ -577,7 +578,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			Location newLocation)
 	{
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-			entry.getValue().setPoint(device,true);
+			entry.getValue().setPoint(device);
 		repaintDevices();
 	}
 
@@ -624,7 +625,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 			Location newLocation)
 	{
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-			entry.getValue().setPoint(node,false);
+			entry.getValue().setPoint(node);
 		repaintNodes();
 	}
 
@@ -636,7 +637,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		devices.add(device);
 		device.addEventListener(this);
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-			entry.getValue().setPoint(device,true);
+			entry.getValue().setPoint(device);
 		repaintDevices();
 	}
 
@@ -648,7 +649,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		incidents.add(incident);
 		incident.addEventListener(this);
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-			entry.getValue().setPoint(incident,false);
+			entry.getValue().setPoint(incident);
 		repaintIncidents();
 	}
 
@@ -660,7 +661,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		nodes.add(node);
 		node.addEventListener(this);
 		for (Map.Entry<JComponent, ClientSettings> entry : clients.entrySet())
-			entry.getValue().setPoint(node,true);
+			entry.getValue().setPoint(node);
 		repaintNodes();
 	}
 
@@ -748,27 +749,11 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 				repaint = true;
 			}
 			
-			for (Map.Entry<MappableObject, ClientObjectData> objEntry : settings.objectData.entrySet())
-			{
-				ClientObjectData data = objEntry.getValue();
-				if (!data.isInterpolating())
-					continue;
-
-				data.pointInterp += deltaTime;
-				if (data.pointInterp > 1.0)
-					data.pointInterp = 1.0;
-				data.interpolate();
-				regen = true;
-				repaint = true;
-			}
-			
 			if (regen)
 				regenerateGeometry(entry.getKey());
 			if (repaint)
 				entry.getKey().repaint();
 		}
-		
-
 	}
 	
 	public void repaintClients()
@@ -908,23 +893,7 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	private class ClientObjectData
 	{
 		public Point2D.Double point = null;
-		public Point2D.Double pointStart = null;
-		public Point2D.Double pointTarget = null;
-		public double pointInterp = 1.0f;
 		public Polygon hitbox = null;
-		
-		public boolean isInterpolating()
-		{
-			return point != null && pointStart != null && pointTarget != null && pointInterp > 1.0;
-		}
-		
-		public void interpolate()
-		{
-			if (!isInterpolating())
-				return;
-			point.x = MathHelper.coserp(pointStart.x, pointTarget.x, pointInterp);
-			point.y = MathHelper.coserp(pointStart.y, pointTarget.y, pointInterp);
-		}
 	}
 	
 	private class ClientSettings
@@ -966,45 +935,19 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		public Font font = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 18);
 		public String tileType = TYPE_SATELLITE;
 		
-		public void setPoint(MappableObject object, boolean interpolated)
+		public void setPoint(MappableObject object)
         {
 			ClientObjectData data = objectData.get(object);
 			if (data == null)
 				objectData.put(object,data = new ClientObjectData());
-			if (!object.getLocation().hasLatLong())
-				return;
-			if (!interpolated || data.point == null)
-			{
-				data.point = tiles[0][0].getBounds().translate(mapArea, object.getLocation());
-				data.pointTarget = data.pointStart = null;
-				data.pointInterp = 1.0f;
-			}
-			else
-			{
-				data.pointTarget = tiles[0][0].getBounds().translate(mapArea, object.getLocation());
-				if (data.pointStart == null)
-					data.pointStart = new Point2D.Double();
-				data.pointStart.setLocation(data.point.x, data.point.y);
-				data.pointInterp = 0.0f;
-			}
-			data.hitbox = object.generateMarkerHitbox((int)data.point.x, (int)data.point.y); 
+			data.point = object.getLocation().hasLatLong() ? tiles[0][0].getBounds().translate(mapArea, object.getLocation()) : null;
+			data.hitbox = data.point == null ? null : object.generateMarkerHitbox((int)data.point.x, (int)data.point.y); 
         }
 		
-		public void setPointsNonInterp(List<MappableObject> objects)
-		{
-            for (MappableObject object : objects)
-            {
-            	ClientObjectData data = objectData.get(object);
-            	if (data != null && data.isInterpolating())
-            		continue;
-            	setPoint(object,false);
-            }
-		}
-		
-        public void setPoints(List<MappableObject> objects, boolean interpolated)
+        public void setPoints(List<MappableObject> objects)
         {
             for (MappableObject object : objects)
-            	setPoint(object,interpolated);
+            	setPoint(object);
         }
         
         public void setPan(double x, double y, boolean interpolated)

@@ -35,7 +35,7 @@ public class MapFrameLinkedPanel extends JPanel
 					mapFrame.setVisible(true);
 				mapFrame.toFront();
 				mapFrame.setPan(object, true);
-				mapFrame.setZoom(6.5, true);
+				mapFrame.setZoom(1.5, true);
 			}
 		});
 	}
