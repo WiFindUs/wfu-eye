@@ -280,7 +280,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		//horizontal layout: incident type column (top row)
 		GroupLayout.SequentialGroup IncidentTypeRowSequential = layout.createSequentialGroup();
-		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 40);
+		IncidentTypeRowSequential.addComponent(incidentIconLabel, 0, GroupLayout.DEFAULT_SIZE, 50);
 		IncidentTypeRowSequential.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0);
 		IncidentTypeRowSequential.addComponent(codeBtn, 115, GroupLayout.DEFAULT_SIZE, 115);
 		columnIncidentType.addGroup(IncidentTypeRowSequential);
