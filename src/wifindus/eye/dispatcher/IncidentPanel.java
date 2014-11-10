@@ -85,11 +85,11 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		Border emptyBorder = BorderFactory.createEmptyBorder();
 		setMaximumSize(new Dimension(1000,230));
 		setMinimumSize(new Dimension(600,230));
-		Font font, rightColumnFont, idFont, btnFont;
+		Font font, codeBtnFont, idFont, btnFont;
 		font = getFont().deriveFont(Font.BOLD, 15.0f);
 		idFont = getFont().deriveFont(Font.BOLD, 17.0f);
 		btnFont = getFont().deriveFont(Font.BOLD, 11.0f);
-		rightColumnFont = getFont().deriveFont(Font.BOLD, 16.0f);
+		codeBtnFont = getFont().deriveFont(Font.BOLD, 16.0f);
 
 		//Layout
 		GroupLayout layout = new GroupLayout(this);
@@ -234,7 +234,7 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		codeBtn = new JButton("code");
 		codeBtn.setBackground(Color.gray);
 		codeBtn.setForeground(Color.white);
-		codeBtn.setFont(rightColumnFont);
+		codeBtn.setFont(codeBtnFont);
 		codeBtn.setBorder(emptyBorder);
 		codeBtn.setMinimumSize(new Dimension(115,35));
 		codeBtn.setMaximumSize(new Dimension(115,35));
