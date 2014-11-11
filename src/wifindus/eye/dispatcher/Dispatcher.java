@@ -366,7 +366,7 @@ public class Dispatcher extends EyeApplication
 	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser)
 	{
 		super.incidentReportingUserChanged(incident, oldUser, newUser);
-		if(incident.isArchived() && newUser.getNameFull()!= null)
+		if(incident.isArchived()/* && newUser.getNameFull()!= null*/)
 			archivedIncidentPanels.get(Integer.valueOf(incident.getID())).setReportingUserText(newUser.getNameFull());
 	}
 	

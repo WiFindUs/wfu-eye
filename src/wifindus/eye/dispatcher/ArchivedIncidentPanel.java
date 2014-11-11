@@ -40,7 +40,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	private transient JLabel idLabel, reportedLabel, resolvedLabel, resolvedTimeLabel, incidentIconLabel, codeLabel;
 	private transient JButton locateBtn, saveBtn;
 	private transient JTextArea incidentDescription;
-	private transient String reporterName, timeDifferenceReport;
+	private transient String timeDifferenceReport;
 	private transient long dayDifference, hourDifference, minuteDifference, secondDifference, timeDifference;
 	 JComboBox<String> fileTypeSelect;
 	private DefaultTableCellRenderer centerRenderer;
@@ -177,18 +177,11 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		if(incident.getReportingUser() != null)
-		{
-			reporterName = (incident.getReportingUser().getNameFull().toString());
-		}
-			
-		
+
 		centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		reporterTable = new JTable(reporterTableModel);
-		reporterTableModel.addRow(new Object[] {reporterName});
 		JTableHeader headerReporter = reporterTable.getTableHeader();
 		headerReporter.setBackground(new Color(0xc8ddf2));
 		headerReporter.setFont(getFont().deriveFont(Font.BOLD));
@@ -562,7 +555,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	
 	public void setReportingUserText(String user)
 	{
-		//reporterName.setText(user);
+		reporterTableModel.addRow(new Object[] {user});
 	}
 
 	// ///////////////////////////////////////////////////////////////////
