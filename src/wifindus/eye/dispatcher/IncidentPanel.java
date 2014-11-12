@@ -241,29 +241,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		codeBtn.addActionListener(this);
 
 
-		/* MODIFY ACCORDING TO CHANGES
-          The panel is divided into 4 columns and 2 main rows.
-
-          column(1): incident id and incident type icon
-          column(2): locateBtn, addRespondentBtn, deleteBtn buttons
-          column(3): on task label and list
-          column(4): time, colour code, status
-
-          row(1): incident id
-          row(2): incident type icon and column(2)-column(4)
-
-          Horizontal sequential group:
-          	contains 4 parallel groups; column(1)-column(4)
-          			 2 sequential groups:
-          			 	(a)indenting gap + icon button
-          			 	(b)timer icon + timer
-
-          Vertical sequential group:
-          	contains incident id and 1 parallel group
-          	This parallel group contains:
-          		incident type icon and 3 sequential groups; column(2)-column(4)
-		 */
-
 		
 		//horizontal layout
 		//horizontal layout: top row
