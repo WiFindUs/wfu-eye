@@ -5,11 +5,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -40,8 +40,10 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	private transient JLabel idLabel, reportedLabel, resolvedLabel, resolvedTimeLabel, incidentIconLabel, codeLabel;
 	private transient JButton locateBtn, saveBtn;
 	private transient JTextArea incidentDescription;
-	private transient String timeDifferenceReport;
+	private transient String timeDifferenceReport, reporterName, reportedDate, reportedTime, resolvedDate, resolvedTime;
 	private transient long dayDifference, hourDifference, minuteDifference, secondDifference, timeDifference;
+	private transient String[] resolvedIn;
+	private transient List<String> respondents;
 	 JComboBox<String> fileTypeSelect;
 	private DefaultTableCellRenderer centerRenderer;
 
@@ -113,6 +115,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		btnFont = getFont().deriveFont(Font.BOLD, 11.0f);
 		headerFont = getFont().deriveFont(Font.BOLD, 15.0f);
 		codeLabelFont = getFont().deriveFont(Font.BOLD, 16.0f);
+		respondents = new ArrayList<String>();
 		
 		// Layout
 		GroupLayout layout = new GroupLayout(this);
@@ -152,12 +155,12 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		String archivedDateString = dateFormat.format(incident.getArchivedTime());
 
 		String[] reporteddDateTime = createdDateString.split(" ");
-		String reportedDate = reporteddDateTime[0];
-		String reportedTime = reporteddDateTime[1];
+		reportedDate = reporteddDateTime[0];
+		reportedTime = reporteddDateTime[1];
 		
 		String[] archivedDateTime = archivedDateString.split(" ");
-		String resolvedDate = archivedDateTime[0];
-		String resolvedTime = archivedDateTime[1];
+		resolvedDate = archivedDateTime[0];
+		resolvedTime = archivedDateTime[1];
 		
 		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
  
@@ -177,6 +180,14 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		resolvedIn = new String[4];
+		resolvedIn[0] = String.valueOf(dayDifference);
+		resolvedIn[1] = String.valueOf(hourDifference);
+		resolvedIn[2] = String.valueOf(minuteDifference);
+		resolvedIn[3] = String.valueOf(secondDifference);
+		
+		
 
 		centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -445,106 +456,12 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		//Save report to text file
 		if(e.getSource() == saveBtn)
 		{
-	        BufferedWriter writer = null;
-	        try 
-	        {
-	        	String fileType = ".txt";
-
-	        	if (fileTypeSelect.getSelectedItem().toString() == "HTML")
-	        		fileType =  ".html";
-	        	
-	            String path = "reports/incident_"+incident.getID()+fileType;
-	            
-	            writer = new BufferedWriter(new FileWriter(path));
-	            
-	            if(fileType == ".txt")
-	            {
-	            	writer.write("Incident #" + incident.getID());
-	            	writer.newLine();
-	            	writer.newLine();
-	            
-	            	writer.write("Type: " + incident.getType());
-	            	writer.newLine();
-	            	writer.newLine();
-	            
-	            	writer.write("Reported By: " + incident.getReportingUser().getNameFull());
-	            	writer.newLine();
-	            	writer.newLine();
-	            
-	            	writer.write("Responded to By:");
-	            	writer.newLine();
-	            	
-	            	for (User user : incident.getArchivedResponders()) 
-	            	{
-	            		writer.write("\t"+user.getNameFull().toString());
-	            		writer.newLine();
-	            	}
-	            
-	            	writer.newLine();
-		            writer.newLine();
-		           
-		            writer.write("Times:");
-		            writer.newLine();
-		            writer.write("\tTime Taken to Resolve: "+ timeDifferenceReport);
-		            writer.newLine();
-		            writer.write("\tReported At: "+incident.getCreated());
-		            writer.newLine();
-		            writer.write("\tResolved At: "+incident.getArchivedTime());
-		            writer.newLine();
-		            writer.newLine();
-		       	            
-		            if(incident.getCode() != null)
-		            writer.write("Code: " + incident.getCode());
-		            writer.newLine();
-		            writer.newLine();
-		            
-		            writer.write("Location: " + incident.getLocation());
-	            }
-	            
-	            else if (fileType == ".html")
-	            {
-	            	writer.write("<h1>Incident #" + incident.getID()+"</h1>");
-	            
-	            	writer.write("<h2>Type: " + incident.getType()+" </h2>");
-	            
-	            	writer.write("<h2>Reported By: " + incident.getReportingUser().getNameFull()+" </h2>");
-	            
-	            	writer.write("<h2>Responded to By:</h2>");
-	            	
-	            	for (User user : incident.getArchivedResponders()) 
-	            	{
-	            		writer.write("<h3 style=\" text-indent: 5em\">"+user.getNameFull().toString()+"</h3>");
-	            	}
-
-		           
-		            writer.write("<h2>Times:</h2>");
-
-		            writer.write("<h3 style=\" text-indent: 5em\">Time Taken to Resolve: "+ timeDifferenceReport+"</h3>");
-
-		            writer.write("<h3 style=\" text-indent: 5em\">Reported At: "+incident.getCreated()+"</h3>");
-
-		            writer.write("<h3 style=\" text-indent: 5em\">Resolved At: "+incident.getArchivedTime()+"</h3>");
-
-		       	            
-		            if(incident.getCode() != null)
-		            	writer.write("<h2>Code: " + incident.getCode()+"</h2>");
-
-		            writer.write("<h2>Location: " + incident.getLocation()+"</h2>");
-	            }
-	        } 
-	        catch (Exception ex) 
-	        {
-	            ex.printStackTrace();
-	        } 
-	        finally 
-	        {
-	            try 
-	            {
-	                writer.close();
-	            } catch (Exception ex) 
-	            {
-	            }
-	        }
+			ArchivedIncidentPage htmlPage = new ArchivedIncidentPage();
+			htmlPage.createReportTable(reportedDate, reportedTime, reporterName, codeLabel.getText(), incident.getLocation().toString());
+			htmlPage.createResolvedTable(resolvedDate, resolvedTime, resolvedIn);
+			htmlPage.createRespondentsTable(respondents);
+			htmlPage.createDesc(incident.getDescription());
+			htmlPage.createPage(incident.getType().toString(), incident.getID());
 		}
 		
 		if (e.getSource() == locateBtn)
@@ -556,6 +473,7 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	public void setReportingUserText(String user)
 	{
 		reporterTableModel.addRow(new Object[] {user});
+		reporterName = user;
 	}
 
 	// ///////////////////////////////////////////////////////////////////
@@ -579,8 +497,8 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	@Override
 	public void incidentArchivedResponderAdded(Incident incident, User user) {
 		// TODO Auto-generated method stub
-		//model.addElement(user.getNameFull());
 		respondentsTableModel.addRow(new Object[] {user.getNameFull()});
+		respondents.add(user.getNameFull());
 	}
 
 	@Override

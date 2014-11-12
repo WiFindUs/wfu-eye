@@ -1,0 +1,167 @@
+html{
+	background-color: #628196;
+	font-family: arial, sans-serif;
+}
+
+body{
+	margin-top: 0px;
+	margin-bottom: 0px;
+	width: 1000px;
+	margin-left: auto;
+	margin-right: auto;
+	padding-bottom: 40px;
+	background-color: #edf4fc;
+}
+
+.header{
+	background-color: white;
+	height: 85px;
+	width: 100%;
+	border-bottom: 1px solid #628196;
+}
+
+#logo{
+	height: 50px;
+	widht: auto;
+	margin-top: 20px;
+	margin-left: 40px;
+}
+
+
+ ul{
+	list-style-type: none;
+	font-size: 14px;
+}
+
+ul li{
+	display: inline-block;
+	padding: 0px;
+	margin: 0px;
+	text-align: center;
+	vertical-align: text-top;
+}
+
+.selectIncident{
+	float: right;
+	margin-right: 40px;
+	margin-top: 50px;
+}
+
+.selectIncident li{
+	display: inline;
+	font-weight: bold;
+	margin-right: 4px;
+}
+
+select{
+	width: 50px;
+}
+
+
+.incident{
+	margin-left: 4px;
+	margin-top: 35px;
+}
+
+.tables {
+	width: 918px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#incidentID{
+	width: 130px;
+	height: 50px;
+	text-align: center;
+	line-height: 50px;
+	font-size: 18px;
+	font-weight: bold;	
+}
+
+
+#incidentType{
+	padding:0px;
+}
+
+#emergencyCode{
+	width: 130px;
+	height: 50px;
+	text-align: center;
+	line-height: 50px;
+	font-size: 16px;
+	font-color: white;
+	background-color: gray;
+}
+
+.desc{
+	margin-left: 41px;
+	max-width: 920px; 
+	
+	margin-top: 10px;
+	overflow: auto;
+	padding-right: 8px;
+}
+
+
+.desc p{
+	padding: 10px 10px 10px 10px;
+	background-color: white;
+	border: 1px solid black;
+	line-height: 25px;
+	margin-top: 0px;
+	min-height: 150px;
+}
+
+#descHeader{
+	width: 150px;
+	height: 30px;
+	background-color: #c8ddf2;
+	border: 1px solid #628196;
+	border-bottom: 0px;
+	font-size: 20px;
+	font-weight: bold;
+	text-align: center;
+	vertical-align: text-bottom;
+	line-height: 35px;
+	margin-bottom: 0px;
+}
+
+
+h1{
+	font-size: 20px;
+	margin-left: 40px;
+	margin-top: 50px;
+}
+
+
+table{
+	border-collapse: collapse;
+	min-height: 160px;
+	display: inline-block;
+	margin-right: 5px;
+}
+
+table, td, th {
+    border: 1px solid black;
+	width: 300px;
+	
+}
+
+th{
+	background-color: #c8ddf2;
+	text-transform:uppercase;
+}
+
+#respondents{
+	float:right;
+	margin-right: 0px;
+}
+#respondents th{
+	height: 25px;
+}
+
+td{
+	background-color: white;
+	text-align: center;
+}
+
