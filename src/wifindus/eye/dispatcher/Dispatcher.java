@@ -357,6 +357,10 @@ public class Dispatcher extends EyeApplication
 		ArchivedIncidentPanel archivedPanel = new ArchivedIncidentPanel(incident, mapFrame);
 		archivedIncidentPanels.put(Integer.valueOf(incident.getID()), archivedPanel);
 		archivedIncidentPanel.add(archivedPanel);
+		
+		if(incident.getReportingUser() != null)
+			archivedIncidentPanels.get(Integer.valueOf(incident.getID())).setReportingUserText(incident.getReportingUser().getNameFull());
+			
 		archivedIncidentPanel.revalidate();
 		
 	}
@@ -366,7 +370,7 @@ public class Dispatcher extends EyeApplication
 	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser)
 	{
 		super.incidentReportingUserChanged(incident, oldUser, newUser);
-		if(incident.isArchived()/* && newUser.getNameFull()!= null*/)
+		if(incident.isArchived() && newUser.getNameFull()!= null)
 			archivedIncidentPanels.get(Integer.valueOf(incident.getID())).setReportingUserText(newUser.getNameFull());
 	}
 	
