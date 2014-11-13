@@ -2,7 +2,6 @@ package wifindus.eye;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
-import java.text.Format;
 
 import wifindus.MathHelper;
 

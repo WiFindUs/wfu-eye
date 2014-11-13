@@ -14,11 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
