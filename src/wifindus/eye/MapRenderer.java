@@ -370,11 +370,13 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 		Rectangle2D.Double.intersect(settings.clientArea, settings.mapArea, settings.shownArea);
 		
 		GPSRectangle bounds = tiles[0][0].getBounds();
+		double mapLeft = -settings.mapArea.x / settings.mapSize;
+		double mapTop = -settings.mapArea.y / settings.mapSize;
 		settings.clientAreaGPS  = new GPSRectangle(
-				bounds.getNorthWest().getLatitude() + (-settings.mapArea.y / settings.mapSize) * bounds.getHeight(),
-				bounds.getNorthWest().getLongitude() + (-settings.mapArea.x / settings.mapSize) * bounds.getWidth(),
-				bounds.getSouthEast().getLatitude() + (-settings.mapArea.y / settings.mapSize) * bounds.getHeight(),
-				bounds.getSouthEast().getLongitude() + (-settings.mapArea.x / settings.mapSize) * bounds.getWidth());
+				bounds.getNorthWest().getLatitude() + mapTop * bounds.getHeight(),
+				bounds.getNorthWest().getLongitude() + mapLeft * bounds.getWidth(),
+				bounds.getNorthWest().getLatitude() + (mapTop - (settings.clientArea.height / settings.mapSize)) * bounds.getHeight(),
+				bounds.getNorthWest().getLongitude() + (mapLeft + (settings.clientArea.width / settings.mapSize)) * bounds.getWidth());
 		
 		//grid stuff
 		if (settings.gridArea == null)
