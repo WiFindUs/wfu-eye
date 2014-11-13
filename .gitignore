@@ -3,6 +3,7 @@
 logs/
 maps/
 ~$*.xlsx
+reports/
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
@@ -55,3 +56,4 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 /bin
+
