@@ -33,6 +33,7 @@ public class Server extends EyeApplication
 	private static final long serialVersionUID = -6202164296309727570L;
 	private volatile DatagramSocket udpListenSocket;
 	private transient volatile boolean abortThreads = false;
+	@SuppressWarnings("unused")
 	private volatile Map<String, Long> nodeTimestamps = new HashMap<String, Long>();
 	private volatile Map<String, Long> deviceTimestamps = new HashMap<String, Long>();
 	

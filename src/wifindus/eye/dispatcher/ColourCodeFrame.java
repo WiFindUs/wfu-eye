@@ -14,17 +14,22 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import wifindus.eye.Incident;
-
 public class ColourCodeFrame extends JFrame implements ActionListener, WindowFocusListener{
 
-	private Incident incident;
+	private static final long serialVersionUID = -1501979478933870503L;
 	private IncidentPanel incidentPanel;
-	private String colour;
-	private Color red, orange, blue, yellow, brown, purple, black, green, grey; 
-	private JButton redBtn, orangeBtn, blueBtn, yellowBtn, brownBtn, purpleBtn, blackBtn, greenBtn, greyBtn;
-	private JLabel redLbl, orangeLbl, blueLbl, yellowLbl, brownLbl, purpleLbl, blackLbl, greenLbl, greyLbl;
-	private JPanel panel;
+	private static Color red = new Color(0xfd0b15),
+		orange = new Color (0xff9c00),
+		blue = new Color(0x004eff),
+		yellow = Color.yellow,
+		brown = new Color(0xa28725),
+		purple = new Color(0xbf1de8),
+		black = Color.black,
+		green = Color.green,
+		grey = Color.gray;
+	private transient JButton redBtn, orangeBtn, blueBtn, yellowBtn, brownBtn, purpleBtn, blackBtn, greenBtn, greyBtn;
+	private transient JLabel redLbl, orangeLbl, blueLbl, yellowLbl, brownLbl, purpleLbl, blackLbl, greenLbl, greyLbl;
+	private transient JPanel panel;
 	
 	public ColourCodeFrame(IncidentPanel incidentPanel)
 	{
@@ -40,17 +45,7 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		GroupLayout.SequentialGroup vertical = layout.createSequentialGroup();
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
-		colour = "red";
-		red = new Color(0xfd0b15);
-		orange = new Color (0xff9c00);
-		blue = new Color(0x004eff);
-		yellow = Color.yellow;
-		brown = new Color(0xa28725);
-		purple = new Color(0xbf1de8);
-		black = Color.black;
-		green = Color.green;
-		grey = Color.gray;
-		
+
 		redBtn = new JButton ("Red");
 		redLbl = new JLabel ("Fire/Smoke");
 		redBtn.setBackground(red);

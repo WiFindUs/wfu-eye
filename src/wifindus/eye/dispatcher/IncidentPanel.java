@@ -76,7 +76,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		
 		//cosmetic properties
 		Color lightBlue = new Color(0xf6f9fc);
-		Color red = new Color(0xfd0b15);
 		setBackground(lightBlue);
 		setBorder(BorderFactory.createMatteBorder(0,1,1,0,new Color(0x618197)));
 		Border emptyBorder = BorderFactory.createEmptyBorder();

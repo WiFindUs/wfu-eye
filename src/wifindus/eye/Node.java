@@ -30,6 +30,7 @@ public class Node extends EventObject<NodeEventListener> implements MySQLUpdateT
 	private Timestamp lastUpdate = new Timestamp(0);
 	
 	//marker stuff
+	@SuppressWarnings("unused")
 	private static Image nodeImage, nodeInactiveImage, nodeHoverImage, nodeSelectedImage;
 	static
 	{

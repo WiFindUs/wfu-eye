@@ -31,11 +31,12 @@ import wifindus.eye.Incident;
 
 public class IncidentTypeFrame extends JFrame implements MouseListener, ActionListener, WindowFocusListener
 {
-	Device device;
-	String type;
-	JButton medicalBtn, securityBtn, wfuBtn;
-	JPanel panel, buttonsPanel;
-	Color hover;
+	private static final long serialVersionUID = 322716282507971893L;
+	private transient Device device;
+	private transient String type;
+	private transient JButton medicalBtn, securityBtn, wfuBtn;
+	private transient JPanel panel, buttonsPanel;
+	private transient Color hover;
 	
 	static
 	{

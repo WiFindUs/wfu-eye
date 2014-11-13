@@ -40,13 +40,14 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 	private transient JLabel idLabel, reportedLabel, resolvedLabel, resolvedTimeLabel, incidentIconLabel, codeLabel;
 	private transient JButton locateBtn, saveBtn;
 	private transient JTextArea incidentDescription;
-	private transient String timeDifferenceReport, reporterName, reportedDate, reportedTime, resolvedDate, resolvedTime;
+	private transient String  reporterName, reportedDate, reportedTime, resolvedDate, resolvedTime;
 	private transient long dayDifference, hourDifference, minuteDifference, secondDifference, timeDifference;
 	private transient String[] resolvedIn;
 	private transient List<String> respondents;
 	 JComboBox<String> fileTypeSelect;
 	private DefaultTableCellRenderer centerRenderer;
 
+	@SuppressWarnings("unused")
 	private static final int COLUMN_RESPONDENT = 0;
 	private transient DefaultTableModel respondentsTableModel = new DefaultTableModel(
 			new Object[][]{},
@@ -167,7 +168,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		Date createdDate = null;
 		Date archivedDate = null;
 
-		timeDifferenceReport = "";
 		try {
 			createdDate = format.parse(createdDateString);
 			archivedDate = format.parse(archivedDateString);
@@ -176,7 +176,6 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 			minuteDifference = timeDifference / (60 * 1000) % 60;
 			hourDifference = timeDifference / (60 * 60 * 1000) % 24;
 			dayDifference = timeDifference / (24 * 60 * 60 * 1000);
-			timeDifferenceReport = dayDifference + " days, " + hourDifference+ " hours, " + minuteDifference+ " minutes, " + secondDifference+ " seconds";
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
