@@ -212,7 +212,7 @@ public class MapTile
 				{
 					return ImageIO.read(file);
 				}
-				catch (IOException e)
+				catch (Exception e)
 				{
 					Debugger.e("Error reading file!");
 				}
