@@ -21,7 +21,8 @@ import wifindus.ResourcePool;
  */
 public class Device extends EventObject<DeviceEventListener> implements MySQLUpdateTarget, MappableObject
 {
-	public long TIMEOUT_THRESHOLD = 1000 * 30;
+	//normally 30 seconds, but for testing purposes we'll make it 'infinite'
+	public long TIMEOUT_THRESHOLD = Long.MAX_VALUE;//1000 * 30; 
 	
 	/**
 	 * A description of a client device's 'type'.
