@@ -30,12 +30,11 @@ import javax.swing.table.JTableHeader;
 import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.Incident;
-import wifindus.eye.IncidentEventListener;
 import wifindus.eye.MapFrame;
 import wifindus.eye.User;
 
 public class ArchivedIncidentPanel extends IncidentParentPanel implements
-		IncidentEventListener, ActionListener {
+		ActionListener {
 	private static final long serialVersionUID = -7397843910420550797L;
 	private transient JLabel idLabel, reportedLabel, resolvedLabel, resolvedTimeLabel, incidentIconLabel, codeLabel;
 	private transient JButton locateBtn, saveBtn;
@@ -427,26 +426,21 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		layout.setHorizontalGroup(horizontal);
 		layout.setVerticalGroup(vertical);
 		
-
-		// eye listeners
-		incident.addEventListener(this);
-
+		//set reporting user
+		User reportingUser = getIncident().getReportingUser();
+		if (reportingUser != null)
+		{
+			reporterTableModel.addRow(new Object[] {reportingUser.getNameFull()});
+			reporterName = reportingUser.getNameFull();
+		}
+		
+		//save report
+		saveReport();
 	}
 
-	@Override
-	public void incidentArchived(Incident incident) {
-
-	}
-
-	@Override
-	public void incidentAssignedDevice(Incident incident, Device device) {
-
-	}
-
-	@Override
-	public void incidentUnassignedDevice(Incident incident, Device device) {
-
-	}
+	@Override public void incidentArchived(Incident incident) { }
+	@Override public void incidentAssignedDevice(Incident incident, Device device) { }
+	@Override public void incidentUnassignedDevice(Incident incident, Device device) { }
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -469,25 +463,20 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		
 	}
 	
-	public void setReportingUserText(String user)
-	{
-		reporterTableModel.addRow(new Object[] {user});
-		reporterName = user;
-	}
-	
-	public void saveReport(Incident incident)
-	{
-		ArchivedIncidentPage htmlPage = new ArchivedIncidentPage();
-		htmlPage.createReportTable(reportedDate, reportedTime, reporterName, codeLabel.getText(), incident.getLocation().toString());
-		htmlPage.createResolvedTable(resolvedDate, resolvedTime, resolvedIn);
-		htmlPage.createRespondentsTable(respondents);
-		htmlPage.createDesc(incident.getDescription());
-		htmlPage.createPage(incident.getType().toString(), incident.getID());
-	}
 
 	// ///////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	// ///////////////////////////////////////////////////////////////////
+	
+	private void saveReport()
+	{
+		ArchivedIncidentPage htmlPage = new ArchivedIncidentPage();
+		htmlPage.createReportTable(reportedDate, reportedTime, reporterName, codeLabel.getText(), getIncident().getLocation().toString());
+		htmlPage.createResolvedTable(resolvedDate, resolvedTime, resolvedIn);
+		htmlPage.createRespondentsTable(respondents);
+		htmlPage.createDesc(getIncident().getDescription());
+		htmlPage.createPage(getIncident().getType().toString(), getIncident().getID());
+	}
 
 	private void updateButtonState()
 	{
@@ -504,36 +493,24 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 
 
 	@Override
-	public void incidentArchivedResponderAdded(Incident incident, User user) {
-		// TODO Auto-generated method stub
+	public void incidentArchivedResponderAdded(Incident incident, User user)
+	{
 		respondentsTableModel.addRow(new Object[] {user.getNameFull()});
 		respondents.add(user.getNameFull());
 	}
-
-	@Override
-	public void incidentSeverityChanged(Incident incident, int oldSeverity,
-			int newSeverity) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentCodeChanged(Incident incident, String oldCode,
-			String newCode) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void incidentReportingUserChanged(Incident incident, User oldUser,
-			User newUser) {
-		// TODO Auto-generated method stub
-	}
 	
-	@Override public void incidentDescriptionChanged(Incident incident) 
-	{ 
-
+	@Override
+	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser)
+	{
+		if (newUser == null)
+			return;
+		reporterTableModel.addRow(new Object[] {newUser.getNameFull()});
+		reporterName = newUser.getNameFull();
 	}
+
+	@Override public void incidentSeverityChanged(Incident incident, int oldSeverity, int newSeverity) { }
+	@Override public void incidentCodeChanged(Incident incident, String oldCode, String newCode) { }
+	@Override public void incidentDescriptionChanged(Incident incident) { }
 }
 
 

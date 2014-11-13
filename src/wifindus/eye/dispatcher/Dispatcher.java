@@ -361,21 +361,7 @@ public class Dispatcher extends EyeApplication
 		archivedIncidentPanels.put(Integer.valueOf(incident.getID()), archivedPanel);
 		archivedIncidentPanel.add(archivedPanel);
 		
-		if(incident.getReportingUser() != null)
-			archivedIncidentPanels.get(Integer.valueOf(incident.getID())).setReportingUserText(incident.getReportingUser().getNameFull());
-		
-		archivedIncidentPanels.get(Integer.valueOf(incident.getID())).saveReport(incident);
-		
 		archivedIncidentPanel.revalidate();
-	}
-	
-	
-	@Override
-	public void incidentReportingUserChanged(Incident incident, User oldUser, User newUser)
-	{
-		super.incidentReportingUserChanged(incident, oldUser, newUser);
-		if(incident.isArchived() && newUser.getNameFull()!= null)
-			archivedIncidentPanels.get(Integer.valueOf(incident.getID())).setReportingUserText(newUser.getNameFull());
 	}
 	
 	@Override
@@ -411,8 +397,8 @@ public class Dispatcher extends EyeApplication
 	}
 	
 	@Override
-	public void deviceSelectionChanged(Device device) {
-		// TODO Auto-generated method stub
+	public void deviceSelectionChanged(Device device)
+	{
 		super.deviceSelectionChanged(device);
 	}
 	
