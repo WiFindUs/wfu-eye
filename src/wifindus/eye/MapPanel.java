@@ -17,6 +17,7 @@ import java.awt.event.MouseWheelListener;
 
 import javax.swing.JPanel;
 
+import wifindus.Debugger;
 import wifindus.HighResolutionTimerListener;
 import wifindus.MathHelper;
 import wifindus.ResourcePool;
@@ -47,6 +48,7 @@ public class MapPanel extends JPanel
 	private boolean mouseDownLeft = false;
 	private boolean mouseDownMiddle = false;
 	private Point mouseLocation = new Point(), radialMenuLocation = new Point();
+	private Location mouseLocationGPS = null;
 	private int radialMenuRadius = 0;
 	private RadialMenuItem[] radialMenuItems = new RadialMenuItem[RADIAL_MENU_ITEM_COUNT];
 	private RadialMenuItem mouseOverItem = null;
@@ -130,7 +132,11 @@ public class MapPanel extends JPanel
 	{
 		updateMouseLocation(e);
 		if (e.getButton() == MouseEvent.BUTTON1)
+		{
 			mouseDownLeft = true;
+			if (mouseLocationGPS != null)
+			Debugger.v(mouseLocationGPS.toNumericString());
+		}
 		else if (e.getButton() == MouseEvent.BUTTON2)
 		{
 			EyeApplication.get().addTimerListener(this);
@@ -272,8 +278,8 @@ public class MapPanel extends JPanel
     			g.drawLine(0, mouseLocation.y, getWidth(), mouseLocation.y);
     			g.drawLine(mouseLocation.x, 0, mouseLocation.x, getHeight());
     			
-    			//Rectangle2D.Double pos = new Rectangle2D.Double(mouseLocation.x/getWidth(), mouseLocation.y/getHeight());
-    			MapRenderer.paintMarkerText((Graphics2D)g, getWidth()/2, getHeight()-20, renderer.screenToLocation(this, mouseLocation).toShortString());
+    			if (mouseLocationGPS != null)
+    				MapRenderer.paintMarkerText((Graphics2D)g, getWidth()/2, getHeight()-20, mouseLocationGPS.toShortString());
     			
     		}
     	}
@@ -283,6 +289,7 @@ public class MapPanel extends JPanel
 	{
 		mouseLocation.x = e.getX();
 		mouseLocation.y = e.getY();
+		mouseLocationGPS = renderer.screenToLocation(this, mouseLocation);
 		
 		if (mouseDownMiddle && radialMenuInterp >= 1.0)
 		{
