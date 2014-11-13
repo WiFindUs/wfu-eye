@@ -26,72 +26,64 @@ public class ArchivedIncidentPage {
 	}
 	
 	public void createReportTable(String dateCreated, String timeCreated, String reporter, String emergencyCode, String location) {
-		String[] coordinates = location.split(" ");
 		
-		String coordinateHtml1 = coordinates[0].substring(0, coordinates[0].indexOf("°"));
-		coordinateHtml1 = coordinateHtml1+"&deg;"+coordinates[0].substring(coordinates[0].indexOf("°") + 1);
-		
-		String coordinateHtml2 = coordinates[1].substring(0, coordinates[1].indexOf("°"));
-		coordinateHtml2 = coordinateHtml2+"&deg;"+coordinates[1].substring(coordinates[1].indexOf("°") + 1);
-		
-		location = coordinateHtml1 + ", " + coordinateHtml2;
-
-		reportTable = "<table id=\"report\">"
-							+"<tr>"
-								+"<th colspan=\"2\">Report</th>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Date</th>"
-								+"<td>"+dateCreated+"</td>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Time</th>"
-								+"<td>"+timeCreated+"</td>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>By</th>"
-								+"<td>"+reporter+"</td>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Code</th>"
-								+"<td>"+emergencyCode+"</td>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Location</th>"
-								+"<td>"+location+"</td>"
-							+"</tr>"
-						+"</table> ";		
+		location = location.replaceAll("°", "&deg;").replaceFirst(" ", ", ");
+		reportTable = "<table id=\"report\">\n"
+							+"<tr>\n"
+								+"<th colspan=\"2\">Report</th>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Date</th>\n"
+								+"<td>"+dateCreated+"</td>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Time</th>\n"
+								+"<td>"+timeCreated+"</td>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>By</th>\n"
+								+"<td>"+reporter+"</td>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Code</th>\n"
+								+"<td>"+emergencyCode+"</td>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Location</th>\n"
+								+"<td>"+location+"</td>\n"
+							+"</tr>\n"
+						+"</table>\n";		
 	}
 	
 	public void createResolvedTable(String dateResolved, String timeResolved, String[] resolvedIn) {
-		resolvedTable = "<table id=\"resolved\">"
-							+"<tr>"
-								+"<th colspan=\"4\">Resolved</th>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Date</th>"
-								+"<td colspan=\"3\">"+dateResolved+"</td>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Time</th>"
-								+"<td colspan=\"3\">"+timeResolved+"</td>"
-							+"</tr>"
-							+"<tr>"
-								+"<th colspan=\"4\">Resolved In</th>"
-							+"</tr>"
-							+"<tr>"
-								+"<th>Days</th>"
-								+"<th>Hours</th>"
-								+"<th>Minutes</th>"
-								+"<th>Seconds</th>"
-							+"</tr>"
-							+"<tr>"
-								+"<td>"+resolvedIn[0]+"</td>"
-								+"<td>"+resolvedIn[1]+"</td>"
-								+"<td>"+resolvedIn[2]+"</td>"
-								+"<td>"+resolvedIn[3]+"</td>"
-							+"</tr>"
-						+"</table> ";
+		resolvedTable = "<table id=\"resolved\">\n"
+							+"<tr>\n"
+								+"<th colspan=\"4\">Resolved</th>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Date</th>\n"
+								+"<td colspan=\"3\">"+dateResolved+"</td>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Time</th>\n"
+								+"<td colspan=\"3\">"+timeResolved+"</td>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th colspan=\"4\">Resolved In</th>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<th>Days</th>\n"
+								+"<th>Hours</th>\n"
+								+"<th>Minutes</th>\n"
+								+"<th>Seconds</th>\n"
+							+"</tr>\n"
+							+"<tr>\n"
+								+"<td>"+resolvedIn[0]+"</td>\n"
+								+"<td>"+resolvedIn[1]+"</td>\n"
+								+"<td>"+resolvedIn[2]+"</td>\n"
+								+"<td>"+resolvedIn[3]+"</td>\n"
+							+"</tr>\n"
+						+"</table>\n";
 	}
 	
 	public void createRespondentsTable(List<String> respondents) {
@@ -99,23 +91,23 @@ public class ArchivedIncidentPage {
 		for(int i=0; i<respondents.size(); i++)
 		{
 			respondentsRows= respondentsRows
-							+"<tr>"
-								+"<td>"+respondents.get(i)+"</td>"
-							+"</tr>";
+							+"<tr>\n"
+								+"<td>"+respondents.get(i)+"</td>\n"
+							+"</tr>\n";
 		}
 		
-		respondentsTable = "<table id=\"respondents\">"
-							+"<tr>"
-								+"<th>Respondents</th>"
-							+"</tr>"
+		respondentsTable = "<table id=\"respondents\">\n"
+							+"<tr>\n"
+								+"<th>Respondents</th>\n"
+							+"</tr>\n"
 							+respondentsRows
-						+"</table>";
+						+"</table>\n";
 	}
 	
 	public void createDesc(String incidentDesc) {
-		descDiv ="<div class=\"desc\">"
-							+"<p>"+incidentDesc+"</p>"
-						+"</div>";
+		descDiv ="<div class=\"desc\">\n"
+							+"<p>"+incidentDesc+"</p>\n"
+						+"</div>\n";
 	}
 	
 	public void createPage(String incidentType, int incidentID) {
@@ -130,40 +122,41 @@ public class ArchivedIncidentPage {
 		}
 		
 		
-		htmlCode = "<html>"
-								+"<head>"
-									+"<link rel=\"stylesheet\" href=\"css/styles.css\">"
-									+"<script type=\"text/javascript\" src=\"js/script.js\"></script>"
-								+"</head>"
+		htmlCode = "<html>\n"
+								+"<head>\n"
+									+"<link rel=\"stylesheet\" href=\"css/styles.css\">\n"
+									+"<script type=\"text/javascript\" src=\"js/script.js\"></script>\n"
+								+"</head>\n"
 								
-								+"<body onload=\"getIncidents()\">"
-									+"<div class=\"header\">"
-										+"<img id=\"logo\" src=\"../images/wfu_logo.png\"/>"
+								+"<body onload=\"getIncidents()\">\n"
+									+"<div class=\"header\">\n"
+										+"<img id=\"logo\" src=\"../images/wfu_logo.png\"/>\n"
 										
-										+"<ul class=\"selectIncident\">"
-											+"<li>Incident Number:</li>"
-											+"<li>"
-												+"<select id=\"incidents\" onchange=\"changeIncident()\">"
-													+"<option value=\"\"></option>"
-												+"</select>"
-											+"</li>"
-										+"</ul>"
-									+"</div>"
+										+"<ul class=\"selectIncident\">\n"
+											+"<li>Incident Number:</li>\n"
+											+"<li>\n"
+												+"<select id=\"incidents\" onchange=\"changeIncident()\">\n"
+													+"<option value=\"\"></option>\n"
+												+"</select>\n"
+											+"</li>\n"
+										+"</ul>\n"
+									+"</div>\n"
 									
-									+"<ul class=\"incident\">"
-										+"<li><img id=\"incidentType\" src=\"../images/"+iconPath+"\"/></li><li id=\"incidentID\">Incident #"+incidentID+"</li>"
-									+"</ul>"
+									+"<ul class=\"incident\">\n"
+										+"<li><img id=\"incidentType\" src=\"../images/"+iconPath+"\"/></li>\n"
+										+ "<li id=\"incidentID\">Incident #"+incidentID+"</li>\n"
+									+"</ul>\n"
 										
-									+"<div class=\"tables\">"
+									+"<div class=\"tables\">\n"
 										+reportTable
 										+resolvedTable
 										+respondentsTable
-									+"</div>"
+									+"</div>\n"
 									
 									+descDiv
 									
-								+"</body>"
-							+"</html>";
+								+"</body>\n"
+							+"</html>\n";
 		writeFile();
 		getIncidentList();
 		updateScript();
@@ -231,15 +224,15 @@ public class ArchivedIncidentPage {
 	}
 	
 	public void updateScript() {
-		String getIncident = "function getIncidents(){"
-								+"var selectOptions = \"\";"
-								+"for(var i=0; i<incident.length; i++)"
-								+"{selectOptions = selectOptions + \"<option value=\"+incident[i]+\">\"+incident[i]+\"</option>\";}"
-								+"document.getElementById(\"incidents\").innerHTML = selectOptions;}";
+		String getIncident = "function getIncidents(){\n"
+								+"var selectOptions = \"\";\n"
+								+"for(var i=0; i<incident.length; i++)\n"
+								+"{selectOptions = selectOptions + \"<option value=\"+incident[i]+\">\"+incident[i]+\"</option>\";}\n"
+								+"document.getElementById(\"incidents\").innerHTML = selectOptions;}\n";
 		
-		String changeIncident = "function changeIncident(){"
-									+"var incidentNum = document.getElementById(\"incidents\").value;"
-									+"window.location = \"incident_\"+incidentNum+\".html\";}";
+		String changeIncident = "function changeIncident(){\n"
+									+"var incidentNum = document.getElementById(\"incidents\").value;\n"
+									+"window.location = \"incident_\"+incidentNum+\".html\";}\n";
 		
 	    
 	    String filePath = "reports/js/script.js";
