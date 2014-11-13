@@ -26,6 +26,7 @@ public class DebuggerPanel extends JScrollPane implements DebuggerEventListener
 	{
 		super(new JTextPane());
 		textPane = (JTextPane)this.getViewport().getView();
+		textPane.setEditable(false);
 		textDocument = textPane.getStyledDocument();
 		textPane.setBackground(Color.BLACK);
 		((DefaultCaret)textPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
