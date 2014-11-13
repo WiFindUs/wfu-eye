@@ -302,6 +302,8 @@ public class Server extends EyeApplication
 		}
 	};
 	
+	@Override public void deviceSelectionChanged(Device device) { }
+	
 	/////////////////////////////////////////////////////////////////////
 	// MAIN - DO NOT MODIFY
 	/////////////////////////////////////////////////////////////////////
@@ -319,11 +321,5 @@ public class Server extends EyeApplication
 		    	.setTitle("WiFindUs Server");
 		    }
 		});
-	}
-
-	@Override
-	public void deviceSelectionChanged(Device device) {
-		// TODO Auto-generated method stub
-		
 	}
 }

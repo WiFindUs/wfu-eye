@@ -31,12 +31,11 @@ import wifindus.ResourcePool;
 import wifindus.eye.Device;
 import wifindus.eye.EyeApplication;
 import wifindus.eye.Incident;
-import wifindus.eye.IncidentEventListener;
 import wifindus.eye.Location;
 import wifindus.eye.MapFrame;
 import wifindus.eye.User;
 
-public class IncidentPanel extends IncidentParentPanel implements IncidentEventListener, ActionListener, HighResolutionTimerListener
+public class IncidentPanel extends IncidentParentPanel implements ActionListener, HighResolutionTimerListener
 {
 	private static final long serialVersionUID = -7397843910420550797L;
 	private transient JLabel idLabel, onTaskLabel, descriptionLabel, incidentIconLabel, incidentTime;
@@ -368,7 +367,6 @@ public class IncidentPanel extends IncidentParentPanel implements IncidentEventL
 		layout.setVerticalGroup(vertical);
 
 		//eye listeners
-		incident.addEventListener(this);
 		if (!incident.isArchived())
 			EyeApplication.get().addTimerListener(this);
 	}

@@ -186,55 +186,35 @@ public class ColourCodeFrame extends JFrame implements ActionListener, WindowFoc
 		
 		
 	}
-	@Override
-	public void windowGainedFocus(WindowEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void windowLostFocus(WindowEvent arg0) {
-		// TODO Auto-generated method stub
+	@Override public void windowGainedFocus(WindowEvent arg0) { }
+	
+	@Override 
+	public void windowLostFocus(WindowEvent arg0)
+	{
 		dispose();
 	}
+	
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
+	public void actionPerformed(ActionEvent e)
+	{
 		if (e.getSource() == redBtn)
-		{
 			incidentPanel.setCode("Red", red);
-		}
-		if (e.getSource() == orangeBtn)
-		{
+		else if (e.getSource() == orangeBtn)
 			incidentPanel.setCode("Orange", orange);
-		}
-		if (e.getSource() == blueBtn)
-		{
+		else if (e.getSource() == blueBtn)
 			incidentPanel.setCode("Blue", blue);
-		}
-		if (e.getSource() == yellowBtn)
-		{
+		else if (e.getSource() == yellowBtn)
 			incidentPanel.setCode("Yellow", yellow);
-		}
-		if (e.getSource() == brownBtn)
-		{
+		else if (e.getSource() == brownBtn)
 			incidentPanel.setCode("Brown", brown);
-		}
-		if (e.getSource() == purpleBtn)
-		{
+		else if (e.getSource() == purpleBtn)
 			incidentPanel.setCode("Purple", purple);
-		}
-		if (e.getSource() == blackBtn)
-		{
+		else if (e.getSource() == blackBtn)
 			incidentPanel.setCode("Black", black);
-		}
-		if (e.getSource() == greenBtn)
-		{
+		else if (e.getSource() == greenBtn)
 			incidentPanel.setCode("Green", green);
-		}
-		if (e.getSource() == greyBtn)
-		{
+		else if (e.getSource() == greyBtn)
 			incidentPanel.setCode("Grey", grey);
-		}
 
 		dispose();
 	}

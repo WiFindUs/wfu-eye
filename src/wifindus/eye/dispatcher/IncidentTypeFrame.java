@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -128,8 +127,6 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 		
 	}
 	
-	
-
 	public String getIncidentType()
 	{
 		return type;
@@ -166,75 +163,26 @@ public class IncidentTypeFrame extends JFrame implements MouseListener, ActionLi
 	}
 	
 	
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		if(e.getSource() == medicalBtn)
-		{
-			medicalBtn.setBackground(hover);
-		}
-		else if(e.getSource() == securityBtn)
-		{
-			securityBtn.setBackground(hover);
-		}
-		else if(e.getSource() == wfuBtn)
-		{
-			wfuBtn.setBackground(hover);
-		}
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		if(e.getSource() == medicalBtn)
-		{
-			medicalBtn.setBackground(Color.WHITE);
-		}
-		else if(e.getSource() == securityBtn)
-		{
-			securityBtn.setBackground(Color.WHITE);
-		}
-		else if(e.getSource() == wfuBtn)
-		{
-			wfuBtn.setBackground(Color.WHITE);
-		}
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void windowFocusListener (FocusEvent e) 
-	{
+	@Override public void mouseClicked(MouseEvent e) { }
+	@Override public void mousePressed(MouseEvent arg0) { }
+	@Override public void mouseReleased(MouseEvent arg0) { }
+	@Override public void windowGainedFocus(WindowEvent  we) { }
 	
+	@Override
+	public void mouseEntered(MouseEvent e)
+	{
+		((JButton)e.getSource()).setBackground(hover);
 	}
 
 	@Override
-	public void windowGainedFocus(WindowEvent  we) {
-		// TODO Auto-generated method stub
+	public void mouseExited(MouseEvent e)
+	{
+		((JButton)e.getSource()).setBackground(Color.WHITE);
 	}
-
-
 
 	@Override
 	public void windowLostFocus(WindowEvent  we) 
 	{
-		// TODO Auto-generated method stub
 		Dispatcher.get().setEnabled(true);  
 		dispose();
 	}

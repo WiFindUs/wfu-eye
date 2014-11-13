@@ -1030,9 +1030,5 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
     		repaintClients();
     }
 
-	@Override
-	public void deviceSelectionChanged(Device device) {
-		// TODO Auto-generated method stub
-		
-	}
+	@Override public void deviceSelectionChanged(Device device) { }
 }
