@@ -474,6 +474,16 @@ public class ArchivedIncidentPanel extends IncidentParentPanel implements
 		reporterTableModel.addRow(new Object[] {user});
 		reporterName = user;
 	}
+	
+	public void saveReport(Incident incident)
+	{
+		ArchivedIncidentPage htmlPage = new ArchivedIncidentPage();
+		htmlPage.createReportTable(reportedDate, reportedTime, reporterName, codeLabel.getText(), incident.getLocation().toString());
+		htmlPage.createResolvedTable(resolvedDate, resolvedTime, resolvedIn);
+		htmlPage.createRespondentsTable(respondents);
+		htmlPage.createDesc(incident.getDescription());
+		htmlPage.createPage(incident.getType().toString(), incident.getID());
+	}
 
 	// ///////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
