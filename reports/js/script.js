@@ -1,3 +1,3 @@
-var incident = new Array("" ,"1","2","3","39");
+var incident = new Array("" ,"1","2","3","4","5","6","7","8","9","12","13","39");
 function getIncidents(){var selectOptions = "";for(var i=0; i<incident.length; i++){selectOptions = selectOptions + "<option value="+incident[i]+">"+incident[i]+"</option>";}document.getElementById("incidents").innerHTML = selectOptions;}
 function changeIncident(){var incidentNum = document.getElementById("incidents").value;window.location = "incident_"+incidentNum+".html";}
