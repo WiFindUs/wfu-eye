@@ -152,7 +152,10 @@ public class Dispatcher extends EyeApplication
         securityFilterButton.addItemListener(filterButtonListener);
         techFilterButton.addItemListener(filterButtonListener);
         
+        unusedFilterButton.setSelected(true);
         medicalFilterButton.setSelected(true);
+        securityFilterButton.setSelected(true);
+        techFilterButton.setSelected(true);
         
 		// search
         JLabel searchLabel = new JLabel("Search:");
