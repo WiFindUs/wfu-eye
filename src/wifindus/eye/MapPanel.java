@@ -119,6 +119,8 @@ public class MapPanel extends JPanel
 	
 	public void setRenderer(MapRenderer renderer)
 	{
+		if (renderer == this.renderer)
+			return;
 		if (renderer == null)
 			throw new NullPointerException("Parameter 'renderer' cannot be null.");
 		if (this.renderer != null)
