@@ -221,6 +221,16 @@ public class Location implements Serializable
 	}
 	
 	/**
+	 * Gets a short lat/long only representation of this Location.
+	 * @return A string object of the format +-0.00000, +-0.000000
+	 */
+	public String toNumericString()
+	{
+		return FORMAT.format(latitude == null ? 0 : latitude) + ", "
+				+ FORMAT.format(longitude == null ? 0 : longitude);
+	}
+	
+	/**
 	 * Returns the horizontal (spherical) distance between two GPS coordinates, according to the haversine formula.
 	 * @param other The point to measure to, starting from the current one.
 	 * @return Distance 'as the crow flies' between the two points, in <strong>meters</strong>.
