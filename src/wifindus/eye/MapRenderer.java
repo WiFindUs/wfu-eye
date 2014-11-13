@@ -782,8 +782,8 @@ public class MapRenderer implements EyeApplicationListener, NodeEventListener,
 	public Location screenToLocation(JComponent client, double left, double top)
 	{
 		ClientSettings settings = getSettings(client);
-		return new Location(settings.clientAreaGPS.getNorthWest().getLatitude() + settings.clientAreaGPS.getHeight() * (top/client.getHeight()),
-				settings.clientAreaGPS.getNorthWest().getLongitude() + settings.clientAreaGPS.getWidth() * (left/client.getWidth())
+		return new Location(settings.clientAreaGPS.getNorthWest().getLatitude() - settings.clientAreaGPS.getHeight() * (top/settings.clientArea.height),
+				settings.clientAreaGPS.getNorthWest().getLongitude() + settings.clientAreaGPS.getWidth() * (left/settings.clientArea.width)
 				);
 	}
 	
