@@ -31,7 +31,7 @@ public class ConfigFile implements Serializable
 {
 	private static final long serialVersionUID = -1878576970458542468L;
 	private transient static final Pattern PATTERN_KEY = Pattern.compile( "[a-zA-Z0-9_\\-.]+(?:\\[[ \t]*\\])?" );
-	private transient static final Pattern PATTERN_COMMENT = Pattern.compile( "//.*$" );
+	private transient static final Pattern PATTERN_COMMENT = Pattern.compile( "//.*$|/[*].*[*]/" );
 	private transient static final Pattern PATTERN_CONFIG_KVP
 		= Pattern.compile( "^("+ PATTERN_KEY.pattern() +")[ \t]*[:=][ \t]*(.+)$");
 	
